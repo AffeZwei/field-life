@@ -1,0 +1,1081 @@
+<title>Field Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#E9EAF0; --panel:#FFFFFF; --panel2:#F2F3F8; --ink:#14151C; --ink2:#5B5D6E;
+  --line:#D5D7E1; --line2:#E4E6EE; --accent:#3D46B8; --focus:#5468FF;
+  --screen:#06070B; --pos:#D93F33; --neg:#3B63D6;
+  --shadow:0 1px 2px rgba(20,21,28,.06), 0 8px 24px rgba(20,21,28,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0D12; --panel:#14161D; --panel2:#191B23; --ink:#E7E8EF; --ink2:#9698AA;
+    --line:#272A35; --line2:#1F212A; --accent:#8E96FF; --focus:#8E96FF;
+    --screen:#06070B; --pos:#F0685B; --neg:#6E8DFF;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0D12; --panel:#14161D; --panel2:#191B23; --ink:#E7E8EF; --ink2:#9698AA;
+  --line:#272A35; --line2:#1F212A; --accent:#8E96FF; --focus:#8E96FF;
+  --screen:#06070B; --pos:#F0685B; --neg:#6E8DFF;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1240px; margin:0 auto; padding:22px 20px 40px; display:flex; flex-direction:column; gap:16px}
+
+header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+h1{
+  font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
+  font-size:clamp(22px,3vw,30px); letter-spacing:-.02em; margin:0; text-wrap:balance;
+}
+.tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
+.tag b{color:var(--ink); font-weight:500}
+
+.app{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start}
+@media (max-width:900px){ .app{grid-template-columns:minmax(0,1fr)} }
+
+.stage{
+  background:var(--screen); border:1px solid var(--line); border-radius:6px;
+  box-shadow:var(--shadow); overflow:hidden; position:relative; aspect-ratio:1/1;
+}
+.stage canvas{display:block; width:100%; height:100%; image-rendering:auto}
+.hud{
+  position:absolute; left:10px; bottom:10px; display:flex; gap:12px;
+  font-size:11px; color:#8b8fa3; letter-spacing:.04em; pointer-events:none;
+  font-variant-numeric:tabular-nums;
+}
+.hud b{color:#d9dbe6; font-weight:500}
+#gl-error{
+  position:absolute; inset:0; display:none; place-items:center; padding:24px; text-align:center;
+  color:#d9dbe6; font-size:13px; line-height:1.6;
+}
+
+.rail{display:flex; flex-direction:column; gap:12px; min-width:0}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:13px 13px 15px; box-shadow:var(--shadow)}
+.card h2{
+  font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.14em; color:var(--ink2); margin:0 0 11px;
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+}
+.card h2 span{font-family:"IBM Plex Mono",monospace; letter-spacing:.04em; text-transform:none; color:var(--ink2)}
+
+.row{display:flex; align-items:center; gap:8px; margin-bottom:9px}
+.row:last-child{margin-bottom:0}
+label.lab{flex:0 0 88px; color:var(--ink2); font-size:11px; letter-spacing:.06em; text-transform:uppercase}
+.val{flex:0 0 46px; text-align:right; font-variant-numeric:tabular-nums; font-size:12px; font-weight:500}
+
+input[type=range]{ -webkit-appearance:none; appearance:none; flex:1 1 auto; height:18px; background:transparent; cursor:pointer; min-width:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px; background:var(--line); border-radius:2px}
+input[type=range]::-moz-range-track{height:2px; background:var(--line); border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:12px; height:12px; margin-top:-5px; border-radius:50%; background:var(--accent); border:2px solid var(--panel)}
+input[type=range]::-moz-range-thumb{width:12px; height:12px; border:2px solid var(--panel); border-radius:50%; background:var(--accent)}
+input[type=range]:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:3px}
+
+select, input[type=number]{
+  font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
+  border:1px solid var(--line); border-radius:4px; padding:4px 6px; flex:1 1 auto; min-width:0;
+}
+select:focus-visible, input:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+
+.btns{display:flex; gap:6px; flex-wrap:wrap}
+button{
+  font:inherit; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink); background:var(--panel2); border:1px solid var(--line);
+  border-radius:4px; padding:6px 9px; cursor:pointer; flex:1 1 auto;
+  transition:background .12s ease, border-color .12s ease, color .12s ease;
+}
+button:hover{background:var(--bg); border-color:var(--ink2)}
+button:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+:root[data-theme="dark"] button.primary, :root:not([data-theme="light"]) button.primary{color:#0C0D12}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) button.primary{color:#fff} }
+button.primary:hover{filter:brightness(1.08)}
+
+/* matrix editor */
+.mx{display:grid; gap:2px; user-select:none; touch-action:none}
+.mx .hdr{display:flex; align-items:center; justify-content:center}
+.chip{width:14px; height:14px; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.cell{
+  position:relative; aspect-ratio:1/1; border-radius:3px; cursor:ns-resize;
+  display:grid; place-items:center; font-size:9px; font-variant-numeric:tabular-nums;
+  color:var(--ink); background:var(--panel2); border:1px solid var(--line2);
+}
+.cell:hover{border-color:var(--ink2)}
+.cell:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+.mxnote{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:9px; line-height:1.5}
+
+.bars{display:flex; flex-direction:column; gap:5px; margin-top:2px}
+.bar{display:flex; align-items:center; gap:7px}
+.bar .track{flex:1 1 auto; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; border:1px solid var(--line2)}
+.bar .fill{height:100%; width:0%}
+.bar .num{flex:0 0 52px; text-align:right; font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink2)}
+
+.note{
+  font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:13.5px; line-height:1.65;
+  color:var(--ink2); max-width:68ch;
+}
+.note b{color:var(--ink); font-weight:500}
+.note code{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink)}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Field Life</h1>
+    <div class="tag">particle life as a <b>continuous field</b> &mdash; mass-conserving (MaCE) on WebGL2</div>
+  </header>
+
+  <div class="app">
+    <div class="stage">
+      <canvas id="cv"></canvas>
+      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span></div>
+      <div id="gl-error"></div>
+    </div>
+
+    <div class="rail">
+
+      <div class="card">
+        <h2>World <span id="wsize">256 &times; 256</span></h2>
+        <div class="row"><label class="lab" for="grid">Grid</label><select id="grid">
+          <option>128</option><option selected>256</option><option>384</option><option>512</option><option>768</option>
+        </select></div>
+        <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" type="range" min="2" max="8" step="1" value="6"><span class="val" id="chanv">6</span></div>
+        <div class="row"><label class="lab" for="dens">Density</label><input id="dens" type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
+        <div class="btns" style="margin-top:11px">
+          <button id="play" class="primary">Pause</button>
+          <button id="reseed">Reseed</button>
+          <button id="disc">Center disc</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Interaction matrix <span id="seedlab">#0</span></h2>
+        <div id="mx" class="mx"></div>
+        <div class="btns" style="margin-top:11px">
+          <button id="resample" class="primary">Resample</button>
+          <button id="symm">Symmetrize</button>
+          <button id="zero">Zero</button>
+        </div>
+        <p class="mxnote">Row = who feels, column = about whom. Drag a cell up/down to edit, double-click to zero. Asymmetry is what makes one color chase another.</p>
+      </div>
+
+      <div class="card">
+        <h2>Interaction radius <span id="banklab">1 blur level</span></h2>
+        <div id="rx" class="mx"></div>
+        <div class="btns" style="margin-top:11px">
+          <button id="rresample" class="primary">Resample</button>
+          <button id="rflat">Flatten</button>
+        </div>
+        <p class="mxnote">How far each pair reaches, in pixels. Cells step through five stops interpolating from <b>Rad min</b> to <b>Rad max</b>; move either slider and the whole matrix rescales. Only the distinct stops in use cost GPU work &mdash; a flat matrix is as cheap as a single radius. The crowding term uses the shortest reach in play.</p>
+      </div>
+
+      <div class="card">
+        <h2>Physics</h2>
+        <div class="row"><label class="lab" for="radmin">Rad min</label><input id="radmin" type="range" min="2" max="256" step="1" value="4"><span class="val" id="radminv">4</span></div>
+        <div class="row"><label class="lab" for="radmax">Rad max</label><input id="radmax" type="range" min="2" max="256" step="1" value="12"><span class="val" id="radmaxv">12</span></div>
+        <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="60" step="0.5" value="18"><span class="val" id="forcev">18</span></div>
+        <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" type="range" min="0" max="20" step="0.25" value="6"><span class="val" id="repelv">6</span></div>
+        <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
+        <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
+        <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+        <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Mass per color <span id="conserv">exact</span></h2>
+        <div class="bars" id="bars"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="note">
+    Every color is a <b>density field</b> on the grid instead of a swarm of dots. Each step, each field is blurred at two
+    radii; the difference of the two blurs is a ring-shaped neighbourhood integral &mdash; the field version of
+    &ldquo;how much of that color sits about <code>R</code> away from here.&rdquo; Those rings are mixed by the interaction
+    matrix into one <b>affinity</b> map per color, minus a short-range term that makes everything crowd-shy. Then
+    <b>MaCE</b> moves the mass: every cell hands its own mass to its 9 neighbours in proportion to
+    <code>exp(&beta;&middot;affinity)</code>, so nothing is ever created or destroyed &mdash; the totals on the left stay put
+    forever, and the patterns can neither explode nor die out.
+  </p>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const cv = $("cv");
+const gl = cv.getContext("webgl2", {antialias:false, alpha:false, preserveDrawingBuffer:false});
+
+function fatal(msg){
+  const e = $("gl-error"); e.style.display = "grid"; e.textContent = msg;
+}
+if(!gl){ fatal("This page needs WebGL2, which this browser did not provide."); }
+const extF = gl && gl.getExtension("EXT_color_buffer_float");
+if(gl && !extF){ fatal("This GPU cannot render to 32-bit float textures (EXT_color_buffer_float), which the simulation needs."); }
+
+/* ---------------------------------------------------------------- shaders */
+const VS = `#version 300 es
+in vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
+
+const HEAD = `#version 300 es
+precision highp float; precision highp int; precision highp sampler2D;
+uniform int uN;   // grid side
+uniform int uL;   // number of RGBA layers packed side by side in the atlas
+// Toroidal wrap. NOTE: integer % with a negative operand is UNDEFINED in
+// GLSL ES 3.00, so this must go through float mod() -- using % here breaks the
+// wrap on row/column 0, which makes neighbourhoods asymmetric and creates mass.
+int wrapi(int v, int n){ return int(mod(float(v), float(n))); }
+`;
+
+/* horizontal pass: two gaussians at once, near -> target0, far -> target1 */
+// The two 1-D weight sets. A 2-D Gaussian is the one shape that is both
+// separable and radially symmetric, so two 1-D passes rebuild a perfectly
+// circular kernel -- provided we do not chop it. Cutting at 2.7 sigma left a
+// hard step at 2.6% of peak around a SQUARE window, which showed up as faint
+// axis-aligned structure. So: cut at 4 sigma and slide the tail down so the
+// weights reach exactly zero at the rim, like a feathered brush.
+const KERNEL = `
+float kw(float d, float sig, float rad){
+  float e = exp(-0.5*d*d/(sig*sig)) - exp(-0.5*rad*rad/(sig*sig));
+  return max(e, 0.0);
+}
+`;
+
+const FS_BLURH = HEAD + KERNEL + `
+uniform sampler2D uSrc; uniform float uSigA, uSigB; uniform int uRad;
+uniform int uNsrc, uNm;                          // source tile stride, working grid size
+layout(location=0) out vec4 oA;
+layout(location=1) out vec4 oB;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uNm, lx = p.x - tile*uNm;     // scratch is packed at the mip's stride
+  int sy = p.y;
+  float rad = float(uRad);
+  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
+  for(int i = -uRad; i <= uRad; i++){
+    vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+i, uNm), sy), 0);
+    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
+    sa += v*ka; sb += v*kb; wa += ka; wb += kb;
+  }
+  oA = sa/wa; oB = sb/wb;
+}`;
+
+const FS_BLURV = HEAD + KERNEL + `
+uniform sampler2D uA, uB; uniform float uSigA, uSigB; uniform int uRad; uniform int uNm;
+layout(location=0) out vec4 oA;
+layout(location=1) out vec4 oB;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int ly = p.y;
+  float rad = float(uRad);
+  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
+  for(int i = -uRad; i <= uRad; i++){
+    int sy = wrapi(ly + i, uNm);
+    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
+    sa += texelFetch(uA, ivec2(p.x, sy), 0)*ka;
+    sb += texelFetch(uB, ivec2(p.x, sy), 0)*kb;
+    wa += ka; wb += kb;
+  }
+  oA = sa/wa; oB = sb/wb;
+}`;
+
+/* affinity: mix every color's ring through the interaction matrix */
+// Each (feeling color, felt color) pair reads its ring from its own slice of
+// the blur bank, so every pair can have its own interaction radius.
+const FS_AFF = HEAD + `
+uniform sampler2D uNear, uFar, uMat, uSlots;
+uniform int uC, uBase; uniform float uForce, uRepel;
+out vec4 oA;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN, lx = p.x - tile*uN;
+  vec4 acc = vec4(0.0); float crowd = 0.0;
+  for(int l = 0; l < uL; l++){
+    crowd += dot(texelFetch(uNear, ivec2(l*uN + lx, uBase*uN + p.y), 0),
+                 vec4(l*4 + 0 < uC ? 1.0 : 0.0, l*4 + 1 < uC ? 1.0 : 0.0,
+                      l*4 + 2 < uC ? 1.0 : 0.0, l*4 + 3 < uC ? 1.0 : 0.0));
+    for(int k = 0; k < 4; k++){
+      int d = l*4 + k;
+      if(d >= uC) break;
+      for(int c = 0; c < 4; c++){
+        int cc = tile*4 + c;
+        if(cc >= uC) break;
+        int slot = int(texelFetch(uSlots, ivec2(d, cc), 0).r + 0.5);
+        ivec2 q = ivec2(l*uN + lx, slot*uN + p.y);
+        float ring = texelFetch(uFar, q, 0)[k] - texelFetch(uNear, q, 0)[k];
+        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * ring;
+      }
+    }
+  }
+  oA = acc*uForce - vec4(uRepel*crowd);
+}`;
+
+/* MaCE, part 1: e^(beta*A), optionally with noise shaken into the exponent.
+   MaCE conserves mass for ANY affinity field, so jittering the logits is free
+   of consequence for the totals -- each cell still hands out exactly what it
+   holds. What it buys is depinning: a soliton drifting at an odd angle has to
+   resample itself onto the lattice every step, which locks it to the 8 stencil
+   directions, and a little randomness lets it slip off those rails. */
+const FS_EXPA = HEAD + `
+uniform sampler2D uA; uniform float uBeta, uNoise; uniform int uFrame;
+out vec4 oE;
+uint hash(uint x){
+  x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16;
+  return x;
+}
+float rnd(ivec2 p, int k){
+  uint s = hash(uint(p.x) * 73856093u ^ hash(uint(p.y) * 19349663u
+             ^ hash(uint(uFrame) * 83492791u + uint(k))));
+  return float(s) * (2.0/4294967296.0) - 1.0;      // uniform in [-1, 1)
+}
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  vec4 a = uBeta*texelFetch(uA, p, 0);
+  if(uNoise > 0.0)
+    a += uNoise*vec4(rnd(p,0), rnd(p,1), rnd(p,2), rnd(p,3));
+  oE = exp(clamp(a, -60.0, 60.0));
+}`;
+
+/* MaCE, part 2: Z = 3x3 sum of E, and the share S = rho/Z each cell hands out */
+const FS_SHARE = HEAD + `
+uniform sampler2D uE, uRho;
+out vec4 oS;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN, lx = p.x - tile*uN;
+  vec4 Z = vec4(0.0);
+  for(int dy = -1; dy <= 1; dy++)
+    for(int dx = -1; dx <= 1; dx++)
+      Z += texelFetch(uE, ivec2(tile*uN + wrapi(lx+dx, uN), wrapi(p.y+dy, uN)), 0);
+  // Guard against 0/0 only. The floor must sit far below the smallest honest Z
+  // (nine exp(-60) terms ~ 8e-26) -- a higher floor silently deletes mass.
+  // No overflow is possible downstream: cell ij is inside its own neighbours'
+  // neighbourhoods, so Z >= E_ij there and E_ij * S <= rho by construction.
+  oS = texelFetch(uRho, p, 0) / max(Z, vec4(1e-32));
+}`;
+
+/* MaCE, part 3: collect what the 9 neighbours handed over */
+const FS_MOVE = HEAD + `
+uniform sampler2D uE, uS;
+out vec4 oR;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN, lx = p.x - tile*uN;
+  vec4 s = vec4(0.0);
+  for(int dy = -1; dy <= 1; dy++)
+    for(int dx = -1; dx <= 1; dx++)
+      s += texelFetch(uS, ivec2(tile*uN + wrapi(lx+dx, uN), wrapi(p.y+dy, uN)), 0);
+  oR = texelFetch(uE, p, 0) * s;
+}`;
+
+/* Pyramid step: halve the grid, averaging 2x2, staying inside each color tile.
+   A blur of sigma 60 costs the same as sigma 6 if you do it on a grid 8x
+   smaller and stretch the result back, which is what lets Rad max reach 256. */
+const FS_DOWN = HEAD + `
+uniform sampler2D uSrc; uniform int uNsrc, uNdst;
+out vec4 oD;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uNdst, lx = p.x - tile*uNdst;
+  ivec2 b = ivec2(tile*uNsrc + lx*2, p.y*2);
+  oD = 0.25*(texelFetch(uSrc, b, 0)               + texelFetch(uSrc, b + ivec2(1,0), 0)
+           + texelFetch(uSrc, b + ivec2(0,1), 0)  + texelFetch(uSrc, b + ivec2(1,1), 0));
+}`;
+
+/* Stretch a blurred mip back to full resolution, into this pair's bank slice. */
+const FS_UP = HEAD + `
+uniform sampler2D uA, uB; uniform int uNm, uSlot;
+layout(location=0) out vec4 oA;
+layout(location=1) out vec4 oB;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN, lx = p.x - tile*uN;
+  int ly = p.y - uSlot*uN;
+  float f = float(uN) / float(uNm);
+  vec2 g = (vec2(float(lx), float(ly)) + 0.5)/f - 0.5;
+  vec2 t = g - floor(g);
+  ivec2 i0 = ivec2(floor(g));
+  int x0 = tile*uN + wrapi(i0.x, uNm), x1 = tile*uN + wrapi(i0.x + 1, uNm);
+  int y0 = wrapi(i0.y, uNm), y1 = wrapi(i0.y + 1, uNm);
+  oA = mix(mix(texelFetch(uA, ivec2(x0,y0), 0), texelFetch(uA, ivec2(x1,y0), 0), t.x),
+           mix(texelFetch(uA, ivec2(x0,y1), 0), texelFetch(uA, ivec2(x1,y1), 0), t.x), t.y);
+  oB = mix(mix(texelFetch(uB, ivec2(x0,y0), 0), texelFetch(uB, ivec2(x1,y0), 0), t.x),
+           mix(texelFetch(uB, ivec2(x0,y1), 0), texelFetch(uB, ivec2(x1,y1), 0), t.x), t.y);
+}`;
+
+/* 4x4 box reduction, kept strictly inside each layer so colors never mix */
+const FS_REDUCE = `#version 300 es
+precision highp float; precision highp int; precision highp sampler2D;
+uniform sampler2D uSrc; uniform int uNsrc, uNdst;
+out vec4 oS;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uNdst, lx = p.x - tile*uNdst;
+  vec4 s = vec4(0.0);
+  for(int dy = 0; dy < 4; dy++){
+    int sy = p.y*4 + dy; if(sy >= uNsrc) break;
+    for(int dx = 0; dx < 4; dx++){
+      int sx = lx*4 + dx; if(sx >= uNsrc) break;
+      s += texelFetch(uSrc, ivec2(tile*uNsrc + sx, sy), 0);
+    }
+  }
+  oS = s;
+}`;
+
+const FS_DRAW = HEAD + `
+uniform sampler2D uRho; uniform vec3 uPal[16]; uniform int uC;
+uniform vec2 uRes; uniform float uExp;
+out vec4 oC;
+vec4 cell(int l, int ix, int iy){
+  return texelFetch(uRho, ivec2(l*uN + wrapi(ix, uN), wrapi(iy, uN)), 0);
+}
+void main(){
+  vec2 g = (gl_FragCoord.xy / uRes) * float(uN) - 0.5;
+  ivec2 i0 = ivec2(floor(g)); vec2 f = g - floor(g);
+  // hue comes from whichever color dominates the cell, brightness from the total
+  // mass sitting there -- straight addition would wash six channels out to grey.
+  vec3 hue = vec3(0.0); float wsum = 0.0, total = 0.0;
+  for(int l = 0; l < uL; l++){
+    vec4 v = mix(mix(cell(l,i0.x,i0.y),   cell(l,i0.x+1,i0.y),   f.x),
+                 mix(cell(l,i0.x,i0.y+1), cell(l,i0.x+1,i0.y+1), f.x), f.y);
+    for(int k = 0; k < 4; k++){
+      if(l*4 + k >= uC) break;
+      float m = max(v[k], 0.0);
+      float w = m*m;
+      total += m; wsum += w; hue += w*uPal[l*4 + k];
+    }
+  }
+  hue /= max(wsum, 1e-12);
+  float a = 1.0 - exp(-total*uExp);
+  oC = vec4(hue*a + vec3(0.020, 0.023, 0.033), 1.0);
+}`;
+
+/* ---------------------------------------------------------------- gl plumbing */
+function compile(type, src){
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) + "\n" + src);
+  return s;
+}
+function program(fs){
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, VS));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.bindAttribLocation(p, 0, "a");
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const loc = new Map();
+  return { p, u(name){ if(!loc.has(name)) loc.set(name, gl.getUniformLocation(p, name)); return loc.get(name); } };
+}
+
+let P = {}, fbo = null, quad = null;
+function initGL(){
+  quad = gl.createVertexArray();
+  gl.bindVertexArray(quad);
+  const b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  fbo = gl.createFramebuffer();
+  P.blurH  = program(FS_BLURH);
+  P.blurV  = program(FS_BLURV);
+  P.aff    = program(FS_AFF);
+  P.expa   = program(FS_EXPA);
+  P.share  = program(FS_SHARE);
+  P.move   = program(FS_MOVE);
+  P.down   = program(FS_DOWN);
+  P.up     = program(FS_UP);
+  P.reduce = program(FS_REDUCE);
+  P.draw   = program(FS_DRAW);
+}
+
+function makeTex(w, h){
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, w, h);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  t._w = w; t._h = h;
+  return t;
+}
+function targets(t0, t1, y0, h){
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t0, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, t1 || null, 0);
+  gl.drawBuffers(t1 ? [gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1] : [gl.COLOR_ATTACHMENT0]);
+  gl.viewport(0, y0 || 0, t0._w, h || t0._h);
+}
+function bindTex(prog, name, unit, tex){
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.uniform1i(prog.u(name), unit);
+}
+function drawQuad(){ gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  N: 256, C: 6, L: 2, density: 0.12,
+  radMin: 4, radMax: 12, force: 18, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
+  seed: 1, running: true, frame: 0, tick: 0
+};
+let T = {};            // simulation textures
+let matTex = null, mat = null, palette = [], reduceChain = [];
+let slotTex = null, radMat = null, slotOf = null, bankLevels = [], pyramid = [];
+
+// The blur bank. A pair's radius is one of RSTEPS stops interpolated from
+// Rad min to Rad max, so the two sliders set the range and the matrix picks
+// where in it each pair sits. Only stops the matrix actually uses get blurred,
+// so a flat matrix costs exactly what a single global radius used to.
+const RSTEPS = 5;
+const BASE_LEVEL = RSTEPS - 1;           // the crowding term always uses Rad max
+// Past about N/4.5 the kernel is wider than the world wraps, both Gaussians go
+// flat, and the ring vanishes -- so the slider's reach is capped by the grid.
+// Cells show the radius they actually get.
+const radiusCap = () => Math.max(3, Math.floor(S.N/4.5));
+const radiusOf = lv => Math.min(radiusCap(), S.radMin + (S.radMax - S.radMin)*(lv/(RSTEPS - 1)));
+
+function rebuildBank(){
+  bankLevels = [...new Set(radMat)].sort((a, b) => a - b);
+  slotOf = new Map(bankLevels.map((lv, i) => [lv, i]));
+  const slots = new Float32Array(S.C*S.C);
+  for(let i = 0; i < S.C*S.C; i++) slots[i] = slotOf.get(radMat[i]);
+  if(slotTex && slotTex._c !== S.C){ gl.deleteTexture(slotTex); slotTex = null; }
+  if(!slotTex){
+    slotTex = gl.createTexture(); slotTex._c = S.C;
+    gl.bindTexture(gl.TEXTURE_2D, slotTex);
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R32F, S.C, S.C);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  } else gl.bindTexture(gl.TEXTURE_2D, slotTex);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.C, S.C, gl.RED, gl.FLOAT, slots);
+  const n = bankLevels.length;
+  $("banklab").textContent = n + (n === 1 ? " blur level" : " blur levels") + " · cap " + radiusCap() + "px";
+  if(T.near && T.near._h !== S.N*n) allocBank();  // deeper/shallower bank, same world
+}
+
+// Only the blur bank changes size here. rho is left alone, so editing a radius
+// never restarts the simulation you are watching.
+function allocBank(){
+  const HB = S.N*Math.max(1, bankLevels.length);
+  for(const k of ["near","far"]){
+    if(T[k]) gl.deleteTexture(T[k]);
+    T[k] = makeTex(S.N*S.L, HB);
+  }
+}
+
+function resampleRadii(seed){
+  const r = mulberry32(seed >>> 0);
+  radMat = new Int32Array(S.C*S.C).map(() => Math.floor(r()*RSTEPS));
+  rebuildBank(); paintRadii();
+}
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Channel colors: a fully saturated hue rotation -- pure spectrum, nothing else.
+function makePalette(C){
+  const out = [];
+  for(let i = 0; i < C; i++){
+    const h = (i/C)*6;                       // position on the wheel, 0..6
+    const x = 1 - Math.abs(h % 2 - 1);
+    out.push([[1,x,0],[x,1,0],[0,1,x],[0,x,1],[x,0,1],[1,0,x]][Math.floor(h) % 6]);
+  }
+  return out;
+}
+const css = c => `rgb(${c.map(v => Math.round(v*255)).join(",")})`;
+
+function resampleMatrix(seed){
+  S.seed = seed;
+  const r = mulberry32(seed >>> 0);
+  mat = new Float32Array(S.C * S.C);
+  for(let i = 0; i < S.C*S.C; i++) mat[i] = r()*2 - 1;
+  uploadMatrix(); buildMatrixUI();
+  $("seedlab").textContent = "#" + seed;
+}
+function uploadMatrix(){
+  if(matTex && matTex._c !== S.C){ gl.deleteTexture(matTex); matTex = null; }
+  if(!matTex){
+    matTex = gl.createTexture(); matTex._c = S.C;
+    gl.bindTexture(gl.TEXTURE_2D, matTex);
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R32F, S.C, S.C);
+  } else gl.bindTexture(gl.TEXTURE_2D, matTex);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.C, S.C, gl.RED, gl.FLOAT, mat);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+}
+
+/* ---------------------------------------------------------------- allocation + seeding */
+// Which pyramid level to blur a given radius on: enough reduction that the
+// narrow Gaussian still spans a few texels, so the tap count stays small no
+// matter how large the radius. Small radii pick level 0 and nothing changes.
+function mipFor(r){
+  const sigA = Math.max(0.6, r*0.22);
+  let m = 0;
+  // step down only while the narrow Gaussian would still span >= 6 texels there
+  while(m < 6 && (sigA/(1 << (m + 1))) >= 6.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+  return m;
+}
+
+function allocate(){
+  for(const k in T) if(T[k]) gl.deleteTexture(T[k]);
+  for(const t of reduceChain) gl.deleteTexture(t);
+  for(const p of pyramid) gl.deleteTexture(p.tex);
+  T = {}; reduceChain = []; pyramid = [];
+  S.L = Math.ceil(S.C / 4);
+  const W = S.N * S.L, H = S.N, HB = S.N * Math.max(1, bankLevels.length);
+  for(const k of ["rhoA","rhoB","aff","expE","shareS","tmpA","tmpB","mipA","mipB"]) T[k] = makeTex(W, H);
+  for(const k of ["near","far"]) T[k] = makeTex(W, HB);     // one full-res slice per bank level
+  pyramid = [];                                             // as deep as this grid allows
+  let pn = S.N;
+  while(pn % 2 === 0 && (pn >> 1) >= 48 && pyramid.length < 6){
+    pn >>= 1; pyramid.push({ n: pn, tex: makeTex(pn*S.L, pn) });
+  }
+  let n = S.N;
+  while(n > 4){ n = Math.ceil(n/4); reduceChain.push(makeTex(n*S.L, n)); }
+  $("wsize").textContent = S.N + " × " + S.N;
+  seed();
+}
+
+function noise(N, freq, rnd){
+  const g = new Float32Array(freq*freq);
+  for(let i = 0; i < g.length; i++) g[i] = rnd();
+  const sm = t => t*t*(3 - 2*t);
+  return (x, y) => {
+    const fx = x/N*freq, fy = y/N*freq;
+    const x0 = Math.floor(fx), y0 = Math.floor(fy);
+    const tx = sm(fx - x0), ty = sm(fy - y0);
+    const i0 = ((x0 % freq)+freq)%freq, i1 = (i0+1)%freq;
+    const j0 = ((y0 % freq)+freq)%freq, j1 = (j0+1)%freq;
+    return (g[j0*freq+i0]*(1-tx) + g[j0*freq+i1]*tx)*(1-ty)
+         + (g[j1*freq+i0]*(1-tx) + g[j1*freq+i1]*tx)*ty;
+  };
+}
+
+function seed(){
+  const N = S.N, L = S.L, W = N*L;
+  const data = new Float32Array(W*N*4);
+  const rnd = mulberry32((S.seed*2654435761 + S.tick*97 + 12345) >>> 0);
+  for(let c = 0; c < S.C; c++){
+    const n1 = noise(N, 4, rnd), n2 = noise(N, 9, rnd), n3 = noise(N, 18, rnd);
+    const thr = 0.42 + rnd()*0.14;
+    const layer = c >> 2, comp = c & 3;
+    let sum = 0;
+    const buf = new Float32Array(N*N);
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+      let v = 0.55*n1(x,y) + 0.3*n2(x,y) + 0.15*n3(x,y);
+      v = Math.max(0, (v - thr)) / (1 - thr);
+      v = v*v;
+      buf[y*N+x] = v; sum += v;
+    }
+    const mean = sum/(N*N);
+    const k = mean > 1e-6 ? S.density/mean : 0;
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++)
+      data[(y*W + layer*N + x)*4 + comp] = buf[y*N+x]*k;
+  }
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, N, gl.RGBA, gl.FLOAT, data);
+  S.tick = 0;
+}
+
+function seedDisc(){
+  // One compact blob of every color in the middle of an otherwise empty world.
+  // A perfectly uniform disc stays radially symmetric for a long time, so the
+  // fill carries mild noise to break the symmetry the way the MaCE paper's
+  // Perlin-filled circle does.
+  const N = S.N, L = S.L, W = N*L;
+  const data = new Float32Array(W*N*4);
+  const rnd = mulberry32((S.seed*40503 + S.tick*7919 + 555) >>> 0);
+  const rad = N*0.2, cx = N/2, cy = N/2, soft = Math.max(1.5, N*0.012);
+  for(let c = 0; c < S.C; c++){
+    const n1 = noise(N, 6, rnd), n2 = noise(N, 14, rnd);
+    const layer = c >> 2, comp = c & 3;
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+      const e = Math.min(1, Math.max(0, (rad - Math.hypot(x-cx, y-cy))/soft));
+      if(e <= 0) continue;
+      const tex = 0.6 + 0.8*(0.6*n1(x,y) + 0.4*n2(x,y));
+      data[(y*W + layer*N + x)*4 + comp] = S.density*4*e*e*(3-2*e)*tex;
+    }
+  }
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, N, gl.RGBA, gl.FLOAT, data);
+  S.tick = 0;
+}
+
+/* ---------------------------------------------------------------- one simulation step */
+function common(prog){
+  gl.uniform1i(prog.u("uN"), S.N);
+  gl.uniform1i(prog.u("uL"), S.L);
+}
+function step(){
+  // How deep the pyramid has to go for the widest radius in the bank.
+  let deepest = 0;
+  for(const lv of bankLevels) deepest = Math.max(deepest, mipFor(radiusOf(lv)));
+  let src = T.rhoA, nsrc = S.N;
+  gl.useProgram(P.down.p); common(P.down);
+  for(let m = 0; m < deepest; m++){
+    const dst = pyramid[m];
+    gl.uniform1i(P.down.u("uNsrc"), nsrc); gl.uniform1i(P.down.u("uNdst"), dst.n);
+    bindTex(P.down, "uSrc", 0, src);
+    targets(dst.tex, null, 0, dst.n); gl.viewport(0, 0, dst.n*S.L, dst.n);
+    drawQuad();
+    src = dst.tex; nsrc = dst.n;
+  }
+
+  // One blur pair per bank level: blur on its mip, then stretch into its slice.
+  for(let s = 0; s < bankLevels.length; s++){
+    const r = radiusOf(bankLevels[s]);
+    const m = mipFor(r), nm = m ? pyramid[m-1].n : S.N;
+    const srcTex = m ? pyramid[m-1].tex : T.rhoA;
+    const k = S.N/nm;                                      // this mip's shrink factor
+    const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
+    const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*4.0)));
+
+    gl.useProgram(P.blurH.p); common(P.blurH);
+    gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
+    gl.uniform1i(P.blurH.u("uRad"), rad);
+    gl.uniform1i(P.blurH.u("uNsrc"), nm); gl.uniform1i(P.blurH.u("uNm"), nm);
+    bindTex(P.blurH, "uSrc", 0, srcTex);
+    targets(T.tmpA, T.tmpB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+
+    gl.useProgram(P.blurV.p); common(P.blurV);
+    gl.uniform1f(P.blurV.u("uSigA"), sigA); gl.uniform1f(P.blurV.u("uSigB"), sigB);
+    gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform1i(P.blurV.u("uNm"), nm);
+    bindTex(P.blurV, "uA", 0, T.tmpA); bindTex(P.blurV, "uB", 1, T.tmpB);
+    targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+
+    gl.useProgram(P.up.p); common(P.up);
+    gl.uniform1i(P.up.u("uNm"), nm); gl.uniform1i(P.up.u("uSlot"), s);
+    bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
+    targets(T.near, T.far, s*S.N, S.N); drawQuad();
+  }
+
+  gl.useProgram(P.aff.p); common(P.aff);
+  gl.uniform1i(P.aff.u("uC"), S.C);
+  gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
+  gl.uniform1f(P.aff.u("uForce"), S.force);
+  gl.uniform1f(P.aff.u("uRepel"), S.repel);
+  bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
+  bindTex(P.aff, "uMat", 2, matTex); bindTex(P.aff, "uSlots", 3, slotTex);
+  targets(T.aff, null); drawQuad();
+
+  gl.useProgram(P.expa.p); common(P.expa);
+  gl.uniform1f(P.expa.u("uBeta"), S.beta);
+  gl.uniform1f(P.expa.u("uNoise"), S.noise);
+  gl.uniform1i(P.expa.u("uFrame"), S.tick & 0xffff);
+  bindTex(P.expa, "uA", 0, T.aff);
+  targets(T.expE, null); drawQuad();                       // E = exp(beta*A)
+
+  gl.useProgram(P.share.p); common(P.share);
+  bindTex(P.share, "uE", 0, T.expE); bindTex(P.share, "uRho", 1, T.rhoA);
+  targets(T.shareS, null); drawQuad();                     // S = rho / Z
+
+  gl.useProgram(P.move.p); common(P.move);
+  bindTex(P.move, "uE", 0, T.expE); bindTex(P.move, "uS", 1, T.shareS);
+  targets(T.rhoB, null); drawQuad();
+
+  const t = T.rhoA; T.rhoA = T.rhoB; T.rhoB = t;
+  S.tick++;
+}
+
+/* ---------------------------------------------------------------- readouts */
+function measure(){
+  gl.useProgram(P.reduce.p);
+  let src = T.rhoA, nsrc = S.N;
+  for(const dst of reduceChain){
+    const ndst = Math.ceil(nsrc/4);
+    gl.uniform1i(P.reduce.u("uNsrc"), nsrc);
+    gl.uniform1i(P.reduce.u("uNdst"), ndst);
+    bindTex(P.reduce, "uSrc", 0, src);
+    targets(dst, null); drawQuad();
+    src = dst; nsrc = ndst;
+  }
+  const w = src._w, h = src._h;
+  const px = new Float32Array(w*h*4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, src, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, null, 0);
+  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+  gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, px);
+  const out = new Float32Array(S.C);
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const layer = Math.floor(x / nsrc);
+    for(let k = 0; k < 4; k++){
+      const c = layer*4 + k;
+      if(c < S.C) out[c] += px[(y*w + x)*4 + k];
+    }
+  }
+  return out;
+}
+
+function render(){
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, cv.width, cv.height);
+  gl.useProgram(P.draw.p); common(P.draw);
+  gl.uniform1i(P.draw.u("uC"), S.C);
+  gl.uniform2f(P.draw.u("uRes"), cv.width, cv.height);
+  gl.uniform1f(P.draw.u("uExp"), S.expo);
+  const pal = new Float32Array(48);
+  palette.forEach((c, i) => { pal[i*3] = c[0]; pal[i*3+1] = c[1]; pal[i*3+2] = c[2]; });
+  gl.uniform3fv(P.draw.u("uPal"), pal);
+  bindTex(P.draw, "uRho", 0, T.rhoA);
+  drawQuad();
+}
+
+/* ---------------------------------------------------------------- UI */
+function buildMatrixUI(){
+  const el = $("mx"), C = S.C;
+  el.style.gridTemplateColumns = `16px repeat(${C}, 1fr)`;
+  el.innerHTML = "";
+  el.appendChild(document.createElement("div"));
+  for(let c = 0; c < C; c++){
+    const d = document.createElement("div"); d.className = "hdr";
+    const ch = document.createElement("div"); ch.className = "chip"; ch.style.background = css(palette[c]);
+    d.appendChild(ch); el.appendChild(d);
+  }
+  for(let r = 0; r < C; r++){
+    const d = document.createElement("div"); d.className = "hdr";
+    const ch = document.createElement("div"); ch.className = "chip"; ch.style.background = css(palette[r]);
+    d.appendChild(ch); el.appendChild(d);
+    for(let c = 0; c < C; c++){
+      const cell = document.createElement("div");
+      cell.className = "cell"; cell.tabIndex = 0;
+      cell.dataset.i = r*C + c;
+      el.appendChild(cell);
+    }
+  }
+  paintMatrix();
+}
+function paintMatrix(){
+  for(const cell of $("mx").querySelectorAll(".cell")){
+    const v = mat[+cell.dataset.i];
+    const a = Math.min(1, Math.abs(v))*0.8;
+    cell.style.background = `color-mix(in srgb, var(--${v >= 0 ? "pos" : "neg"}) ${Math.round(a*100)}%, var(--panel2))`;
+    cell.textContent = v.toFixed(2).replace("0.", ".").replace("-.", "−.");
+  }
+}
+function setCell(i, v){
+  mat[i] = Math.max(-1, Math.min(1, v));
+  uploadMatrix(); paintMatrix();
+}
+(function matrixDrag(){
+  let drag = null;
+  $("mx").addEventListener("pointerdown", e => {
+    const cell = e.target.closest(".cell"); if(!cell) return;
+    drag = { i: +cell.dataset.i, y: e.clientY, v: mat[+cell.dataset.i] };
+    cell.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  $("mx").addEventListener("pointermove", e => {
+    if(!drag) return;
+    setCell(drag.i, drag.v + (drag.y - e.clientY)*0.01);
+  });
+  addEventListener("pointerup", () => drag = null);
+  $("mx").addEventListener("dblclick", e => {
+    const cell = e.target.closest(".cell"); if(cell) setCell(+cell.dataset.i, 0);
+  });
+  $("mx").addEventListener("keydown", e => {
+    const cell = e.target.closest(".cell"); if(!cell) return;
+    const i = +cell.dataset.i;
+    if(e.key === "ArrowUp"){ setCell(i, mat[i] + 0.05); e.preventDefault(); }
+    if(e.key === "ArrowDown"){ setCell(i, mat[i] - 0.05); e.preventDefault(); }
+  });
+})();
+
+function buildRadiusUI(){
+  const el = $("rx"), C = S.C;
+  el.style.gridTemplateColumns = `16px repeat(${C}, 1fr)`;
+  el.innerHTML = "";
+  el.appendChild(document.createElement("div"));
+  const chip = c => { const d = document.createElement("div"); d.className = "hdr";
+    const k = document.createElement("div"); k.className = "chip"; k.style.background = css(palette[c]);
+    d.appendChild(k); return d; };
+  for(let c = 0; c < C; c++) el.appendChild(chip(c));
+  for(let r = 0; r < C; r++){
+    el.appendChild(chip(r));
+    for(let c = 0; c < C; c++){
+      const cell = document.createElement("div");
+      cell.className = "cell"; cell.tabIndex = 0; cell.dataset.i = r*C + c;
+      el.appendChild(cell);
+    }
+  }
+  paintRadii();
+}
+function paintRadii(){
+  for(const cell of $("rx").querySelectorAll(".cell")){
+    const lv = radMat[+cell.dataset.i], px = radiusOf(lv);
+    cell.style.background = `color-mix(in srgb, var(--accent) ${Math.round((lv + 1)/RSTEPS*70)}%, var(--panel2))`;
+    cell.textContent = px < 10 ? px.toFixed(1) : Math.round(px);
+    cell.title = "reach " + px.toFixed(1) + " px  (stop " + (lv + 1) + " of " + RSTEPS + ")";
+  }
+}
+function setRadius(i, lv){
+  lv = Math.max(0, Math.min(RSTEPS - 1, lv));
+  if(lv === radMat[i]) return;
+  radMat[i] = lv; rebuildBank(); paintRadii();
+}
+(function radiusDrag(){
+  let drag = null;
+  $("rx").addEventListener("pointerdown", e => {
+    const cell = e.target.closest(".cell"); if(!cell) return;
+    drag = { i: +cell.dataset.i, y: e.clientY, v: radMat[+cell.dataset.i] };
+    cell.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  $("rx").addEventListener("pointermove", e => {
+    if(drag) setRadius(drag.i, Math.round(drag.v + (drag.y - e.clientY)/14));
+  });
+  addEventListener("pointerup", () => drag = null);
+  $("rx").addEventListener("keydown", e => {
+    const cell = e.target.closest(".cell"); if(!cell) return;
+    const i = +cell.dataset.i;
+    if(e.key === "ArrowUp"){ setRadius(i, radMat[i] + 1); e.preventDefault(); }
+    if(e.key === "ArrowDown"){ setRadius(i, radMat[i] - 1); e.preventDefault(); }
+  });
+})();
+
+function buildBars(){
+  const el = $("bars"); el.innerHTML = "";
+  for(let c = 0; c < S.C; c++){
+    const row = document.createElement("div"); row.className = "bar";
+    const chip = document.createElement("div"); chip.className = "chip"; chip.style.background = css(palette[c]);
+    const track = document.createElement("div"); track.className = "track";
+    const fill = document.createElement("div"); fill.className = "fill"; fill.style.background = css(palette[c]);
+    const num = document.createElement("div"); num.className = "num"; num.textContent = "–";
+    track.appendChild(fill); row.append(chip, track, num); el.appendChild(row);
+  }
+}
+
+function slider(id, key, fmt){
+  const s = $(id), v = $(id + "v");
+  const sync = () => { S[key] = parseFloat(s.value); v.textContent = fmt ? fmt(S[key]) : s.value; };
+  s.addEventListener("input", sync); sync();
+}
+
+function rebuildColors(){
+  palette = makePalette(S.C);
+  radMat = new Int32Array(S.C*S.C).fill(BASE_LEVEL);
+  rebuildBank();
+  resampleMatrix(S.seed);
+  buildRadiusUI();
+  allocate();
+  buildBars();
+  mass0 = null;
+}
+
+/* ---------------------------------------------------------------- loop */
+let lastT = performance.now(), fpsAcc = 0, fpsN = 0, mass0 = null;
+function frame(){
+  requestAnimationFrame(frame);
+  if(!gl || !T.rhoA) return;
+  if(S.running) for(let i = 0; i < S.steps; i++) step();
+  render();
+
+  const now = performance.now();
+  fpsAcc += now - lastT; fpsN++; lastT = now;
+  if(fpsN >= 20){ $("hfps").textContent = (1000/(fpsAcc/fpsN)).toFixed(0); fpsAcc = 0; fpsN = 0; }
+  $("hstep").textContent = S.tick;
+
+  if(S.frame++ % 60 === 0){
+    const m = measure();
+    let tot = 0; for(const v of m) tot += v;
+    const peak = Math.max(...m, 1e-9);
+    const rows = $("bars").children;
+    for(let c = 0; c < S.C; c++){
+      rows[c].querySelector(".fill").style.width = (m[c]/peak*100).toFixed(1) + "%";
+      rows[c].querySelector(".num").textContent = (m[c]/(S.N*S.N)).toFixed(4);
+    }
+    $("hmass").textContent = tot.toFixed(0);
+    if(mass0 === null || S.tick < 2) mass0 = tot;
+    const drift = Math.abs(tot - mass0)/Math.max(mass0, 1e-9);
+    $("conserv").textContent = drift < 1e-4 ? "exact" : "drift " + (drift*100).toFixed(3) + "%";
+  }
+}
+
+function boot(){
+  initGL();
+  // Rad min and Rad max cannot cross; whichever is dragged pushes the other.
+  const radPair = (me, other, key, okey, push) => {
+    const a = $(me), b = $(other);
+    a.addEventListener("input", () => {
+      S[key] = +a.value;
+      if(push(S[key], S[okey])){ S[okey] = S[key]; b.value = S[key]; $(other + "v").textContent = S[key]; }
+      $(me + "v").textContent = a.value;
+      if(radMat) paintRadii();
+    });
+  };
+  radPair("radmin", "radmax", "radMin", "radMax", (mn, mx) => mn > mx);
+  radPair("radmax", "radmin", "radMax", "radMin", (mx, mn) => mx < mn);
+  slider("force", "force");
+  slider("repel", "repel");
+  slider("beta", "beta");
+  slider("noise", "noise", v => v.toFixed(2));
+  slider("steps", "steps");
+  slider("expo", "expo");
+  slider("dens", "density", v => v.toFixed(2));
+
+  // label follows the drag; the expensive rebuild waits for release
+  $("chan").addEventListener("input", e => { $("chanv").textContent = e.target.value; });
+  $("chan").addEventListener("change", e => { S.C = +e.target.value; rebuildColors(); });
+  $("grid").addEventListener("change", e => {
+    S.N = +e.target.value; allocate(); rebuildBank(); paintRadii(); mass0 = null;
+  });
+  $("play").addEventListener("click", e => {
+    S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";
+  });
+  $("reseed").addEventListener("click", () => { seed(); mass0 = null; });
+  $("disc").addEventListener("click", () => { seedDisc(); mass0 = null; });
+  $("resample").addEventListener("click", () => resampleMatrix((Math.random()*1e6) | 0));
+  $("symm").addEventListener("click", () => {
+    for(let r = 0; r < S.C; r++) for(let c = 0; c < r; c++) mat[c*S.C + r] = mat[r*S.C + c];
+    uploadMatrix(); paintMatrix();
+  });
+  $("zero").addEventListener("click", () => { mat.fill(0); uploadMatrix(); paintMatrix(); });
+  $("rresample").addEventListener("click", () => resampleRadii((Math.random()*1e6)|0));
+  $("rflat").addEventListener("click", () => { radMat.fill(BASE_LEVEL); rebuildBank(); paintRadii(); });
+
+  addEventListener("keydown", e => {
+    if(e.target.matches("input, select")) return;
+    if(e.code === "Space"){ $("play").click(); e.preventDefault(); }
+    if(e.key === "r"){ $("reseed").click(); }
+    if(e.key === "m"){ $("resample").click(); }
+    if(e.key === "c"){ $("disc").click(); }
+  });
+
+  const resize = () => {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const r = cv.getBoundingClientRect();
+    cv.width = Math.max(64, Math.round(r.width*dpr));
+    cv.height = Math.max(64, Math.round(r.height*dpr));
+  };
+  addEventListener("resize", resize);
+  new ResizeObserver(resize).observe(cv.parentElement);
+  resize();
+  rebuildColors();
+  requestAnimationFrame(frame);
+}
+
+if(gl && extF){
+  try { boot(); }
+  catch(err){ fatal("The simulation failed to start on this GPU.\n\n" + err.message); }
+}
+</script>

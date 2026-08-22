@@ -62,6 +62,8 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .app{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start}
 @media (max-width:900px){ .app{grid-template-columns:minmax(0,1fr)} }
 
+.stage:fullscreen{border-radius:0; border:0; aspect-ratio:auto; width:100vw; height:100vh}
+.stage:fullscreen canvas{width:100%; height:100%}
 .stage{
   background:var(--screen); border:1px solid var(--line); border-radius:6px 8px 7px 7px;
   box-shadow:var(--shadow); overflow:hidden; position:relative; aspect-ratio:1/1;
@@ -527,6 +529,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+        <div class="row"><label class="lab" for="inter">Interaction</label><select id="inter">
+          <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
+        </select></div>
         <div class="row"><label class="lab" for="cmap">Colors</label><select id="cmap"></select></div>
         <div class="row"><label class="lab" for="blend">Blend</label><select id="blend">
           <option value="0">Dominant</option><option value="1">Soft</option>
@@ -613,25 +618,48 @@ float plForce(float x){            // x is distance as a fraction of the radius
 `;
 
 const FS_FORCE = HEAD + KERNEL + `
-uniform sampler2D uSrc; uniform int uRad, uNsrc, uNm;
-layout(location=0) out vec4 oF;    // the force integral for this radius
+uniform sampler2D uSrc; uniform int uRad, uNsrc, uNm, uMode;
+layout(location=0) out vec4 oF;    // the interaction integral for this radius
 layout(location=1) out vec4 oN;    // a small blur of the same field, for crowding
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
   int tile = p.x / uNm, lx = p.x - tile*uNm;
-  vec4 acc = vec4(0.0), near = vec4(0.0);
-  float wn = 0.0, R = float(uRad), rn = max(1.0, R*PL_BETA);
+  float Rs = float(uRad);                      // stencil half-width, in cells here
+  float R  = uMode == 2 ? Rs : Rs/2.2;         // the interaction radius itself
+  float sf = R*0.55, sn = R*0.22;
+  vec4 accF = vec4(0.0), accN = vec4(0.0), accL = vec4(0.0);
+  float sumF = 0.0, sumN = 0.0;
+  // Each stencil cell is sampled on a 3x3 sub-grid. The weights are analytic, so
+  // this costs arithmetic and no extra reads, and it removes two sources of
+  // axis-aligned artefacts: the staircase at the disc edge, and the spike the
+  // linear law would otherwise put on the single cell at r = 0.
   for(int dy = -uRad; dy <= uRad; dy++){
     for(int dx = -uRad; dx <= uRad; dx++){
-      float r = length(vec2(float(dx), float(dy)));
-      if(r > R) continue;
-      float f = plForce(r/R), g = exp(-0.5*r*r/(rn*rn));
+      if(length(vec2(float(dx), float(dy))) > Rs + 1.5) continue;
+      float f = 0.0, gf = 0.0, gn = 0.0;
+      for(int sy = 0; sy < 3; sy++){
+        for(int sx = 0; sx < 3; sx++){
+          vec2 o = vec2(float(dx) + (float(sx) - 1.0)/3.0,
+                        float(dy) + (float(sy) - 1.0)/3.0);
+          float r = length(o);
+          if(r > Rs) continue;
+          gn += exp(-0.5*r*r/(sn*sn));
+          if(uMode == 2) f += plForce(r/R);
+          else           gf += exp(-0.5*r*r/(sf*sf));
+        }
+      }
+      f /= 9.0; gf /= 9.0; gn /= 9.0;
+      if(f == 0.0 && gf == 0.0 && gn == 0.0) continue;
       vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+dx, uNm), wrapi(p.y+dy, uNm)), 0);
-      acc += v*f; near += v*g; wn += g;
+      accN += v*gn; sumN += gn;
+      if(uMode == 2) accL += v*f; else { accF += v*gf; sumF += gf; }
     }
   }
-  oF = acc/(R*R);                  // scale out the area, so radius stays a shape knob
-  oN = near/max(wn, 1e-6);
+  vec4 near = accN/max(sumN, 1e-6);
+  oF = uMode == 2 ? accL/(R*R)                 // linear: particle life's force law
+     : uMode == 1 ? accF/max(sumF, 1e-6)       // blob: a plain neighbourhood average
+     : accF/max(sumF, 1e-6) - near;            // ring: minus a tighter average
+  oN = near;
 }`;
 
 const FS_AFF = HEAD + `
@@ -923,7 +951,7 @@ const S = {
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
   smooth: false,                       // false = show the lattice cells as squares
-  palette: "Spectrum", blend: 0,
+  palette: "Spectrum", blend: 0, inter: 0,
   tool: "pan", brush: 26, flow: 0.55,  // painting: radius in cells, mass per second
   paintMask: null
 };
@@ -1044,9 +1072,9 @@ function uploadMatrix(){
 // matter how large the radius. Small radii pick level 0 and nothing changes.
 function mipFor(r){
   let m = 0;
-  // step down while the stencil would still be at least 8 cells across, so the
-  // 2-D loop stays around 250 taps however large the radius gets
-  while(m < 6 && (r/(1 << (m + 1))) >= 8.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+  // r here is the stencil half-width. Step down while it would still be at
+  // least 8 cells, so the 2-D loop stays near 250 taps at any radius.
+  while(m < 6 && (r/(1 << (m + 1))) >= 11.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
   return m;
 }
 
@@ -1146,7 +1174,8 @@ function common(prog){
 function step(){
   // How deep the pyramid has to go for the widest radius in the bank.
   let deepest = 0;
-  for(const lv of bankLevels) deepest = Math.max(deepest, mipFor(radiusOf(lv)));
+  for(const lv of bankLevels)
+    deepest = Math.max(deepest, mipFor(radiusOf(lv)*(S.inter === 2 ? 1 : 2.2)));
   let src = T.rhoA, nsrc = S.N;
   gl.useProgram(P.down.p); common(P.down);
   for(let m = 0; m < deepest; m++){
@@ -1161,12 +1190,13 @@ function step(){
   // One force pass per level, on the coarsest mip that still resolves it.
   for(let s = 0; s < bankLevels.length; s++){
     const r = radiusOf(bankLevels[s]);
-    const m = mipFor(r), nm = m ? pyramid[m-1].n : S.N;
+    const stencil = S.inter === 2 ? r : r*2.2;   // gaussians need room past R
+    const m = mipFor(stencil), nm = m ? pyramid[m-1].n : S.N;
     const srcTex = m ? pyramid[m-1].tex : T.rhoA;
-    const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(r/(S.N/nm))));
+    const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(stencil/(S.N/nm))));
 
     gl.useProgram(P.force.p); common(P.force);
-    gl.uniform1i(P.force.u("uRad"), rad);
+    gl.uniform1i(P.force.u("uRad"), rad); gl.uniform1i(P.force.u("uMode"), S.inter);
     gl.uniform1i(P.force.u("uNsrc"), nm); gl.uniform1i(P.force.u("uNm"), nm);
     bindTex(P.force, "uSrc", 0, srcTex);
     targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
@@ -1449,7 +1479,7 @@ const syncControls = () => SYNC.forEach(f => f());
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","inter"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -1841,17 +1871,24 @@ function boot(){
     buildMatrixUI(); buildRadiusUI(); buildBars(); buildSwatches();
   });
   $("blend").addEventListener("change", e => S.blend = +e.target.value);
-  SYNC.push(() => { cmap.value = S.palette; $("blend").value = String(S.blend); });
-  cv.addEventListener("dblclick", () => {
-    S.zoom = 1; S.panU = S.panV = 0.5; showZoom();
+  $("inter").addEventListener("change", e => S.inter = +e.target.value);
+  SYNC.push(() => {
+    cmap.value = S.palette; $("blend").value = String(S.blend); $("inter").value = String(S.inter);
   });
+  // Double-click fills the screen with the simulation; press 0 to reset the view.
+  cv.addEventListener("dblclick", () => {
+    const stage = cv.parentElement;
+    if(document.fullscreenElement) document.exitFullscreen();
+    else if(stage.requestFullscreen) stage.requestFullscreen().catch(() => {});
+  });
+  document.addEventListener("fullscreenchange", () => setTimeout(resize, 60));
 
-  const resize = () => {
+  function resize(){
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const r = cv.getBoundingClientRect();
     cv.width = Math.max(64, Math.round(r.width*dpr));
     cv.height = Math.max(64, Math.round(r.height*dpr));
-  };
+  }
   addEventListener("resize", resize);
   new ResizeObserver(resize).observe(cv.parentElement);
   syncControls();          // radius is randomised in state; move the sliders to match

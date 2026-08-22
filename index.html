@@ -1198,9 +1198,11 @@ function mipFor(r, stencil){
     // the 2-D stencil: step down while it stays at least 11 cells across
     while(m < 6 && (r/(1 << (m + 1))) >= 11.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
   }else{
-    // separable gaussians: keep the narrow one at least 6 texels wide
+    // separable gaussians: keep the narrow one at least 4.5 texels wide. Lower
+    // than that and large-radius presets visibly change shape; higher costs
+    // roughly double for no visible gain.
     const sigA = Math.max(0.6, r*0.22);
-    while(m < 6 && (sigA/(1 << (m + 1))) >= 6.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+    while(m < 6 && (sigA/(1 << (m + 1))) >= 4.5 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
   }
   return m;
 }
@@ -1298,7 +1300,7 @@ function step(){
       targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
     }else{
       const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
-      const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*4.0)));
+      const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*3.2)));
       gl.useProgram(P.blurH.p); common(P.blurH);
       gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
       gl.uniform1i(P.blurH.u("uRad"), rad);

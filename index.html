@@ -335,7 +335,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
       <figure>
         <svg viewBox="0 0 700 208" role="img" preserveAspectRatio="xMidYMid meet"
-             aria-label="One simulation step: densities are blurred at two radii, the difference gives a ring, the interaction matrix turns rings into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
+             aria-label="One simulation step: the particle life force law is convolved with each colour at the radius its pairs use, the interaction matrix turns those into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
           <defs>
             <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
@@ -350,13 +350,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           </g>
           <g fill="currentColor" font-size="12.5" text-anchor="middle">
             <text x="70"  y="66">densities</text><text x="70"  y="84" font-style="italic">&#961;</text>
-            <text x="210" y="66">blur twice</text><text x="210" y="84">near &amp; far</text>
-            <text x="350" y="58">ring</text>
+            <text x="210" y="66">slide the force</text><text x="210" y="84">law over it</text>
+            <text x="350" y="58">pull</text>
             <text x="490" y="66">affinity</text><text x="490" y="84" font-style="italic">A</text>
             <text x="630" y="66">hand mass</text><text x="630" y="84">to neighbours</text>
           </g>
           <g stroke="var(--accent)" fill="none" stroke-width="1.6">
-            <path d="M306,80 C318,80 322,72 332,72 C342,72 346,66 352,66 C362,66 374,74 396,75"/>
+            <path d="M302,90 L316,75 L330,75 L344,62 L358,75 L396,75"/>
           </g>
           <line x1="302" y1="75" x2="398" y2="75" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/>
           <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
@@ -367,8 +367,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
             <path d="M630,102 L630,150 L70,150 L70,104"/>
           </g>
           <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-            <text x="139" y="34">two radii</text>
-            <text x="279" y="34">far &#8722; near</text>
+            <text x="139" y="34">its radii</text>
+            <text x="279" y="34">per pair</text>
             <text x="419" y="34">&#215; matrix</text>
             <text x="559" y="34">e<tspan baseline-shift="super" font-size="8">&#946;A</tspan></text>
             <text x="350" y="168">the new densities are the next step&#8217;s input</text>
@@ -377,16 +377,16 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
       </figure>
 
-      <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
-      narrowly and widely and subtracting the two gives the curve drawn in the middle box above: negative
-      up close, positive at a distance <i>R</i>. So it answers &#8220;how much of that color sits about
-      <i>R</i> away from here?&#8221; — and because it dips below zero near the middle, colors keep a
-      little personal space instead of collapsing into a point.</p>
+      <p>The kernel is particle life&#8217;s own force law, unchanged: strong repulsion at touching
+      distance, easing to nothing at 30% of the radius, then a triangle of attraction that peaks midway
+      out and fades to zero at the edge. Sliding it over a color field answers &#8220;which way, and how
+      hard, does this cell get pulled by that color?&#8221; Every pair of colors has its own radius, set
+      in the second matrix.</p>
 
       <div class="eqs">
-        <div class="eq"><code>ring<sub>c</sub> = blur<sub>far</sub>(&#961;<sub>c</sub>) &#8722; blur<sub>near</sub>(&#961;<sub>c</sub>)</code>
-          <span>how much of color <i>c</i> is a distance <i>R</i> away</span></div>
-        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; ring<sub>d</sub> &#8722; repel &#183; crowding</code>
+        <div class="eq"><code>f(x) = x/&#946; &#8722; 1 &nbsp;if x &lt; &#946;, &nbsp; else 1 &#8722; |2x&#8722;1&#8722;&#946;| / (1&#8722;&#946;)</code>
+          <span>particle life&#8217;s force against distance <i>x</i> (as a fraction of the radius), with &#946; = 0.3</span></div>
+        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; (f &#8727; &#961;<sub>d</sub>) &#8722; repel &#183; crowding</code>
           <span>where color <i>c</i> wants to be: the matrix says how it feels about every color, minus a dislike of crowds</span></div>
         <div class="eq"><code>share(y &#8594; x) = e<sup>&#946;A(x)</sup> &#8260; Z(y)</code>
           <span>the fraction of cell <i>y</i>&#8217;s mass that goes to neighbour <i>x</i>. <i>Z</i> is the total over <i>y</i>&#8217;s nine cells, so the nine shares add to exactly 1</span></div>
@@ -522,7 +522,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <h2>Physics</h2>
         <div class="row"><label class="lab" for="radmin">Rad min</label><input id="radmin" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
         <div class="row"><label class="lab" for="radmax">Rad max</label><input id="radmax" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
-        <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="60" step="0.5" value="45"><span class="val" id="forcev">45</span></div>
+        <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="400" step="1" value="60"><span class="val" id="forcev">60</span></div>
         <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" type="range" min="0" max="20" step="0.25" value="6"><span class="val" id="repelv">6</span></div>
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
@@ -600,53 +600,40 @@ int wrapi(int v, int n){ return int(mod(float(v), float(n))); }
 // axis-aligned structure. So: cut at 4 sigma and slide the tail down so the
 // weights reach exactly zero at the rim, like a feathered brush.
 const KERNEL = `
-float kw(float d, float sig, float rad){
-  float e = exp(-0.5*d*d/(sig*sig)) - exp(-0.5*rad*rad/(sig*sig));
-  return max(e, 0.0);
+// Particle life's force law, unchanged: a linear ramp of repulsion out to
+// BETA of the radius, then a triangle of attraction peaking midway, then
+// nothing. Not separable, so it is applied as a real 2-D stencil -- which is
+// affordable only because it runs on a downsampled copy of the field.
+#define PL_BETA 0.30
+float plForce(float x){            // x is distance as a fraction of the radius
+  if(x >= 1.0) return 0.0;
+  if(x < PL_BETA) return x/PL_BETA - 1.0;
+  return 1.0 - abs(2.0*x - 1.0 - PL_BETA)/(1.0 - PL_BETA);
 }
 `;
 
-const FS_BLURH = HEAD + KERNEL + `
-uniform sampler2D uSrc; uniform float uSigA, uSigB; uniform int uRad;
-uniform int uNsrc, uNm;                          // source tile stride, working grid size
-layout(location=0) out vec4 oA;
-layout(location=1) out vec4 oB;
+const FS_FORCE = HEAD + KERNEL + `
+uniform sampler2D uSrc; uniform int uRad, uNsrc, uNm;
+layout(location=0) out vec4 oF;    // the force integral for this radius
+layout(location=1) out vec4 oN;    // a small blur of the same field, for crowding
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uNm, lx = p.x - tile*uNm;     // scratch is packed at the mip's stride
-  int sy = p.y;
-  float rad = float(uRad);
-  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
-  for(int i = -uRad; i <= uRad; i++){
-    vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+i, uNm), sy), 0);
-    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
-    sa += v*ka; sb += v*kb; wa += ka; wb += kb;
+  int tile = p.x / uNm, lx = p.x - tile*uNm;
+  vec4 acc = vec4(0.0), near = vec4(0.0);
+  float wn = 0.0, R = float(uRad), rn = max(1.0, R*PL_BETA);
+  for(int dy = -uRad; dy <= uRad; dy++){
+    for(int dx = -uRad; dx <= uRad; dx++){
+      float r = length(vec2(float(dx), float(dy)));
+      if(r > R) continue;
+      float f = plForce(r/R), g = exp(-0.5*r*r/(rn*rn));
+      vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+dx, uNm), wrapi(p.y+dy, uNm)), 0);
+      acc += v*f; near += v*g; wn += g;
+    }
   }
-  oA = sa/wa; oB = sb/wb;
+  oF = acc/(R*R);                  // scale out the area, so radius stays a shape knob
+  oN = near/max(wn, 1e-6);
 }`;
 
-const FS_BLURV = HEAD + KERNEL + `
-uniform sampler2D uA, uB; uniform float uSigA, uSigB; uniform int uRad; uniform int uNm;
-layout(location=0) out vec4 oA;
-layout(location=1) out vec4 oB;
-void main(){
-  ivec2 p = ivec2(gl_FragCoord.xy);
-  int ly = p.y;
-  float rad = float(uRad);
-  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
-  for(int i = -uRad; i <= uRad; i++){
-    int sy = wrapi(ly + i, uNm);
-    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
-    sa += texelFetch(uA, ivec2(p.x, sy), 0)*ka;
-    sb += texelFetch(uB, ivec2(p.x, sy), 0)*kb;
-    wa += ka; wb += kb;
-  }
-  oA = sa/wa; oB = sb/wb;
-}`;
-
-/* affinity: mix every color's ring through the interaction matrix */
-// Each (feeling color, felt color) pair reads its ring from its own slice of
-// the blur bank, so every pair can have its own interaction radius.
 const FS_AFF = HEAD + `
 uniform sampler2D uNear, uFar, uMat, uSlots;
 uniform int uC, uBase; uniform float uForce, uRepel;
@@ -667,8 +654,7 @@ void main(){
         if(cc >= uC) break;
         int slot = int(texelFetch(uSlots, ivec2(d, cc), 0).r + 0.5);
         ivec2 q = ivec2(l*uN + lx, slot*uN + p.y);
-        float ring = texelFetch(uFar, q, 0)[k] - texelFetch(uNear, q, 0)[k];
-        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * ring;
+        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * texelFetch(uFar, q, 0)[k];
       }
     }
   }
@@ -887,8 +873,7 @@ function initGL(){
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   fbo = gl.createFramebuffer();
-  P.blurH  = program(FS_BLURH);
-  P.blurV  = program(FS_BLURV);
+  P.force  = program(FS_FORCE);
   P.aff    = program(FS_AFF);
   P.expa   = program(FS_EXPA);
   P.share  = program(FS_SHARE);
@@ -931,7 +916,7 @@ const R0 = 18 + Math.floor(Math.random()*18);     // 18..35 px
 
 const S = {
   N: 512, C: 6, L: 2, density: 0.12,
-  radMin: R0, radMax: R0, force: 45, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
+  radMin: R0, radMax: R0, force: 60, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
   seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
   seedMode: "disc",                   // whichever starting field you last asked for
   running: true, frame: 0, tick: 0,
@@ -1058,10 +1043,10 @@ function uploadMatrix(){
 // narrow Gaussian still spans a few texels, so the tap count stays small no
 // matter how large the radius. Small radii pick level 0 and nothing changes.
 function mipFor(r){
-  const sigA = Math.max(0.6, r*0.22);
   let m = 0;
-  // step down only while the narrow Gaussian would still span >= 6 texels there
-  while(m < 6 && (sigA/(1 << (m + 1))) >= 6.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+  // step down while the stencil would still be at least 8 cells across, so the
+  // 2-D loop stays around 250 taps however large the radius gets
+  while(m < 6 && (r/(1 << (m + 1))) >= 8.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
   return m;
 }
 
@@ -1173,32 +1158,23 @@ function step(){
     src = dst.tex; nsrc = dst.n;
   }
 
-  // One blur pair per bank level: blur on its mip, then stretch into its slice.
+  // One force pass per level, on the coarsest mip that still resolves it.
   for(let s = 0; s < bankLevels.length; s++){
     const r = radiusOf(bankLevels[s]);
     const m = mipFor(r), nm = m ? pyramid[m-1].n : S.N;
     const srcTex = m ? pyramid[m-1].tex : T.rhoA;
-    const k = S.N/nm;                                      // this mip's shrink factor
-    const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
-    const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*4.0)));
+    const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(r/(S.N/nm))));
 
-    gl.useProgram(P.blurH.p); common(P.blurH);
-    gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
-    gl.uniform1i(P.blurH.u("uRad"), rad);
-    gl.uniform1i(P.blurH.u("uNsrc"), nm); gl.uniform1i(P.blurH.u("uNm"), nm);
-    bindTex(P.blurH, "uSrc", 0, srcTex);
-    targets(T.tmpA, T.tmpB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
-
-    gl.useProgram(P.blurV.p); common(P.blurV);
-    gl.uniform1f(P.blurV.u("uSigA"), sigA); gl.uniform1f(P.blurV.u("uSigB"), sigB);
-    gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform1i(P.blurV.u("uNm"), nm);
-    bindTex(P.blurV, "uA", 0, T.tmpA); bindTex(P.blurV, "uB", 1, T.tmpB);
+    gl.useProgram(P.force.p); common(P.force);
+    gl.uniform1i(P.force.u("uRad"), rad);
+    gl.uniform1i(P.force.u("uNsrc"), nm); gl.uniform1i(P.force.u("uNm"), nm);
+    bindTex(P.force, "uSrc", 0, srcTex);
     targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
 
     gl.useProgram(P.up.p); common(P.up);
     gl.uniform1i(P.up.u("uNm"), nm); gl.uniform1i(P.up.u("uSlot"), s);
     bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
-    targets(T.near, T.far, s*S.N, S.N); drawQuad();
+    targets(T.far, T.near, s*S.N, S.N); drawQuad();
   }
 
   gl.useProgram(P.aff.p); common(P.aff);

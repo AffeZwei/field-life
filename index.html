@@ -538,7 +538,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           <option value="2">Additive</option><option value="3">Winner</option>
         </select></div>
         <div class="row"><label class="lab" for="pixels">Pixels</label>
-          <label class="chk"><input type="checkbox" id="pixels"> interpolate</label></div>
+          <label class="chk"><input type="checkbox" id="pixels" checked> interpolate</label></div>
         <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
       </div>
 
@@ -1000,7 +1000,7 @@ const S = {
   running: true, frame: 0, tick: 0,
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
-  smooth: false,                       // false = show the lattice cells as squares
+  smooth: true,                        // false = show the lattice cells as squares
   palette: "Spectrum", blend: 0, inter: 0,
   tool: "pan", brush: 26, flow: 0.55,  // painting: radius in cells, mass per second
   paintMask: null

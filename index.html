@@ -5,26 +5,26 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
 :root{
-  --bg:#E7EEEB; --panel:#FFFFFF; --panel2:#EFF5F2; --ink:#0E1A18; --ink2:#5A6E6A;
-  --line:#CFDED9; --line2:#E2ECE8; --accent:#0B9C88; --focus:#12B39D;
-  --screen:#04080A; --pos:#E0533F; --neg:#2E86C8;
-  --glow:rgba(11,156,136,.16); --glow2:rgba(224,83,63,.10);
+  --bg:#E9EDF3; --panel:#FFFFFF; --panel2:#EFF2F8; --ink:#0F1620; --ink2:#5A6675;
+  --line:#D2D9E5; --line2:#E3E8F0; --accent:#1B6FE0; --focus:#2E86F5;
+  --screen:#04070B; --pos:#DD5240; --neg:#4A5AC8;
+  --glow:rgba(27,111,224,.14); --glow2:rgba(221,82,64,.08);
   --shadow:0 1px 2px rgba(14,26,24,.05), 0 10px 30px rgba(14,26,24,.07);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#070D0E; --panel:#0E1719; --panel2:#131F21; --ink:#E2EEEB; --ink2:#8AA19D;
-    --line:#1F2E30; --line2:#182528; --accent:#3FE0C4; --focus:#3FE0C4;
-    --screen:#04080A; --pos:#FF7A66; --neg:#57BEF0;
-    --glow:rgba(63,224,196,.13); --glow2:rgba(255,122,102,.09);
+    --bg:#070A0F; --panel:#0E141B; --panel2:#131A23; --ink:#E3E9F2; --ink2:#8A95A8;
+    --line:#1E2732; --line2:#171E27; --accent:#6BB0FF; --focus:#6BB0FF;
+    --screen:#04070B; --pos:#FF7A66; --neg:#8894FF;
+    --glow:rgba(107,176,255,.12); --glow2:rgba(255,122,102,.07);
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.4);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#070D0E; --panel:#0E1719; --panel2:#131F21; --ink:#E2EEEB; --ink2:#8AA19D;
-  --line:#1F2E30; --line2:#182528; --accent:#3FE0C4; --focus:#3FE0C4;
-  --screen:#04080A; --pos:#FF7A66; --neg:#57BEF0;
-  --glow:rgba(63,224,196,.13); --glow2:rgba(255,122,102,.09);
+  --bg:#070A0F; --panel:#0E141B; --panel2:#131A23; --ink:#E3E9F2; --ink2:#8A95A8;
+  --line:#1E2732; --line2:#171E27; --accent:#6BB0FF; --focus:#6BB0FF;
+  --screen:#04070B; --pos:#FF7A66; --neg:#8894FF;
+  --glow:rgba(107,176,255,.12); --glow2:rgba(255,122,102,.07);
   --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
@@ -54,7 +54,7 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 @media (max-width:900px){ .app{grid-template-columns:minmax(0,1fr)} }
 
 .stage{
-  background:var(--screen); border:1px solid var(--line); border-radius:28px 34px 30px 32px;
+  background:var(--screen); border:1px solid var(--line); border-radius:14px 17px 15px 16px;
   box-shadow:var(--shadow), 0 0 0 6px var(--glow); overflow:hidden; position:relative; aspect-ratio:1/1;
 }
 .stage canvas{display:block; width:100%; height:100%; image-rendering:auto; cursor:grab; touch-action:none}
@@ -70,10 +70,11 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   color:#d9dbe6; font-size:13px; line-height:1.6;
 }
 
+.col{display:flex; flex-direction:column; gap:18px; min-width:0}
 .rail{display:flex; flex-direction:column; gap:12px; min-width:0}
-.card{background:var(--panel); border:1px solid var(--line); border-radius:20px 26px 22px 24px;
+.card{background:var(--panel); border:1px solid var(--line); border-radius:11px 14px 12px 13px;
   padding:14px 15px 16px; box-shadow:var(--shadow)}
-.rail .card:nth-child(even){border-radius:26px 20px 25px 21px}
+.rail .card:nth-child(even){border-radius:14px 11px 13px 12px}
 .card h2{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:11px; font-weight:600;
   text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 11px;
@@ -95,7 +96,7 @@ input[type=range]:focus-visible{outline:2px solid var(--focus); outline-offset:3
 
 select, input[type=number]{
   font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
-  border:1px solid var(--line); border-radius:999px; padding:5px 11px; flex:1 1 auto; min-width:0;
+  border:1px solid var(--line); border-radius:8px; padding:5px 9px; flex:1 1 auto; min-width:0;
 }
 select:focus-visible, input:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
 
@@ -103,7 +104,7 @@ select:focus-visible, input:focus-visible{outline:2px solid var(--focus); outlin
 button{
   font:inherit; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
   color:var(--ink); background:var(--panel2); border:1px solid var(--line);
-  border-radius:999px; padding:6px 12px; cursor:pointer; flex:1 1 auto;
+  border-radius:8px; padding:6px 11px; cursor:pointer; flex:1 1 auto;
   transition:background .12s ease, border-color .12s ease, color .12s ease;
 }
 button:hover{background:var(--bg); border-color:var(--ink2)}
@@ -118,7 +119,7 @@ button.primary:hover{filter:brightness(1.08)}
 .mx .hdr{display:flex; align-items:center; justify-content:center}
 .chip{width:14px; height:14px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(0,0,0,.22), 0 0 7px -1px currentColor}
 .cell{
-  position:relative; aspect-ratio:1/1; border-radius:50%; cursor:ns-resize;
+  position:relative; aspect-ratio:1/1; border-radius:5px; cursor:ns-resize;
   display:grid; place-items:center; font-size:9px; font-variant-numeric:tabular-nums;
   color:var(--ink); background:var(--panel2); border:1px solid var(--line2);
 }
@@ -128,7 +129,7 @@ button.primary:hover{filter:brightness(1.08)}
 
 input[type=text]{
   font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
-  border:1px solid var(--line); border-radius:999px; padding:5px 12px; flex:1 1 auto; min-width:0;
+  border:1px solid var(--line); border-radius:8px; padding:5px 10px; flex:1 1 auto; min-width:0;
 }
 input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
@@ -149,7 +150,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:7px;
   white-space:pre; overflow:auto;
 }
-.pjson{border-radius:14px 16px 14px 16px}
+.pjson{border-radius:9px}
 .pjson:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
 .pstatus{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:7px; min-height:13px}
 .pstatus.warn{color:var(--pos)}
@@ -184,7 +185,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   font-family:"IBM Plex Mono",monospace; letter-spacing:.01em;
 }
 .eqs{display:flex; flex-direction:column; gap:10px; margin:2px 0}
-.eq{border-left:2px solid var(--accent); border-radius:0 12px 12px 0; padding:2px 0 2px 12px}
+.eq{border-left:2px solid var(--accent); border-radius:0 8px 8px 0; padding:2px 0 2px 12px}
 .eq code{
   display:block; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
   color:var(--ink); line-height:1.6;
@@ -215,7 +216,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 .explain a:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:2px}
 #citebib{
   margin:0; font-family:"IBM Plex Mono",monospace; font-size:10px; line-height:1.5;
-  color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:14px 16px 14px 16px;
+  color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:9px;
   padding:9px 11px; overflow-x:auto; white-space:pre; user-select:all;
 }
 .citeline{font-size:10.5px; line-height:1.5; margin:8px 0 0 !important; color:var(--ink2)}
@@ -229,11 +230,163 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
   <div class="app">
-    <div class="stage">
+    <div class="col">
+      <div class="stage">
       <canvas id="cv"></canvas>
       <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span><span>zoom <b id="hzoom">1.0&times;</b></span></div>
       <div id="gl-error"></div>
     </div>
+
+  <section class="explain">
+      <h2>How it works</h2>
+
+      <p>Every color is a <b>field</b>: one number in every cell of the grid saying how much of that color
+      is sitting there. Not a swarm of dots — a smear of stuff. Six colors on a 512 grid means six numbers
+      per cell, about a million and a half numbers in total, all updated on the GPU every frame.</p>
+
+      <p>One step has two halves. First work out <b>where each color would like to be</b>. Then <b>move the
+      mass there</b> — move, never create, never destroy.</p>
+
+      <figure>
+        <svg viewBox="0 0 700 208" role="img" preserveAspectRatio="xMidYMid meet"
+             aria-label="One simulation step: densities are blurred at two radii, the difference gives a ring, the interaction matrix turns rings into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g stroke="currentColor" fill="var(--panel2)" stroke-width="1.2">
+            <rect x="12"  y="40" width="116" height="62" rx="4"/>
+            <rect x="152" y="40" width="116" height="62" rx="4"/>
+            <rect x="292" y="40" width="116" height="62" rx="4"/>
+            <rect x="432" y="40" width="116" height="62" rx="4"/>
+            <rect x="572" y="40" width="116" height="62" rx="4"/>
+          </g>
+          <g fill="currentColor" font-size="12.5" text-anchor="middle">
+            <text x="70"  y="66">densities</text><text x="70"  y="84" font-style="italic">&#961;</text>
+            <text x="210" y="66">blur twice</text><text x="210" y="84">near &amp; far</text>
+            <text x="350" y="58">ring</text>
+            <text x="490" y="66">affinity</text><text x="490" y="84" font-style="italic">A</text>
+            <text x="630" y="66">hand mass</text><text x="630" y="84">to neighbours</text>
+          </g>
+          <g stroke="var(--accent)" fill="none" stroke-width="1.6">
+            <path d="M306,80 C318,80 322,72 332,72 C342,72 346,66 352,66 C362,66 374,74 396,75"/>
+          </g>
+          <line x1="302" y1="75" x2="398" y2="75" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/>
+          <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
+            <line x1="128" y1="71" x2="150" y2="71"/>
+            <line x1="268" y1="71" x2="290" y2="71"/>
+            <line x1="408" y1="71" x2="430" y2="71"/>
+            <line x1="548" y1="71" x2="570" y2="71"/>
+            <path d="M630,102 L630,150 L70,150 L70,104"/>
+          </g>
+          <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
+            <text x="139" y="34">two radii</text>
+            <text x="279" y="34">far &#8722; near</text>
+            <text x="419" y="34">&#215; matrix</text>
+            <text x="559" y="34">e<tspan baseline-shift="super" font-size="8">&#946;A</tspan></text>
+            <text x="350" y="168">the new densities are the next step&#8217;s input</text>
+          </g>
+        </svg>
+        <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
+      </figure>
+
+      <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
+      narrowly and widely and subtracting the two gives the curve drawn in the middle box above: negative
+      up close, positive at a distance <i>R</i>. So it answers &#8220;how much of that color sits about
+      <i>R</i> away from here?&#8221; — and because it dips below zero near the middle, colors keep a
+      little personal space instead of collapsing into a point.</p>
+
+      <div class="eqs">
+        <div class="eq"><code>ring<sub>c</sub> = blur<sub>far</sub>(&#961;<sub>c</sub>) &#8722; blur<sub>near</sub>(&#961;<sub>c</sub>)</code>
+          <span>how much of color <i>c</i> is a distance <i>R</i> away</span></div>
+        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; ring<sub>d</sub> &#8722; repel &#183; crowding</code>
+          <span>where color <i>c</i> wants to be: the matrix says how it feels about every color, minus a dislike of crowds</span></div>
+        <div class="eq"><code>share(y &#8594; x) = e<sup>&#946;A(x)</sup> &#8260; Z(y)</code>
+          <span>the fraction of cell <i>y</i>&#8217;s mass that goes to neighbour <i>x</i>. <i>Z</i> is the total over <i>y</i>&#8217;s nine cells, so the nine shares add to exactly 1</span></div>
+      </div>
+
+      <p>That last line is the whole reason nothing ever explodes or dies out. Each cell gives away shares
+      of <b>its own</b> mass, and the shares sum to one — so every unit that leaves somewhere arrives
+      somewhere. Add it all up and the total is the same number forever, which is what the bars on the
+      right are showing you.</p>
+
+      <figure class="narrow">
+        <svg viewBox="0 0 300 190" role="img" preserveAspectRatio="xMidYMid meet"
+             aria-label="A cell splits its own mass among its nine neighbouring cells, with thicker arrows going to cells of higher affinity.">
+          <g stroke="currentColor" stroke-width="1.1" fill="none" opacity=".55">
+            <rect x="70"  y="30" width="52" height="52"/><rect x="122" y="30" width="52" height="52"/><rect x="174" y="30" width="52" height="52"/>
+            <rect x="70"  y="82" width="52" height="52"/><rect x="174" y="82" width="52" height="52"/>
+            <rect x="70"  y="134" width="52" height="52"/><rect x="122" y="134" width="52" height="52"/><rect x="174" y="134" width="52" height="52"/>
+          </g>
+          <rect x="122" y="82" width="52" height="52" fill="var(--accent)" opacity=".22" stroke="var(--accent)" stroke-width="1.4"/>
+          <g stroke="var(--accent)" marker-end="url(#ar)" fill="none" color="var(--accent)">
+            <line x1="148" y1="108" x2="106" y2="66"  stroke-width="1.2"/>
+            <line x1="148" y1="108" x2="148" y2="60"  stroke-width="4.5"/>
+            <line x1="148" y1="108" x2="190" y2="66"  stroke-width="2.6"/>
+            <line x1="148" y1="108" x2="104" y2="108" stroke-width="1"/>
+            <line x1="148" y1="108" x2="192" y2="108" stroke-width="3.4"/>
+            <line x1="148" y1="108" x2="106" y2="150" stroke-width="1"/>
+            <line x1="148" y1="108" x2="148" y2="156" stroke-width="1.6"/>
+            <line x1="148" y1="108" x2="190" y2="150" stroke-width="2.2"/>
+          </g>
+          <circle cx="148" cy="108" r="3.4" fill="var(--accent)"/>
+          <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
+            <text x="150" y="18">high affinity this way</text>
+            <text x="150" y="182">a share also stays put</text>
+          </g>
+        </svg>
+        <figcaption>How mass moves: thicker arrow, higher affinity, bigger share. The nine shares always add to one.</figcaption>
+      </figure>
+
+      <p>Change the matrix and you change what chases what. Because it need not be symmetric, red can be
+      drawn to green while green flees red — and that one asymmetry is where most of the chasing,
+      orbiting and swarming comes from.</p>
+
+      <div class="foot">
+        <div class="fcol">
+          <h3>Built on</h3>
+          <ol class="refs">
+            <li><b>MaCE</b> — the transport rule used here: each cell hands its mass to its nine neighbours
+              in proportion to <code>e<sup>&#946;A</sup></code>, so mass is conserved by construction.
+              Papadopoulos, V. &amp; Guichard, E. (2025). <i>MaCE: General Mass Conserving Dynamics for
+              Cellular Automata.</i> <a href="https://arxiv.org/abs/2507.12306">arXiv:2507.12306</a></li>
+            <li><b>Particle Life</b> — the interaction matrix and short-range repulsion, in its original
+              swarm-of-dots form. Mohr, T., <a href="https://particle-life.com/">particle-life.com</a>,
+              after Ventrella, J., <i>Clusters</i>,
+              <a href="https://www.ventrella.com/Clusters/">ventrella.com/Clusters</a></li>
+            <li><b>Lenia</b> — the continuous cellular automaton lineage: kernels convolved with a field,
+              fed through a growth function. Chan, B. W.-C. (2019). <i>Lenia — Biology of Artificial Life.</i>
+              Complex Systems 28(3), 251&#8211;286.
+              <a href="https://arxiv.org/abs/1812.05433">arXiv:1812.05433</a></li>
+            <li><b>Flow-Lenia</b> — the nearest relative: per-channel affinity, an anti-crowding term and
+              mass conservation on a grid, via reintegration tracking rather than a softmax.
+              Plantec, E., Hamon, G., Etcheverry, M., Chan, B. W.-C., Oudeyer, P.-Y. &amp; Moulin-Frier, C.
+              (2023). <a href="https://arxiv.org/abs/2212.07906">arXiv:2212.07906</a></li>
+            <li><b>Non-reciprocal Cahn&#8211;Hilliard</b> — the same asymmetric-matrix idea as continuum
+              physics, where it produces travelling waves and &#8220;chasing&#8221; phases.
+              Saha, S., Agudo-Canalejo, J. &amp; Golestanian, R. (2020). Phys. Rev. X 10, 041009.
+              <a href="https://arxiv.org/abs/2005.07101">arXiv:2005.07101</a></li>
+          </ol>
+        </div>
+
+        <div class="fcol">
+          <h3>Cite this <button id="citecopy">copy</button></h3>
+          <pre id="citebib">@misc{fieldlife,
+    author = {Zhechev, Iliya},
+    title  = {Field Life: particle life as
+              mass-conserving continuous fields},
+    year   = {2026},
+    url    = {https://www.izhv.eu/field-life}
+  }</pre>
+          <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as mass-conserving
+            continuous fields.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
+          <div id="citestatus" class="pstatus"></div>
+        </div>
+      </div>
+    </section>
+      </div>
+
 
     <div class="rail">
 
@@ -288,6 +441,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+        <div class="row"><label class="lab" for="pixels">Pixels</label>
+          <button id="pixels" aria-pressed="true">Crisp</button></div>
         <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
       </div>
 
@@ -317,154 +472,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     </div>
   </div>
 
-  <section class="explain">
-    <h2>How it works</h2>
-
-    <p>Every color is a <b>field</b>: one number in every cell of the grid saying how much of that color
-    is sitting there. Not a swarm of dots — a smear of stuff. Six colors on a 512 grid means six numbers
-    per cell, about a million and a half numbers in total, all updated on the GPU every frame.</p>
-
-    <p>One step has two halves. First work out <b>where each color would like to be</b>. Then <b>move the
-    mass there</b> — move, never create, never destroy.</p>
-
-    <figure>
-      <svg viewBox="0 0 700 208" role="img" preserveAspectRatio="xMidYMid meet"
-           aria-label="One simulation step: densities are blurred at two radii, the difference gives a ring, the interaction matrix turns rings into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
-        <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
-          </marker>
-        </defs>
-        <g stroke="currentColor" fill="var(--panel2)" stroke-width="1.2">
-          <rect x="12"  y="40" width="116" height="62" rx="4"/>
-          <rect x="152" y="40" width="116" height="62" rx="4"/>
-          <rect x="292" y="40" width="116" height="62" rx="4"/>
-          <rect x="432" y="40" width="116" height="62" rx="4"/>
-          <rect x="572" y="40" width="116" height="62" rx="4"/>
-        </g>
-        <g fill="currentColor" font-size="12.5" text-anchor="middle">
-          <text x="70"  y="66">densities</text><text x="70"  y="84" font-style="italic">&#961;</text>
-          <text x="210" y="66">blur twice</text><text x="210" y="84">near &amp; far</text>
-          <text x="350" y="58">ring</text>
-          <text x="490" y="66">affinity</text><text x="490" y="84" font-style="italic">A</text>
-          <text x="630" y="66">hand mass</text><text x="630" y="84">to neighbours</text>
-        </g>
-        <g stroke="var(--accent)" fill="none" stroke-width="1.6">
-          <path d="M306,80 C318,80 322,72 332,72 C342,72 346,66 352,66 C362,66 374,74 396,75"/>
-        </g>
-        <line x1="302" y1="75" x2="398" y2="75" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/>
-        <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
-          <line x1="128" y1="71" x2="150" y2="71"/>
-          <line x1="268" y1="71" x2="290" y2="71"/>
-          <line x1="408" y1="71" x2="430" y2="71"/>
-          <line x1="548" y1="71" x2="570" y2="71"/>
-          <path d="M630,102 L630,150 L70,150 L70,104"/>
-        </g>
-        <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-          <text x="139" y="34">two radii</text>
-          <text x="279" y="34">far &#8722; near</text>
-          <text x="419" y="34">&#215; matrix</text>
-          <text x="559" y="34">e<tspan baseline-shift="super" font-size="8">&#946;A</tspan></text>
-          <text x="350" y="168">the new densities are the next step&#8217;s input</text>
-        </g>
-      </svg>
-      <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
-    </figure>
-
-    <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
-    narrowly and widely and subtracting the two gives the curve drawn in the middle box above: negative
-    up close, positive at a distance <i>R</i>. So it answers &#8220;how much of that color sits about
-    <i>R</i> away from here?&#8221; — and because it dips below zero near the middle, colors keep a
-    little personal space instead of collapsing into a point.</p>
-
-    <div class="eqs">
-      <div class="eq"><code>ring<sub>c</sub> = blur<sub>far</sub>(&#961;<sub>c</sub>) &#8722; blur<sub>near</sub>(&#961;<sub>c</sub>)</code>
-        <span>how much of color <i>c</i> is a distance <i>R</i> away</span></div>
-      <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; ring<sub>d</sub> &#8722; repel &#183; crowding</code>
-        <span>where color <i>c</i> wants to be: the matrix says how it feels about every color, minus a dislike of crowds</span></div>
-      <div class="eq"><code>share(y &#8594; x) = e<sup>&#946;A(x)</sup> &#8260; Z(y)</code>
-        <span>the fraction of cell <i>y</i>&#8217;s mass that goes to neighbour <i>x</i>. <i>Z</i> is the total over <i>y</i>&#8217;s nine cells, so the nine shares add to exactly 1</span></div>
-    </div>
-
-    <p>That last line is the whole reason nothing ever explodes or dies out. Each cell gives away shares
-    of <b>its own</b> mass, and the shares sum to one — so every unit that leaves somewhere arrives
-    somewhere. Add it all up and the total is the same number forever, which is what the bars on the
-    right are showing you.</p>
-
-    <figure class="narrow">
-      <svg viewBox="0 0 300 190" role="img" preserveAspectRatio="xMidYMid meet"
-           aria-label="A cell splits its own mass among its nine neighbouring cells, with thicker arrows going to cells of higher affinity.">
-        <g stroke="currentColor" stroke-width="1.1" fill="none" opacity=".55">
-          <rect x="70"  y="30" width="52" height="52"/><rect x="122" y="30" width="52" height="52"/><rect x="174" y="30" width="52" height="52"/>
-          <rect x="70"  y="82" width="52" height="52"/><rect x="174" y="82" width="52" height="52"/>
-          <rect x="70"  y="134" width="52" height="52"/><rect x="122" y="134" width="52" height="52"/><rect x="174" y="134" width="52" height="52"/>
-        </g>
-        <rect x="122" y="82" width="52" height="52" fill="var(--accent)" opacity=".22" stroke="var(--accent)" stroke-width="1.4"/>
-        <g stroke="var(--accent)" marker-end="url(#ar)" fill="none" color="var(--accent)">
-          <line x1="148" y1="108" x2="106" y2="66"  stroke-width="1.2"/>
-          <line x1="148" y1="108" x2="148" y2="60"  stroke-width="4.5"/>
-          <line x1="148" y1="108" x2="190" y2="66"  stroke-width="2.6"/>
-          <line x1="148" y1="108" x2="104" y2="108" stroke-width="1"/>
-          <line x1="148" y1="108" x2="192" y2="108" stroke-width="3.4"/>
-          <line x1="148" y1="108" x2="106" y2="150" stroke-width="1"/>
-          <line x1="148" y1="108" x2="148" y2="156" stroke-width="1.6"/>
-          <line x1="148" y1="108" x2="190" y2="150" stroke-width="2.2"/>
-        </g>
-        <circle cx="148" cy="108" r="3.4" fill="var(--accent)"/>
-        <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-          <text x="150" y="18">high affinity this way</text>
-          <text x="150" y="182">a share also stays put</text>
-        </g>
-      </svg>
-      <figcaption>How mass moves: thicker arrow, higher affinity, bigger share. The nine shares always add to one.</figcaption>
-    </figure>
-
-    <p>Change the matrix and you change what chases what. Because it need not be symmetric, red can be
-    drawn to green while green flees red — and that one asymmetry is where most of the chasing,
-    orbiting and swarming comes from.</p>
-
-    <div class="foot">
-      <div class="fcol">
-        <h3>Built on</h3>
-        <ol class="refs">
-          <li><b>MaCE</b> — the transport rule used here: each cell hands its mass to its nine neighbours
-            in proportion to <code>e<sup>&#946;A</sup></code>, so mass is conserved by construction.
-            Papadopoulos, V. &amp; Guichard, E. (2025). <i>MaCE: General Mass Conserving Dynamics for
-            Cellular Automata.</i> <a href="https://arxiv.org/abs/2507.12306">arXiv:2507.12306</a></li>
-          <li><b>Particle Life</b> — the interaction matrix and short-range repulsion, in its original
-            swarm-of-dots form. Mohr, T., <a href="https://particle-life.com/">particle-life.com</a>,
-            after Ventrella, J., <i>Clusters</i>,
-            <a href="https://www.ventrella.com/Clusters/">ventrella.com/Clusters</a></li>
-          <li><b>Lenia</b> — the continuous cellular automaton lineage: kernels convolved with a field,
-            fed through a growth function. Chan, B. W.-C. (2019). <i>Lenia — Biology of Artificial Life.</i>
-            Complex Systems 28(3), 251&#8211;286.
-            <a href="https://arxiv.org/abs/1812.05433">arXiv:1812.05433</a></li>
-          <li><b>Flow-Lenia</b> — the nearest relative: per-channel affinity, an anti-crowding term and
-            mass conservation on a grid, via reintegration tracking rather than a softmax.
-            Plantec, E., Hamon, G., Etcheverry, M., Chan, B. W.-C., Oudeyer, P.-Y. &amp; Moulin-Frier, C.
-            (2023). <a href="https://arxiv.org/abs/2212.07906">arXiv:2212.07906</a></li>
-          <li><b>Non-reciprocal Cahn&#8211;Hilliard</b> — the same asymmetric-matrix idea as continuum
-            physics, where it produces travelling waves and &#8220;chasing&#8221; phases.
-            Saha, S., Agudo-Canalejo, J. &amp; Golestanian, R. (2020). Phys. Rev. X 10, 041009.
-            <a href="https://arxiv.org/abs/2005.07101">arXiv:2005.07101</a></li>
-        </ol>
-      </div>
-
-      <div class="fcol">
-        <h3>Cite this <button id="citecopy">copy</button></h3>
-        <pre id="citebib">@misc{fieldlife,
-  author = {Zhechev, Iliya},
-  title  = {Field Life: particle life as
-            mass-conserving continuous fields},
-  year   = {2026},
-  url    = {https://www.izhv.eu/field-life}
-}</pre>
-        <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as mass-conserving
-          continuous fields.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
-        <div id="citestatus" class="pstatus"></div>
-      </div>
-    </div>
-  </section>
 </div>
 
 <script>
@@ -691,7 +698,7 @@ void main(){
 
 const FS_DRAW = HEAD + `
 uniform sampler2D uRho; uniform vec3 uPal[16]; uniform int uC;
-uniform vec2 uRes, uPan; uniform float uExp, uZoom;
+uniform vec2 uRes, uPan; uniform float uExp, uZoom, uSmooth;
 out vec4 oC;
 vec4 cell(int l, int ix, int iy){
   return texelFetch(uRho, ivec2(l*uN + wrapi(ix, uN), wrapi(iy, uN)), 0);
@@ -703,6 +710,9 @@ void main(){
   float span = float(uN) / uZoom;
   vec2 g = uPan*float(uN) + ((gl_FragCoord.xy / uRes) - 0.5)*span - 0.5;
   ivec2 i0 = ivec2(floor(g)); vec2 f = g - floor(g);
+  // Snapping the blend weights to 0 or 1 turns the same bilinear fetch into a
+  // nearest one, so zooming in shows the lattice cells as they really are.
+  if(uSmooth < 0.5) f = floor(f + 0.5);
   // hue comes from whichever color dominates the cell, brightness from the total
   // mass sitting there -- straight addition would wash six channels out to grey.
   vec3 hue = vec3(0.0); float wsum = 0.0, total = 0.0;
@@ -718,7 +728,7 @@ void main(){
   }
   hue /= max(wsum, 1e-12);
   float a = 1.0 - exp(-total*uExp);
-  oC = vec4(hue*a + vec3(0.016, 0.030, 0.036), 1.0);
+  oC = vec4(hue*a + vec3(0.016, 0.024, 0.040), 1.0);
 }`;
 
 /* ---------------------------------------------------------------- gl plumbing */
@@ -797,7 +807,8 @@ const S = {
   seedMode: "disc",                   // whichever starting field you last asked for
   running: true, frame: 0, tick: 0,
   holdUntil: 0,                        // let the opening state be seen before it moves
-  zoom: 1, panU: 0.5, panV: 0.5        // view only, in world units
+  zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
+  smooth: false                        // false = show the lattice cells as squares
 };
 let T = {};            // simulation textures
 let matTex = null, mat = null, palette = [], reduceChain = [];
@@ -1109,6 +1120,7 @@ function render(){
   gl.uniform2f(P.draw.u("uRes"), cv.width, cv.height);
   gl.uniform1f(P.draw.u("uExp"), S.expo);
   gl.uniform1f(P.draw.u("uZoom"), S.zoom);
+  gl.uniform1f(P.draw.u("uSmooth"), S.smooth ? 1 : 0);
   gl.uniform2f(P.draw.u("uPan"), S.panU, S.panV);
   const pal = new Float32Array(48);
   palette.forEach((c, i) => { pal[i*3] = c[0]; pal[i*3+1] = c[1]; pal[i*3+2] = c[2]; });
@@ -1515,6 +1527,11 @@ function boot(){
   });
   $("play").addEventListener("click", e => {
     S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";
+  });
+  $("pixels").addEventListener("click", e => {
+    S.smooth = !S.smooth;
+    e.target.textContent = S.smooth ? "Smooth" : "Crisp";
+    e.target.setAttribute("aria-pressed", String(!S.smooth));
   });
   $("reseed").addEventListener("click", () => { S.seedMode = "noise"; reseed(); mass0 = null; });
   $("disc").addEventListener("click", () => { S.seedMode = "disc"; reseed(); mass0 = null; });

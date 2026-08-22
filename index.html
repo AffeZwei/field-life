@@ -129,6 +129,15 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 .pitem .del{flex:0 0 auto; padding:6px 8px; color:var(--ink2)}
 .pitem .del:hover{color:var(--pos); border-color:var(--pos); background:var(--panel2)}
 .pempty{color:var(--ink2); font-size:11px; padding:4px 0}
+.pjson{
+  display:none; width:100%; margin-top:8px; min-height:96px; resize:vertical;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.45; color:var(--ink);
+  background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:7px;
+  white-space:pre; overflow:auto;
+}
+.pjson:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+.pstatus{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:7px; min-height:13px}
+.pstatus.warn{color:var(--pos)}
 
 .bars{display:flex; flex-direction:column; gap:5px; margin-top:2px}
 .bar{display:flex; align-items:center; gap:7px}
@@ -214,6 +223,12 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           <button id="psave" class="primary" style="flex:0 0 auto">Save</button>
         </div>
         <div id="plist" class="plist"></div>
+        <div class="btns" style="margin-top:10px">
+          <button id="pexport">Export JSON</button>
+          <button id="pimport">Import</button>
+        </div>
+        <textarea id="pjson" class="pjson" spellcheck="false" aria-label="Setup JSON"></textarea>
+        <div id="pstatus" class="pstatus"></div>
         <p class="mxnote" id="pnote">Everything but the field itself: colors, grid, both matrices and all
           the physics. Loading one keeps the world running if the grid and color count match, so you can
           A/B two matrices on the same field. Saved in this browser only.</p>
@@ -1099,6 +1114,67 @@ function saveSetup(){
   renderSetups();
 }
 
+function status(msg, warn){
+  const el = $("pstatus");
+  el.textContent = msg || "";
+  el.classList.toggle("warn", !!warn);
+}
+
+function exportSetups(){
+  const list = readSetups();
+  const box = $("pjson");
+  box.value = JSON.stringify({ fieldlife: 1, setups: list }, null, 2);
+  box.style.display = "block";
+  box.focus(); box.select();
+  const n = list.length + (list.length === 1 ? " setup" : " setups");
+  // Clipboard access is often refused inside a frame; the textarea is already
+  // selected either way, so Ctrl-C always works as the fallback.
+  try{
+    navigator.clipboard.writeText(box.value)
+      .then(() => status(n + " copied to the clipboard"))
+      .catch(() => status(n + " ready — press Ctrl+C to copy"));
+  }catch(e){ status(n + " ready — press Ctrl+C to copy"); }
+}
+
+// Accepts what export writes, a bare array, one saved entry, or a naked config.
+function parseSetups(text){
+  let data;
+  try{ data = JSON.parse(text); }catch(e){ return null; }
+  let items = Array.isArray(data) ? data
+            : Array.isArray(data && data.setups) ? data.setups
+            : data && data.cfg ? [data]
+            : validConfig(data) ? [{ name: "Imported", cfg: data }]
+            : null;
+  if(!items) return null;
+  return items
+    .filter(it => it && typeof it.name === "string" && validConfig(it.cfg))
+    .map(it => ({ name: it.name.slice(0, 40), cfg: it.cfg, at: it.at || Date.now() }));
+}
+
+function importSetups(){
+  const box = $("pjson");
+  if(box.style.display !== "block"){
+    box.style.display = "block"; box.value = ""; box.focus();
+    status("Paste exported JSON here, then press Import again");
+    return;
+  }
+  const text = box.value.trim();
+  if(!text){ box.focus(); status("Nothing to import — paste some JSON first", true); return; }
+  const incoming = parseSetups(text);
+  if(!incoming){ status("That is not valid setup JSON", true); return; }
+  if(!incoming.length){ status("No usable setups in there", true); return; }
+  const list = readSetups();
+  let added = 0, replaced = 0;
+  for(const it of incoming){
+    const at = list.findIndex(x => x.name === it.name);
+    if(at >= 0){ list.splice(at, 1); replaced++; } else added++;
+    list.unshift(it);
+  }
+  if(!writeSetups(list)){ status("Could not save — this browser is blocking storage", true); return; }
+  renderSetups();
+  status(`Imported ${added} new, replaced ${replaced}`);
+}
+
 function rebuildColors(){
   palette = makePalette(S.C);
   radMat = new Int32Array(S.C*S.C).fill(BASE_LEVEL);
@@ -1188,6 +1264,8 @@ function boot(){
   $("rflat").addEventListener("click", () => { radMat.fill(BASE_LEVEL); rebuildBank(); paintRadii(); });
   $("psave").addEventListener("click", saveSetup);
   $("pname").addEventListener("keydown", e => { if(e.key === "Enter") saveSetup(); });
+  $("pexport").addEventListener("click", exportSetups);
+  $("pimport").addEventListener("click", importSetups);
 
   addEventListener("keydown", e => {
     if(e.target.matches("input, select")) return;

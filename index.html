@@ -5,29 +5,29 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
 :root{
-  --bg:#E9EDF3; --panel:#FFFFFF; --panel2:#EFF2F8; --ink:#0F1620; --ink2:#5A6675;
-  --line:#D2D9E5; --line2:#E3E8F0; --accent:#1B6FE0; --focus:#2E86F5;
-  --screen:#04070B; --pos:#DD5240; --neg:#4A5AC8;
-  --glow:rgba(27,111,224,.14); --glow2:rgba(221,82,64,.08);
-  --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%230F1620'%20stroke-opacity='.13'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
+  --bg:#E8EDEF; --panel:#FFFFFF; --panel2:#EEF3F4; --ink:#0E1A1F; --ink2:#586A70;
+  --line:#D0DBDE; --line2:#E1EAEC; --accent:#0F82C4; --focus:#1898DD;
+  --screen:#04080B; --pos:#DD5A40; --neg:#4A5AC8;
+  --glow:rgba(15,130,196,.14); --glow2:rgba(221,90,64,.08);
+  --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%230E1A1F'%20stroke-opacity='.13'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
   --shadow:2px 2px 0 rgba(15,22,32,.055);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#070A0F; --panel:#0E141B; --panel2:#131A23; --ink:#E3E9F2; --ink2:#8A95A8;
-    --line:#1E2732; --line2:#171E27; --accent:#6BB0FF; --focus:#6BB0FF;
-    --screen:#04070B; --pos:#FF7A66; --neg:#8894FF;
-    --glow:rgba(107,176,255,.12); --glow2:rgba(255,122,102,.07);
-    --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%236BB0FF'%20stroke-opacity='.10'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
+    --bg:#060C0F; --panel:#0D161A; --panel2:#121C21; --ink:#E1EBEF; --ink2:#87999F;
+    --line:#1D2930; --line2:#161F24; --accent:#5AC2EC; --focus:#5AC2EC;
+    --screen:#04080B; --pos:#FF7F66; --neg:#8894FF;
+    --glow:rgba(90,194,236,.12); --glow2:rgba(255,127,102,.07);
+    --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%235AC2EC'%20stroke-opacity='.10'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
     --shadow:2px 2px 0 rgba(0,0,0,.34);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#070A0F; --panel:#0E141B; --panel2:#131A23; --ink:#E3E9F2; --ink2:#8A95A8;
-  --line:#1E2732; --line2:#171E27; --accent:#6BB0FF; --focus:#6BB0FF;
-  --screen:#04070B; --pos:#FF7A66; --neg:#8894FF;
-  --glow:rgba(107,176,255,.12); --glow2:rgba(255,122,102,.07);
-  --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%236BB0FF'%20stroke-opacity='.10'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
+  --bg:#060C0F; --panel:#0D161A; --panel2:#121C21; --ink:#E1EBEF; --ink2:#87999F;
+  --line:#1D2930; --line2:#161F24; --accent:#5AC2EC; --focus:#5AC2EC;
+  --screen:#04080B; --pos:#FF7F66; --neg:#8894FF;
+  --glow:rgba(90,194,236,.12); --glow2:rgba(255,127,102,.07);
+  --gridimg:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%3E%3Cpath%20d='M28%200H0v28'%20fill='none'%20stroke='%235AC2EC'%20stroke-opacity='.10'%20stroke-width='1'%20stroke-dasharray='3%205'/%3E%3C/svg%3E");
   --shadow:2px 2px 0 rgba(0,0,0,.34);
 }
 *{box-sizing:border-box}
@@ -103,13 +103,20 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .tctl b{font-size:11px; font-weight:500; color:var(--ink); font-variant-numeric:tabular-nums;
   min-width:28px; text-align:right}
 .sw{display:flex; gap:4px; flex:0 0 auto}
+.sw{gap:5px}
 .sw button{
-  width:21px; height:21px; padding:0; flex:0 0 auto; border-radius:3px;
-  border:1px solid var(--line); opacity:.25; transition:opacity .12s ease;
+  width:16px; height:16px; padding:0; flex:0 0 auto; border-radius:3px;
+  border:1px solid var(--line); opacity:.3; transform:scale(.8);
+  transition:opacity .13s ease, transform .13s ease, box-shadow .13s ease;
 }
-.sw button.on{opacity:1; box-shadow:0 0 0 2px var(--panel), 0 0 0 3px var(--ink2)}
-.sw button:hover{opacity:.7}
-.sw button.on:hover{opacity:1}
+.sw button:hover{opacity:.65; transform:scale(.9)}
+.sw button.on{
+  opacity:1; transform:scale(1); border-color:transparent;
+  box-shadow:0 0 0 2px var(--panel), 0 0 0 3px var(--ink);
+}
+.sw button.on:hover{opacity:1; transform:scale(1)}
+.clearbtn{flex:0 0 auto}
+.clearbtn:hover{border-color:var(--pos); color:var(--pos)}
 .rail{display:flex; flex-direction:column; gap:12px; min-width:0}
 .card{background:var(--panel); border:1px solid var(--line); border-radius:5px 7px 6px 6px;
   padding:14px 15px 16px; box-shadow:var(--shadow)}
@@ -217,8 +224,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 .explain{
   font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:14.5px; line-height:1.75;
   color:var(--ink2); display:flex; flex-direction:column; gap:15px;
-  background:var(--panel); border:1px solid var(--line); border-radius:5px 7px 6px 6px;
-  padding:18px 20px 20px; box-shadow:var(--shadow);
+  margin-top:10px; padding:0 2px;
 }
 .explain h2{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:15px; font-weight:600;
@@ -280,6 +286,12 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
   <div class="app">
     <div class="col">
+      <div class="stage">
+      <canvas id="cv"></canvas>
+      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span><span>zoom <b id="hzoom">1.0&times;</b></span></div>
+      <div id="gl-error"></div>
+    </div>
+
       <div class="toolbar">
         <div class="seg" id="tools">
           <button data-tool="pan" class="on" title="Drag to pan. Right-drag pans in any tool.">Pan</button>
@@ -294,13 +306,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           <button id="allcols" title="Select every color">All</button>
           <button id="nocols" title="Select none">None</button>
         </div>
+        <button id="clear" class="clearbtn" title="Empty the world">Clear</button>
       </div>
-
-      <div class="stage">
-      <canvas id="cv"></canvas>
-      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span><span>zoom <b id="hzoom">1.0&times;</b></span></div>
-      <div id="gl-error"></div>
-    </div>
 
       <div class="colophon">
         <span>Made at <a href="https://2026.alife.org/">ALIFE 2026</a> by
@@ -1237,6 +1244,14 @@ function paintAt(u, v, dt){
   mass0 = null;
 }
 
+function clearField(){
+  if(!T.rhoA) return;
+  const W = S.N*S.L;
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, S.N, gl.RGBA, gl.FLOAT, new Float32Array(W*S.N*4));
+  S.tick = 0; mass0 = null;
+}
+
 // Screen position -> world coordinates, undoing the current zoom and pan.
 function viewToWorld(e){
   const r = cv.getBoundingClientRect();
@@ -1824,6 +1839,7 @@ function boot(){
   };
   brushSlider("bsize", "brush", v => String(Math.round(v)));
   brushSlider("bflow", "flow", v => v.toFixed(2));
+  $("clear").addEventListener("click", clearField);
   $("allcols").addEventListener("click", () => setMask(1));
   $("nocols").addEventListener("click", () => setMask(0));
 

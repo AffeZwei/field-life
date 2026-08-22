@@ -216,6 +216,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
       </div>
 
+      <div class="card" id="rcard" hidden>
+        <h2>Presets <span id="rcount"></span></h2>
+        <div id="rlist" class="plist"></div>
+        <p class="mxnote">Shipped alongside the page in <code>presets.json</code>. Loading one replaces
+          every control; the world only restarts if the grid or color count differs from what is running.</p>
+      </div>
+
       <div class="card">
         <h2>Setups <span id="pcount">none saved</span></h2>
         <div class="row">
@@ -1180,6 +1187,37 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
+// Presets that ship with the page, as opposed to the ones you save yourself.
+// Served from a file, so a standalone copy of this HTML simply has none and
+// the card stays hidden rather than showing an error.
+async function loadPresetFile(){
+  let list = null;
+  try{
+    const res = await fetch("presets.json", { cache: "no-cache" });
+    if(res.ok) list = parseSetups(await res.text());
+  }catch(e){ list = null; }
+  if(!list || !list.length) return;
+
+  const el = $("rlist");
+  el.innerHTML = "";
+  list.forEach(it => {
+    const row = document.createElement("div"); row.className = "pitem";
+    const b = document.createElement("button");
+    b.className = "load"; b.title = "Load " + it.name;
+    const nm = document.createElement("b"); nm.textContent = it.name;
+    const meta = document.createElement("i");
+    meta.textContent = it.cfg.C + "c · " + it.cfg.N;
+    b.append(nm, meta);
+    b.addEventListener("click", () => {
+      if(!applyConfig(it.cfg)) status("“" + it.name + "” could not be loaded", true);
+      else status("Loaded “" + it.name + "”");
+    });
+    row.appendChild(b); el.appendChild(row);
+  });
+  $("rcount").textContent = list.length + " to try";
+  $("rcard").hidden = false;
+}
+
 function rebuildColors(){
   palette = makePalette(S.C);
   radMat = new Int32Array(S.C*S.C).fill(BASE_LEVEL);
@@ -1291,6 +1329,7 @@ function boot(){
   resize();
   rebuildColors();
   renderSetups();
+  loadPresetFile();
   requestAnimationFrame(frame);
 }
 

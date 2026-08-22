@@ -169,6 +169,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
     <div class="rail">
 
+      <div class="card" id="rcard" hidden>
+        <h2>Presets <span id="rcount"></span></h2>
+        <div class="row">
+          <select id="rsel" title="Load a preset from presets.json"></select>
+        </div>
+      </div>
+
       <div class="card">
         <h2>World <span id="wsize">512 &times; 512</span></h2>
         <div class="row"><label class="lab" for="grid">Grid</label><select id="grid">
@@ -214,13 +221,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
         <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
-      </div>
-
-      <div class="card" id="rcard" hidden>
-        <h2>Presets <span id="rcount"></span></h2>
-        <div id="rlist" class="plist"></div>
-        <p class="mxnote">Shipped alongside the page in <code>presets.json</code>. Loading one replaces
-          every control; the world only restarts if the grid or color count differs from what is running.</p>
       </div>
 
       <div class="card">
@@ -1201,21 +1201,23 @@ async function loadPresetFile(){
   }catch(e){ list = null; }
   if(!list || !list.length) return;
 
-  const el = $("rlist");
-  el.innerHTML = "";
-  list.forEach(it => {
-    const row = document.createElement("div"); row.className = "pitem";
-    const b = document.createElement("button");
-    b.className = "load"; b.title = "Load " + it.name;
-    const nm = document.createElement("b"); nm.textContent = it.name;
-    const meta = document.createElement("i");
-    meta.textContent = it.cfg.C + "c · " + it.cfg.N;
-    b.append(nm, meta);
-    b.addEventListener("click", () => {
-      if(!applyConfig(it.cfg)) status("“" + it.name + "” could not be loaded", true);
-      else status("Loaded “" + it.name + "”");
-    });
-    row.appendChild(b); el.appendChild(row);
+  const sel = $("rsel");
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = "Choose a preset…";
+  sel.appendChild(first);
+  list.forEach((it, i) => {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = it.name + "  ·  " + it.cfg.C + "c " + it.cfg.N;
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", () => {
+    if(sel.value === "") return;          // the placeholder; +"" would index 0
+    const it = list[+sel.value];
+    if(!it) return;
+    if(!applyConfig(it.cfg)) status("“" + it.name + "” could not be loaded", true);
+    else status("Loaded “" + it.name + "”");
   });
   $("rcount").textContent = list.length + " to try";
   $("rcard").hidden = false;

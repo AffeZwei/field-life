@@ -335,7 +335,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
       <figure>
         <svg viewBox="0 0 700 208" role="img" preserveAspectRatio="xMidYMid meet"
-             aria-label="One simulation step: each colour is blurred at the sizes its pairs use, the interaction matrix turns those neighbourhood integrals into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
+             aria-label="One simulation step: densities are blurred at two radii, the difference gives a ring, the interaction matrix turns rings into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
           <defs>
             <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
@@ -350,13 +350,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           </g>
           <g fill="currentColor" font-size="12.5" text-anchor="middle">
             <text x="70"  y="66">densities</text><text x="70"  y="84" font-style="italic">&#961;</text>
-            <text x="210" y="66">blur at each</text><text x="210" y="84">pair&#8217;s size</text>
-            <text x="350" y="58">reach</text>
+            <text x="210" y="66">blur twice</text><text x="210" y="84">near &amp; far</text>
+            <text x="350" y="58">ring</text>
             <text x="490" y="66">affinity</text><text x="490" y="84" font-style="italic">A</text>
             <text x="630" y="66">hand mass</text><text x="630" y="84">to neighbours</text>
           </g>
           <g stroke="var(--accent)" fill="none" stroke-width="1.6">
-            <path d="M304,80 C320,80 330,64 350,64 C370,64 380,80 396,80"/>
+            <path d="M306,80 C318,80 322,72 332,72 C342,72 346,66 352,66 C362,66 374,74 396,75"/>
           </g>
           <line x1="302" y1="75" x2="398" y2="75" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/>
           <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
@@ -367,8 +367,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
             <path d="M630,102 L630,150 L70,150 L70,104"/>
           </g>
           <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-            <text x="139" y="34">its sizes</text>
-            <text x="279" y="34">per pair</text>
+            <text x="139" y="34">two radii</text>
+            <text x="279" y="34">far &#8722; near</text>
             <text x="419" y="34">&#215; matrix</text>
             <text x="559" y="34">e<tspan baseline-shift="super" font-size="8">&#946;A</tspan></text>
             <text x="350" y="168">the new densities are the next step&#8217;s input</text>
@@ -377,19 +377,24 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
       </figure>
 
-      <p>The <b>response size</b> is what replaces particle life&#8217;s distance rule. Blurring a color
-      over a disc answers &#8220;how much of that color lies within reach of here?&#8221; &mdash; and every
-      pair of colors gets its own size, set in the second matrix. Row is who is responding and column is
-      to whom, so red can answer yellow from 40 cells away while yellow only notices red at 12.</p>
+      <p>There are two ways to read the neighbourhood, and <b>Kernel</b> switches between them.
+    <b>Reach</b> is the direct one: for each ordered pair, integrate how much of the felt color lies
+    within that pair&#8217;s own radius. Since the reverse pair carries its own radius, red can see
+    green from 40 cells away while green only notices red at 12. <b>Ring</b>, the default, subtracts
+    a second smaller blur from that integral, which gives the pull a preferred <i>distance</i> rather
+    than just a range &mdash; without it, everything either smears into one blob or collapses to
+    points, and only the short-range crowding term holds anything apart.</p>
 
-      <p>Nothing in that stops a color condensing onto itself, so one more term does the job: every color
-      is pushed away from crowding, measured with a much smaller blur of the total mass. That is the
-      personal space that keeps things from collapsing to a point.</p>
+    <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
+      narrowly and widely and subtracting the two gives the curve drawn in the middle box above: negative
+      up close, positive at a distance <i>R</i>. So it answers &#8220;how much of that color sits about
+      <i>R</i> away from here?&#8221; — and because it dips below zero near the middle, colors keep a
+      little personal space instead of collapsing into a point.</p>
 
       <div class="eqs">
-        <div class="eq"><code>reach<sub>c,d</sub> = blur<sub>R[c][d]</sub>(&#961;<sub>d</sub>)</code>
-          <span>how much of color <i>d</i> lies within the size <i>c</i> uses to answer it</span></div>
-        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; reach<sub>c,d</sub> &#8722; repel &#183; crowding</code>
+        <div class="eq"><code>ring<sub>c</sub> = blur<sub>far</sub>(&#961;<sub>c</sub>) &#8722; blur<sub>near</sub>(&#961;<sub>c</sub>)</code>
+          <span>how much of color <i>c</i> is a distance <i>R</i> away</span></div>
+        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; ring<sub>d</sub> &#8722; repel &#183; crowding</code>
           <span>where color <i>c</i> wants to be: the matrix says how it feels about every color, minus a dislike of crowds</span></div>
         <div class="eq"><code>share(y &#8594; x) = e<sup>&#946;A(x)</sup> &#8260; Z(y)</code>
           <span>the fraction of cell <i>y</i>&#8217;s mass that goes to neighbour <i>x</i>. <i>Z</i> is the total over <i>y</i>&#8217;s nine cells, so the nine shares add to exactly 1</span></div>
@@ -518,8 +523,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
           <button id="rresample" class="primary">Resample</button>
           <button id="rflat">Flatten</button>
         </div>
-        <p class="mxnote">How far each pair reaches, in pixels. Row = who is responding, column =
-          to whom, so red can answer yellow at 40 cells while yellow answers red at 12. Cells step through five stops interpolating from <b>Rad min</b> to <b>Rad max</b>; move either slider and the whole matrix rescales. Only the distinct stops in use cost GPU work &mdash; a flat matrix is as cheap as a single radius. The crowding term uses the shortest reach in play.</p>
+        <p class="mxnote">How far each pair reaches, in pixels. Cells step through five stops interpolating from <b>Rad min</b> to <b>Rad max</b>; move either slider and the whole matrix rescales. Only the distinct stops in use cost GPU work &mdash; a flat matrix is as cheap as a single radius. The crowding term uses the shortest reach in play.</p>
       </div>
 
       <div class="card">
@@ -531,6 +535,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+        <div class="row"><label class="lab" for="kernel">Kernel</label><select id="kernel">
+          <option value="0">Ring</option><option value="1">Reach</option>
+        </select></div>
         <div class="row"><label class="lab" for="cmap">Colors</label><select id="cmap"></select></div>
         <div class="row"><label class="lab" for="blend">Blend</label><select id="blend">
           <option value="0">Dominant</option><option value="1">Soft</option>
@@ -648,12 +655,12 @@ void main(){
   oA = sa/wa; oB = sb/wb;
 }`;
 
-/* affinity: mix every colour's neighbourhood integral through the matrix */
-// Each (feeling color, felt color) pair reads its blur from its own slice of
+/* affinity: mix every color's ring through the interaction matrix */
+// Each (feeling color, felt color) pair reads its ring from its own slice of
 // the blur bank, so every pair can have its own interaction radius.
 const FS_AFF = HEAD + `
 uniform sampler2D uNear, uFar, uMat, uSlots;
-uniform int uC, uBase; uniform float uForce, uRepel;
+uniform int uC, uBase, uKernel; uniform float uForce, uRepel;
 out vec4 oA;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
@@ -671,9 +678,12 @@ void main(){
         if(cc >= uC) break;
         int slot = int(texelFetch(uSlots, ivec2(d, cc), 0).r + 0.5);
         ivec2 q = ivec2(l*uN + lx, slot*uN + p.y);
-        // How much of colour d lies within this pair's response size. One blur,
-        // no subtraction -- personal space comes from the crowding term below.
+        // Ring: a difference of two blurs, so the pull has a preferred distance.
+        // Reach: the plain neighbourhood integral at this ordered pair's own
+        // radius -- how much of d lies within reach of c. The reverse pair has
+        // its own radius, so c->d and d->c can see different distances.
         float w = texelFetch(uFar, q, 0)[k];
+        if(uKernel == 0) w -= texelFetch(uNear, q, 0)[k];
         acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * w;
       }
     }
@@ -944,7 +954,7 @@ const S = {
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
   smooth: false,                       // false = show the lattice cells as squares
-  palette: "Spectrum", blend: 0,
+  palette: "Spectrum", blend: 0, kernel: 0,
   tool: "pan", brush: 26, flow: 0.55,  // painting: radius in cells, mass per second
   paintMask: null
 };
@@ -958,8 +968,8 @@ let slotTex = null, radMat = null, slotOf = null, bankLevels = [], pyramid = [];
 // so a flat matrix costs exactly what a single global radius used to.
 const RSTEPS = 5;
 const BASE_LEVEL = RSTEPS - 1;           // the crowding term always uses Rad max
-// Past about N/4.5 the blur is wider than the world wraps, the field goes flat
-// and the response carries no information -- so the reach is capped by the grid.
+// Past about N/4.5 the kernel is wider than the world wraps, both Gaussians go
+// flat, and the ring vanishes -- so the slider's reach is capped by the grid.
 // Cells show the radius they actually get.
 const radiusCap = () => Math.max(3, Math.floor(S.N/4.5));
 const radiusOf = lv => Math.min(radiusCap(), S.radMin + (S.radMax - S.radMin)*(lv/(RSTEPS - 1)));
@@ -1210,6 +1220,7 @@ function step(){
   gl.useProgram(P.aff.p); common(P.aff);
   gl.uniform1i(P.aff.u("uC"), S.C);
   gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
+  gl.uniform1i(P.aff.u("uKernel"), S.kernel);
   gl.uniform1f(P.aff.u("uForce"), S.force);
   gl.uniform1f(P.aff.u("uRepel"), S.repel);
   bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
@@ -1479,7 +1490,7 @@ const syncControls = () => SYNC.forEach(f => f());
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kernel"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -1871,7 +1882,12 @@ function boot(){
     buildMatrixUI(); buildRadiusUI(); buildBars(); buildSwatches();
   });
   $("blend").addEventListener("change", e => S.blend = +e.target.value);
-  SYNC.push(() => { cmap.value = S.palette; $("blend").value = String(S.blend); });
+  $("kernel").addEventListener("change", e => S.kernel = +e.target.value);
+  SYNC.push(() => {
+    cmap.value = S.palette;
+    $("blend").value = String(S.blend);
+    $("kernel").value = String(S.kernel);
+  });
   cv.addEventListener("dblclick", () => {
     S.zoom = 1; S.panU = S.panV = 0.5; showZoom();
   });

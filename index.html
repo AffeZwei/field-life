@@ -112,6 +112,24 @@ button.primary:hover{filter:brightness(1.08)}
 .cell:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
 .mxnote{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:9px; line-height:1.5}
 
+input[type=text]{
+  font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
+  border:1px solid var(--line); border-radius:4px; padding:5px 7px; flex:1 1 auto; min-width:0;
+}
+input[type=text]::placeholder{color:var(--ink2); opacity:.7}
+
+.plist{display:flex; flex-direction:column; gap:4px; margin-top:10px}
+.pitem{display:flex; gap:4px}
+.pitem .load{
+  flex:1 1 auto; text-align:left; text-transform:none; letter-spacing:0; font-size:11px;
+  display:flex; justify-content:space-between; gap:8px; align-items:baseline; overflow:hidden;
+}
+.pitem .load b{font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pitem .load i{font-style:normal; color:var(--ink2); font-size:10px; flex:0 0 auto}
+.pitem .del{flex:0 0 auto; padding:6px 8px; color:var(--ink2)}
+.pitem .del:hover{color:var(--pos); border-color:var(--pos); background:var(--panel2)}
+.pempty{color:var(--ink2); font-size:11px; padding:4px 0}
+
 .bars{display:flex; flex-direction:column; gap:5px; margin-top:2px}
 .bar{display:flex; align-items:center; gap:7px}
 .bar .track{flex:1 1 auto; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; border:1px solid var(--line2)}
@@ -187,6 +205,18 @@ button.primary:hover{filter:brightness(1.08)}
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
         <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Setups <span id="pcount">none saved</span></h2>
+        <div class="row">
+          <input id="pname" type="text" placeholder="name this setup" maxlength="40" autocomplete="off">
+          <button id="psave" class="primary" style="flex:0 0 auto">Save</button>
+        </div>
+        <div id="plist" class="plist"></div>
+        <p class="mxnote" id="pnote">Everything but the field itself: colors, grid, both matrices and all
+          the physics. Loading one keeps the world running if the grid and color count match, so you can
+          A/B two matrices on the same field. Saved in this browser only.</p>
       </div>
 
       <div class="card">
@@ -545,7 +575,7 @@ const BASE_LEVEL = RSTEPS - 1;           // the crowding term always uses Rad ma
 const radiusCap = () => Math.max(3, Math.floor(S.N/4.5));
 const radiusOf = lv => Math.min(radiusCap(), S.radMin + (S.radMax - S.radMin)*(lv/(RSTEPS - 1)));
 
-function rebuildBank(){
+function rebuildBank(defer){
   bankLevels = [...new Set(radMat)].sort((a, b) => a - b);
   slotOf = new Map(bankLevels.map((lv, i) => [lv, i]));
   const slots = new Float32Array(S.C*S.C);
@@ -563,7 +593,7 @@ function rebuildBank(){
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.C, S.C, gl.RED, gl.FLOAT, slots);
   const n = bankLevels.length;
   $("banklab").textContent = n + (n === 1 ? " blur level" : " blur levels") + " · cap " + radiusCap() + "px";
-  if(T.near && T.near._h !== S.N*n) allocBank();  // deeper/shallower bank, same world
+  if(!defer && T.near && T.near._h !== S.N*n) allocBank();   // deeper/shallower bank, same world
 }
 
 // Only the blur bank changes size here. rho is left alone, so editing a radius
@@ -965,10 +995,108 @@ function buildBars(){
   }
 }
 
+// Each control registers how to redraw itself from state, so loading a setup
+// can push every slider back to where it belongs.
+const SYNC = [];
 function slider(id, key, fmt){
   const s = $(id), v = $(id + "v");
-  const sync = () => { S[key] = parseFloat(s.value); v.textContent = fmt ? fmt(S[key]) : s.value; };
-  s.addEventListener("input", sync); sync();
+  const show = () => v.textContent = fmt ? fmt(S[key]) : String(S[key]);
+  s.addEventListener("input", () => { S[key] = parseFloat(s.value); show(); });
+  SYNC.push(() => { s.value = S[key]; show(); });
+  S[key] = parseFloat(s.value); show();
+}
+const syncControls = () => SYNC.forEach(f => f());
+
+/* ------------------------------------------------------------- saved setups */
+const PKEY = "fieldlife.setups.v1";
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo"];
+
+// localStorage can be absent, full, or throw outright (private windows, preview
+// captures). Every access is guarded and the page works fine with nothing in it.
+function readSetups(){
+  try{
+    const raw = localStorage.getItem(PKEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function writeSetups(list){
+  try{ localStorage.setItem(PKEY, JSON.stringify(list)); return true; }
+  catch(e){ return false; }
+}
+
+function currentConfig(){
+  const cfg = { seed: S.seed, mat: [...mat], radMat: [...radMat] };
+  for(const k of SCALARS) cfg[k] = S[k];
+  return cfg;
+}
+
+function validConfig(c){
+  return c && Number.isFinite(c.C) && c.C >= 2 && c.C <= 8
+    && Number.isFinite(c.N) && [128,256,384,512,768].includes(c.N)
+    && Array.isArray(c.mat) && c.mat.length === c.C*c.C
+    && Array.isArray(c.radMat) && c.radMat.length === c.C*c.C;
+}
+
+function applyConfig(c){
+  if(!validConfig(c)) return false;
+  const resize = (c.C !== S.C || c.N !== S.N);
+  for(const k of SCALARS) if(c[k] !== undefined) S[k] = c[k];
+  S.seed = c.seed ?? S.seed;
+  palette = makePalette(S.C);
+  mat = Float32Array.from(c.mat);
+  radMat = Int32Array.from(c.radMat);
+  uploadMatrix();
+  rebuildBank(resize);                 // sets bankLevels, which allocate() sizes against
+  if(resize) allocate();               // new dimensions mean new textures and a fresh field
+  buildMatrixUI(); buildRadiusUI(); buildBars();
+  syncControls();
+  $("seedlab").textContent = "#" + S.seed;
+  $("chanv").textContent = S.C;
+  mass0 = null;
+  return true;
+}
+
+function renderSetups(){
+  const list = readSetups(), el = $("plist");
+  $("pcount").textContent = list.length ? list.length + " saved" : "none saved";
+  el.innerHTML = "";
+  if(!list.length){
+    const p = document.createElement("div");
+    p.className = "pempty"; p.textContent = "Nothing saved yet.";
+    el.appendChild(p); return;
+  }
+  list.forEach((it, i) => {
+    const row = document.createElement("div"); row.className = "pitem";
+    const load = document.createElement("button");
+    load.className = "load"; load.title = "Load " + it.name;
+    const nm = document.createElement("b"); nm.textContent = it.name;
+    const meta = document.createElement("i");
+    meta.textContent = it.cfg.C + "c · " + it.cfg.N;
+    load.append(nm, meta);
+    load.addEventListener("click", () => {
+      if(!applyConfig(it.cfg)) load.textContent = "unreadable";
+    });
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "×"; del.title = "Delete " + it.name;
+    del.addEventListener("click", () => {
+      const l = readSetups(); l.splice(i, 1); writeSetups(l); renderSetups();
+    });
+    row.append(load, del); el.appendChild(row);
+  });
+}
+
+function saveSetup(){
+  const box = $("pname");
+  const list = readSetups();
+  const name = (box.value || "").trim() || "Setup " + (list.length + 1);
+  const item = { name, cfg: currentConfig(), at: Date.now() };
+  const at = list.findIndex(x => x.name === name);
+  if(at >= 0) list.splice(at, 1);
+  list.unshift(item);
+  if(!writeSetups(list)) $("pnote").textContent = "Could not save — this browser is blocking storage.";
+  box.value = "";
+  renderSetups();
 }
 
 function rebuildColors(){
@@ -1025,6 +1153,12 @@ function boot(){
   };
   radPair("radmin", "radmax", "radMin", "radMax", (mn, mx) => mn > mx);
   radPair("radmax", "radmin", "radMax", "radMin", (mx, mn) => mx < mn);
+  SYNC.push(() => {
+    for(const [id, k] of [["radmin","radMin"], ["radmax","radMax"]]){
+      $(id).value = S[k]; $(id + "v").textContent = S[k];
+    }
+    $("chan").value = S.C; $("chanv").textContent = S.C; $("grid").value = S.N;
+  });
   slider("force", "force");
   slider("repel", "repel");
   slider("beta", "beta");
@@ -1052,6 +1186,8 @@ function boot(){
   $("zero").addEventListener("click", () => { mat.fill(0); uploadMatrix(); paintMatrix(); });
   $("rresample").addEventListener("click", () => resampleRadii((Math.random()*1e6)|0));
   $("rflat").addEventListener("click", () => { radMat.fill(BASE_LEVEL); rebuildBank(); paintRadii(); });
+  $("psave").addEventListener("click", saveSetup);
+  $("pname").addEventListener("keydown", e => { if(e.key === "Enter") saveSetup(); });
 
   addEventListener("keydown", e => {
     if(e.target.matches("input, select")) return;
@@ -1071,6 +1207,7 @@ function boot(){
   new ResizeObserver(resize).observe(cv.parentElement);
   resize();
   rebuildColors();
+  renderSetups();
   requestAnimationFrame(frame);
 }
 

@@ -46,7 +46,8 @@ h1{
   background:var(--screen); border:1px solid var(--line); border-radius:6px;
   box-shadow:var(--shadow); overflow:hidden; position:relative; aspect-ratio:1/1;
 }
-.stage canvas{display:block; width:100%; height:100%; image-rendering:auto}
+.stage canvas{display:block; width:100%; height:100%; image-rendering:auto; cursor:grab; touch-action:none}
+.stage canvas:active{cursor:grabbing}
 .hud{
   position:absolute; left:10px; bottom:10px; display:flex; gap:12px;
   font-size:11px; color:#8b8fa3; letter-spacing:.04em; pointer-events:none;
@@ -163,7 +164,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   <div class="app">
     <div class="stage">
       <canvas id="cv"></canvas>
-      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span></div>
+      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span><span>zoom <b id="hzoom">1.0&times;</b></span></div>
       <div id="gl-error"></div>
     </div>
 
@@ -484,13 +485,17 @@ void main(){
 
 const FS_DRAW = HEAD + `
 uniform sampler2D uRho; uniform vec3 uPal[16]; uniform int uC;
-uniform vec2 uRes; uniform float uExp;
+uniform vec2 uRes, uPan; uniform float uExp, uZoom;
 out vec4 oC;
 vec4 cell(int l, int ix, int iy){
   return texelFetch(uRho, ivec2(l*uN + wrapi(ix, uN), wrapi(iy, uN)), 0);
 }
 void main(){
-  vec2 g = (gl_FragCoord.xy / uRes) * float(uN) - 0.5;
+  // Purely a window onto the lattice: uZoom picks how many cells fit across the
+  // canvas and uPan where the middle sits. The simulation never sees any of it,
+  // so an interaction radius stays the same number of cells at every zoom.
+  float span = float(uN) / uZoom;
+  vec2 g = uPan*float(uN) + ((gl_FragCoord.xy / uRes) - 0.5)*span - 0.5;
   ivec2 i0 = ivec2(floor(g)); vec2 f = g - floor(g);
   // hue comes from whichever color dominates the cell, brightness from the total
   // mass sitting there -- straight addition would wash six channels out to grey.
@@ -584,7 +589,8 @@ const S = {
   radMin: R0, radMax: R0, force: 45, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
   seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
   seedMode: "disc",                   // whichever starting field you last asked for
-  running: true, frame: 0, tick: 0
+  running: true, frame: 0, tick: 0,
+  zoom: 1, panU: 0.5, panV: 0.5        // view only, in world units
 };
 let T = {};            // simulation textures
 let matTex = null, mat = null, palette = [], reduceChain = [];
@@ -895,6 +901,8 @@ function render(){
   gl.uniform1i(P.draw.u("uC"), S.C);
   gl.uniform2f(P.draw.u("uRes"), cv.width, cv.height);
   gl.uniform1f(P.draw.u("uExp"), S.expo);
+  gl.uniform1f(P.draw.u("uZoom"), S.zoom);
+  gl.uniform2f(P.draw.u("uPan"), S.panU, S.panV);
   const pal = new Float32Array(48);
   palette.forEach((c, i) => { pal[i*3] = c[0]; pal[i*3+1] = c[1]; pal[i*3+2] = c[2]; });
   gl.uniform3fv(P.draw.u("uPal"), pal);
@@ -1321,6 +1329,43 @@ function boot(){
     if(e.key === "r"){ $("reseed").click(); }
     if(e.key === "m"){ $("resample").click(); }
     if(e.key === "c"){ $("disc").click(); }
+    if(e.key === "0"){ S.zoom = 1; S.panU = S.panV = 0.5; $("hzoom").textContent = "1.0×"; }
+  });
+
+  // Scroll to zoom about the cursor, drag to pan, double-click to fit.
+  const ZMAX = 64;
+  const showZoom = () => $("hzoom").textContent = S.zoom.toFixed(1) + "×";
+  const viewAt = e => {                       // cursor position in world units
+    const r = cv.getBoundingClientRect();
+    return [ (e.clientX - r.left)/r.width - 0.5,
+             0.5 - (e.clientY - r.top)/r.height ];   // canvas y runs upward
+  };
+  cv.addEventListener("wheel", e => {
+    e.preventDefault();
+    const [ox, oy] = viewAt(e);
+    const was = S.zoom;
+    S.zoom = Math.min(ZMAX, Math.max(1, S.zoom*Math.exp(-e.deltaY*0.0015)));
+    // keep whatever sits under the cursor pinned there
+    S.panU += ox*(1/was - 1/S.zoom);
+    S.panV += oy*(1/was - 1/S.zoom);
+    showZoom();
+  }, { passive: false });
+  let drag = null;
+  cv.addEventListener("pointerdown", e => {
+    drag = { x: e.clientX, y: e.clientY, u: S.panU, v: S.panV };
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener("pointermove", e => {
+    if(!drag) return;
+    const r = cv.getBoundingClientRect();
+    S.panU = drag.u - ((e.clientX - drag.x)/r.width)/S.zoom;
+    S.panV = drag.v + ((e.clientY - drag.y)/r.height)/S.zoom;
+  });
+  const endDrag = () => drag = null;
+  cv.addEventListener("pointerup", endDrag);
+  cv.addEventListener("pointercancel", endDrag);
+  cv.addEventListener("dblclick", () => {
+    S.zoom = 1; S.panU = S.panV = 0.5; showZoom();
   });
 
   const resize = () => {

@@ -170,9 +170,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="rail">
 
       <div class="card">
-        <h2>World <span id="wsize">256 &times; 256</span></h2>
+        <h2>World <span id="wsize">512 &times; 512</span></h2>
         <div class="row"><label class="lab" for="grid">Grid</label><select id="grid">
-          <option>128</option><option selected>256</option><option>384</option><option>512</option><option>768</option>
+          <option>128</option><option>256</option><option>384</option><option selected>512</option><option>768</option>
         </select></div>
         <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" type="range" min="2" max="8" step="1" value="6"><span class="val" id="chanv">6</span></div>
         <div class="row"><label class="lab" for="dens">Density</label><input id="dens" type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
@@ -206,8 +206,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
       <div class="card">
         <h2>Physics</h2>
-        <div class="row"><label class="lab" for="radmin">Rad min</label><input id="radmin" type="range" min="2" max="256" step="1" value="4"><span class="val" id="radminv">4</span></div>
-        <div class="row"><label class="lab" for="radmax">Rad max</label><input id="radmax" type="range" min="2" max="256" step="1" value="12"><span class="val" id="radmaxv">12</span></div>
+        <div class="row"><label class="lab" for="radmin">Rad min</label><input id="radmin" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
+        <div class="row"><label class="lab" for="radmax">Rad max</label><input id="radmax" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
         <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="60" step="0.5" value="18"><span class="val" id="forcev">18</span></div>
         <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" type="range" min="0" max="20" step="0.25" value="6"><span class="val" id="repelv">6</span></div>
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
@@ -570,9 +570,11 @@ function drawQuad(){ gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLES, 0, 3)
 
 /* ---------------------------------------------------------------- state */
 const S = {
-  N: 256, C: 6, L: 2, density: 0.12,
-  radMin: 4, radMax: 12, force: 18, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
-  seed: 1, running: true, frame: 0, tick: 0
+  N: 512, C: 6, L: 2, density: 0.12,
+  radMin: 18, radMax: 18, force: 18, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
+  seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
+  seedMode: "disc",                   // whichever starting field you last asked for
+  running: true, frame: 0, tick: 0
 };
 let T = {};            // simulation textures
 let matTex = null, mat = null, palette = [], reduceChain = [];
@@ -699,8 +701,11 @@ function allocate(){
   let n = S.N;
   while(n > 4){ n = Math.ceil(n/4); reduceChain.push(makeTex(n*S.L, n)); }
   $("wsize").textContent = S.N + " × " + S.N;
-  seed();
+  reseed();
 }
+
+// Resizing the world, or asking for a new one, refills it the way you last chose.
+function reseed(){ (S.seedMode === "disc" ? seedDisc : seed)(); }
 
 function noise(N, freq, rnd){
   const g = new Float32Array(freq*freq);
@@ -1024,7 +1029,7 @@ const syncControls = () => SYNC.forEach(f => f());
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -1252,8 +1257,8 @@ function boot(){
   $("play").addEventListener("click", e => {
     S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";
   });
-  $("reseed").addEventListener("click", () => { seed(); mass0 = null; });
-  $("disc").addEventListener("click", () => { seedDisc(); mass0 = null; });
+  $("reseed").addEventListener("click", () => { S.seedMode = "noise"; reseed(); mass0 = null; });
+  $("disc").addEventListener("click", () => { S.seedMode = "disc"; reseed(); mass0 = null; });
   $("resample").addEventListener("click", () => resampleMatrix((Math.random()*1e6) | 0));
   $("symm").addEventListener("click", () => {
     for(let r = 0; r < S.C; r++) for(let c = 0; c < r; c++) mat[c*S.C + r] = mat[r*S.C + c];

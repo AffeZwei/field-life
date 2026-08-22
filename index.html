@@ -1110,7 +1110,7 @@ function rebuildBank(defer){
   } else gl.bindTexture(gl.TEXTURE_2D, slotTex);
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.C, S.C, gl.RED, gl.FLOAT, slots);
   const n = bankLevels.length;
-  $("banklab").textContent = n + (n === 1 ? " blur level" : " blur levels") + " · cap " + radiusCap() + "px";
+  $("banklab").textContent = n + (n === 1 ? " blur pass" : " blur passes") + " · cap " + radiusCap() + "px";
   if(!defer && T.near && T.near._h !== S.N*n) allocBank();   // deeper/shallower bank, same world
 }
 
@@ -1124,9 +1124,17 @@ function allocBank(){
   }
 }
 
+// Cost scales with how many DISTINCT stops are in play -- each one is its own
+// pass over every colour. Resampling therefore draws from three of the five
+// rather than all of them; you can still reach any stop by hand.
 function resampleRadii(seed){
   const r = mulberry32(seed >>> 0);
-  radMat = new Int32Array(S.C*S.C).map(() => Math.floor(r()*RSTEPS));
+  const pick = [];
+  while(pick.length < 3){
+    const v = Math.floor(r()*RSTEPS);
+    if(!pick.includes(v)) pick.push(v);
+  }
+  radMat = new Int32Array(S.C*S.C).map(() => pick[Math.floor(r()*pick.length)]);
   rebuildBank(); paintRadii();
 }
 

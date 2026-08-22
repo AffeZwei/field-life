@@ -369,7 +369,15 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
       </figure>
 
-      <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
+      <p>There are two ways to read the neighbourhood, and <b>Kernel</b> switches between them.
+    <b>Reach</b> is the direct one: for each ordered pair, integrate how much of the felt color lies
+    within that pair&#8217;s own radius. Since the reverse pair carries its own radius, red can see
+    green from 40 cells away while green only notices red at 12. <b>Ring</b>, the default, subtracts
+    a second smaller blur from that integral, which gives the pull a preferred <i>distance</i> rather
+    than just a range &mdash; without it, everything either smears into one blob or collapses to
+    points, and only the short-range crowding term holds anything apart.</p>
+
+    <p>The <b>ring</b> is the trick that replaces particle life&#8217;s distance rule. Blurring a color
       narrowly and widely and subtracting the two gives the curve drawn in the middle box above: negative
       up close, positive at a distance <i>R</i>. So it answers &#8220;how much of that color sits about
       <i>R</i> away from here?&#8221; — and because it dips below zero near the middle, colors keep a
@@ -519,6 +527,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
         <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
         <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+        <div class="row"><label class="lab" for="kernel">Kernel</label><select id="kernel">
+          <option value="0">Ring</option><option value="1">Reach</option>
+        </select></div>
         <div class="row"><label class="lab" for="cmap">Colors</label><select id="cmap"></select></div>
         <div class="row"><label class="lab" for="blend">Blend</label><select id="blend">
           <option value="0">Dominant</option><option value="1">Soft</option>
@@ -641,7 +652,7 @@ void main(){
 // the blur bank, so every pair can have its own interaction radius.
 const FS_AFF = HEAD + `
 uniform sampler2D uNear, uFar, uMat, uSlots;
-uniform int uC, uBase; uniform float uForce, uRepel;
+uniform int uC, uBase, uKernel; uniform float uForce, uRepel;
 out vec4 oA;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
@@ -659,8 +670,13 @@ void main(){
         if(cc >= uC) break;
         int slot = int(texelFetch(uSlots, ivec2(d, cc), 0).r + 0.5);
         ivec2 q = ivec2(l*uN + lx, slot*uN + p.y);
-        float ring = texelFetch(uFar, q, 0)[k] - texelFetch(uNear, q, 0)[k];
-        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * ring;
+        // Ring: a difference of two blurs, so the pull has a preferred distance.
+        // Reach: the plain neighbourhood integral at this ordered pair's own
+        // radius -- how much of d lies within reach of c. The reverse pair has
+        // its own radius, so c->d and d->c can see different distances.
+        float w = texelFetch(uFar, q, 0)[k];
+        if(uKernel == 0) w -= texelFetch(uNear, q, 0)[k];
+        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * w;
       }
     }
   }
@@ -930,7 +946,7 @@ const S = {
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
   smooth: false,                       // false = show the lattice cells as squares
-  palette: "Spectrum", blend: 0,
+  palette: "Spectrum", blend: 0, kernel: 0,
   tool: "pan", brush: 26, flow: 0.55,  // painting: radius in cells, mass per second
   paintMask: null
 };
@@ -1196,6 +1212,7 @@ function step(){
   gl.useProgram(P.aff.p); common(P.aff);
   gl.uniform1i(P.aff.u("uC"), S.C);
   gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
+  gl.uniform1i(P.aff.u("uKernel"), S.kernel);
   gl.uniform1f(P.aff.u("uForce"), S.force);
   gl.uniform1f(P.aff.u("uRepel"), S.repel);
   bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
@@ -1465,7 +1482,7 @@ const syncControls = () => SYNC.forEach(f => f());
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kernel"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -1857,7 +1874,12 @@ function boot(){
     buildMatrixUI(); buildRadiusUI(); buildBars(); buildSwatches();
   });
   $("blend").addEventListener("change", e => S.blend = +e.target.value);
-  SYNC.push(() => { cmap.value = S.palette; $("blend").value = String(S.blend); });
+  $("kernel").addEventListener("change", e => S.kernel = +e.target.value);
+  SYNC.push(() => {
+    cmap.value = S.palette;
+    $("blend").value = String(S.blend);
+    $("kernel").value = String(S.kernel);
+  });
   cv.addEventListener("dblclick", () => {
     S.zoom = 1; S.panU = S.panV = 0.5; showZoom();
   });

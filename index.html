@@ -891,8 +891,11 @@ void main(){
   // Purely a window onto the lattice: uZoom picks how many cells fit across the
   // canvas and uPan where the middle sits. The simulation never sees any of it,
   // so an interaction radius stays the same number of cells at every zoom.
+  // Keep cells square whatever shape the canvas is: the longer axis simply
+  // shows more of the world, which wraps anyway.
   float span = float(uN) / uZoom;
-  vec2 g = uPan*float(uN) + ((gl_FragCoord.xy / uRes) - 0.5)*span - 0.5;
+  vec2 asp = uRes / min(uRes.x, uRes.y);
+  vec2 g = uPan*float(uN) + (((gl_FragCoord.xy / uRes) - 0.5)*asp)*span - 0.5;
   ivec2 i0 = ivec2(floor(g)); vec2 f = g - floor(g);
   // Snapping the blend weights to 0 or 1 turns the same bilinear fetch into a
   // nearest one, so zooming in shows the lattice cells as they really are.
@@ -1347,8 +1350,9 @@ function clearField(){
 // Screen position -> world coordinates, undoing the current zoom and pan.
 function viewToWorld(e){
   const r = cv.getBoundingClientRect();
-  const sx = (e.clientX - r.left)/r.width - 0.5;
-  const sy = 0.5 - (e.clientY - r.top)/r.height;
+  const m = Math.min(r.width, r.height);
+  const sx = ((e.clientX - r.left)/r.width - 0.5)*(r.width/m);
+  const sy = (0.5 - (e.clientY - r.top)/r.height)*(r.height/m);
   return [S.panU + sx/S.zoom, S.panV + sy/S.zoom];
 }
 
@@ -1877,8 +1881,9 @@ function boot(){
   const showZoom = () => $("hzoom").textContent = S.zoom.toFixed(1) + "×";
   const viewAt = e => {                       // cursor position in world units
     const r = cv.getBoundingClientRect();
-    return [ (e.clientX - r.left)/r.width - 0.5,
-             0.5 - (e.clientY - r.top)/r.height ];   // canvas y runs upward
+    const m = Math.min(r.width, r.height);
+    return [ ((e.clientX - r.left)/r.width - 0.5)*(r.width/m),
+             (0.5 - (e.clientY - r.top)/r.height)*(r.height/m) ];   // canvas y runs upward
   };
   cv.addEventListener("wheel", e => {
     e.preventDefault();
@@ -1904,9 +1909,9 @@ function boot(){
   });
   cv.addEventListener("pointermove", e => {
     if(drag){
-      const r = cv.getBoundingClientRect();
-      S.panU = drag.u - ((e.clientX - drag.x)/r.width)/S.zoom;
-      S.panV = drag.v + ((e.clientY - drag.y)/r.height)/S.zoom;
+      const r = cv.getBoundingClientRect(), m = Math.min(r.width, r.height);
+      S.panU = drag.u - ((e.clientX - drag.x)/m)/S.zoom;
+      S.panV = drag.v + ((e.clientY - drag.y)/m)/S.zoom;
     }else if(painting){
       painting.cur = viewToWorld(e);   // the dabs themselves happen in the frame loop
     }

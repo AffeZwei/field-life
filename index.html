@@ -783,6 +783,64 @@ void main(){
   oR = v;
 }`;
 
+/* Seeding on the GPU. Doing this in JavaScript meant a few million closure
+   calls per reseed, which is what made loading a preset stutter. */
+const FS_SEED = HEAD + HASH + `
+uniform int uC, uSeed, uDisc;
+uniform float uAmp;
+out vec4 oR;
+float vnoise(vec2 p, int freq, int chan){       // tileable value noise
+  vec2 f = p*float(freq);
+  ivec2 i0 = ivec2(floor(f));
+  vec2 t = fract(f); t = t*t*(3.0 - 2.0*t);
+  float v00 = rnd(ivec2(wrapi(i0.x, freq),     wrapi(i0.y, freq)),     chan, uSeed);
+  float v10 = rnd(ivec2(wrapi(i0.x + 1, freq), wrapi(i0.y, freq)),     chan, uSeed);
+  float v01 = rnd(ivec2(wrapi(i0.x, freq),     wrapi(i0.y + 1, freq)), chan, uSeed);
+  float v11 = rnd(ivec2(wrapi(i0.x + 1, freq), wrapi(i0.y + 1, freq)), chan, uSeed);
+  return mix(mix(v00, v10, t.x), mix(v01, v11, t.x), t.y)*0.5 + 0.5;
+}
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN, lx = p.x - tile*uN;
+  vec2 uv = (vec2(float(lx), float(p.y)) + 0.5)/float(uN);
+  float mask = 1.0;
+  if(uDisc == 1){
+    float d = length(uv - 0.5)*float(uN);
+    float e = clamp((float(uN)*0.2 - d)/max(1.5, float(uN)*0.012), 0.0, 1.0);
+    mask = e*e*(3.0 - 2.0*e);
+  }
+  vec4 o = vec4(0.0);
+  for(int k = 0; k < 4; k++){
+    int c = tile*4 + k;
+    if(c >= uC) break;
+    if(mask <= 0.0) continue;
+    if(uDisc == 1){
+      o[k] = uAmp*mask*(0.6 + 0.8*(0.6*vnoise(uv, 6, c) + 0.4*vnoise(uv, 14, c)));
+    }else{
+      float v = 0.55*vnoise(uv, 4, c) + 0.3*vnoise(uv, 9, c) + 0.15*vnoise(uv, 18, c);
+      float thr = 0.42 + 0.14*(rnd(ivec2(c, 0), 77, uSeed)*0.5 + 0.5);
+      v = max(0.0, v - thr)/(1.0 - thr);
+      o[k] = uAmp*v*v;
+    }
+  }
+  oR = o;
+}`;
+
+/* Rescale each colour so the field carries the density that was asked for. */
+const FS_SCALE = HEAD + `
+uniform sampler2D uRho; uniform float uMul[16]; uniform int uC;
+out vec4 oR;
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uN;
+  vec4 v = texelFetch(uRho, p, 0);
+  for(int k = 0; k < 4; k++){
+    int c = tile*4 + k;
+    v[k] = c < uC ? v[k]*uMul[c] : 0.0;
+  }
+  oR = v;
+}`;
+
 const FS_EXPA = HEAD + HASH + `
 uniform sampler2D uA; uniform float uBeta, uNoise; uniform int uFrame;
 out vec4 oE;
@@ -971,6 +1029,8 @@ function initGL(){
   P.down   = program(FS_DOWN);
   P.up     = program(FS_UP);
   P.paint  = program(FS_PAINT);
+  P.seed   = program(FS_SEED);
+  P.scale  = program(FS_SCALE);
   P.reduce = program(FS_REDUCE);
   P.draw   = program(FS_DRAW);
 }
@@ -1168,162 +1228,35 @@ function allocate(){
 // Resizing the world, or asking for a new one, refills it the way you last chose.
 function reseed(){ (S.seedMode === "disc" ? seedDisc : seed)(); }
 
-function noise(N, freq, rnd){
-  const g = new Float32Array(freq*freq);
-  for(let i = 0; i < g.length; i++) g[i] = rnd();
-  const sm = t => t*t*(3 - 2*t);
-  return (x, y) => {
-    const fx = x/N*freq, fy = y/N*freq;
-    const x0 = Math.floor(fx), y0 = Math.floor(fy);
-    const tx = sm(fx - x0), ty = sm(fy - y0);
-    const i0 = ((x0 % freq)+freq)%freq, i1 = (i0+1)%freq;
-    const j0 = ((y0 % freq)+freq)%freq, j1 = (j0+1)%freq;
-    return (g[j0*freq+i0]*(1-tx) + g[j0*freq+i1]*tx)*(1-ty)
-         + (g[j1*freq+i0]*(1-tx) + g[j1*freq+i1]*tx)*ty;
-  };
-}
+// Fill the world on the GPU, then rescale so each colour carries the density
+// asked for. Both take a couple of passes rather than a few million JS calls.
+function fillField(disc){
+  if(!T.rhoA) return;
+  const p = P.seed;
+  gl.useProgram(p.p); common(p);
+  gl.uniform1i(p.u("uC"), S.C);
+  gl.uniform1i(p.u("uDisc"), disc ? 1 : 0);
+  gl.uniform1i(p.u("uSeed"), (Math.random()*65535) | 0);
+  gl.uniform1f(p.u("uAmp"), disc ? S.density*4 : 1.0);
+  targets(T.rhoA, null); drawQuad();
 
-function seed(){
-  const N = S.N, L = S.L, W = N*L;
-  const data = new Float32Array(W*N*4);
-  const rnd = mulberry32((S.seed*2654435761 + S.tick*97 + 12345) >>> 0);
-  for(let c = 0; c < S.C; c++){
-    const n1 = noise(N, 4, rnd), n2 = noise(N, 9, rnd), n3 = noise(N, 18, rnd);
-    const thr = 0.42 + rnd()*0.14;
-    const layer = c >> 2, comp = c & 3;
-    let sum = 0;
-    const buf = new Float32Array(N*N);
-    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
-      let v = 0.55*n1(x,y) + 0.3*n2(x,y) + 0.15*n3(x,y);
-      v = Math.max(0, (v - thr)) / (1 - thr);
-      v = v*v;
-      buf[y*N+x] = v; sum += v;
-    }
-    const mean = sum/(N*N);
-    const k = mean > 1e-6 ? S.density/mean : 0;
-    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++)
-      data[(y*W + layer*N + x)*4 + comp] = buf[y*N+x]*k;
+  const m = measure();                       // per-colour mass, straight off the GPU
+  const want = S.density*S.N*S.N;
+  const mul = new Float32Array(16);
+  for(let c = 0; c < S.C; c++) mul[c] = m[c] > 1e-9 ? Math.min(50, want/m[c]) : 0;
+  if(disc) for(let c = 0; c < S.C; c++) mul[c] = 1;   // the disc sets its own level
+  if(!disc){
+    gl.useProgram(P.scale.p); common(P.scale);
+    gl.uniform1i(P.scale.u("uC"), S.C);
+    gl.uniform1fv(P.scale.u("uMul"), mul);
+    bindTex(P.scale, "uRho", 0, T.rhoA);
+    targets(T.rhoB, null); drawQuad();
+    const t = T.rhoA; T.rhoA = T.rhoB; T.rhoB = t;
   }
-  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, N, gl.RGBA, gl.FLOAT, data);
-  S.tick = 0;
+  S.tick = 0; mass0 = null;
 }
-
-function seedDisc(){
-  // One compact blob of every color in the middle of an otherwise empty world.
-  // A perfectly uniform disc stays radially symmetric for a long time, so the
-  // fill carries mild noise to break the symmetry the way the MaCE paper's
-  // Perlin-filled circle does.
-  const N = S.N, L = S.L, W = N*L;
-  const data = new Float32Array(W*N*4);
-  const rnd = mulberry32((S.seed*40503 + S.tick*7919 + 555) >>> 0);
-  const rad = N*0.2, cx = N/2, cy = N/2, soft = Math.max(1.5, N*0.012);
-  for(let c = 0; c < S.C; c++){
-    const n1 = noise(N, 6, rnd), n2 = noise(N, 14, rnd);
-    const layer = c >> 2, comp = c & 3;
-    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
-      const e = Math.min(1, Math.max(0, (rad - Math.hypot(x-cx, y-cy))/soft));
-      if(e <= 0) continue;
-      const tex = 0.6 + 0.8*(0.6*n1(x,y) + 0.4*n2(x,y));
-      data[(y*W + layer*N + x)*4 + comp] = S.density*4*e*e*(3-2*e)*tex;
-    }
-  }
-  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, N, gl.RGBA, gl.FLOAT, data);
-  S.tick = 0;
-}
-
-/* ---------------------------------------------------------------- one simulation step */
-function common(prog){
-  gl.uniform1i(prog.u("uN"), S.N);
-  gl.uniform1i(prog.u("uL"), S.L);
-}
-function step(){
-  // How deep the pyramid has to go for the widest radius in the bank.
-  let deepest = 0;
-  for(const lv of bankLevels)
-    deepest = Math.max(deepest, mipFor(radiusOf(lv), S.inter === 2));
-  let src = T.rhoA, nsrc = S.N;
-  gl.useProgram(P.down.p); common(P.down);
-  for(let m = 0; m < deepest; m++){
-    const dst = pyramid[m];
-    gl.uniform1i(P.down.u("uNsrc"), nsrc); gl.uniform1i(P.down.u("uNdst"), dst.n);
-    bindTex(P.down, "uSrc", 0, src);
-    targets(dst.tex, null, 0, dst.n); gl.viewport(0, 0, dst.n*S.L, dst.n);
-    drawQuad();
-    src = dst.tex; nsrc = dst.n;
-  }
-
-  // Ring and Blob are Gaussians, so they go through two separable passes.
-  // Only Linear needs the 2-D stencil, and it runs on a coarser mip to pay for it.
-  const stencilMode = S.inter === 2;
-  for(let s = 0; s < bankLevels.length; s++){
-    const r = radiusOf(bankLevels[s]);
-    const m = mipFor(stencilMode ? r : r, stencilMode);
-    const nm = m ? pyramid[m-1].n : S.N;
-    const srcTex = m ? pyramid[m-1].tex : T.rhoA;
-    const k = S.N/nm;
-
-    if(stencilMode){
-      const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(r/k)));
-      gl.useProgram(P.force.p); common(P.force);
-      gl.uniform1i(P.force.u("uRad"), rad); gl.uniform1i(P.force.u("uMode"), 2);
-      gl.uniform1i(P.force.u("uNsrc"), nm); gl.uniform1i(P.force.u("uNm"), nm);
-      bindTex(P.force, "uSrc", 0, srcTex);
-      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
-    }else{
-      const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
-      const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*4.0)));
-      gl.useProgram(P.blurH.p); common(P.blurH);
-      gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
-      gl.uniform1i(P.blurH.u("uRad"), rad);
-      gl.uniform1i(P.blurH.u("uNsrc"), nm); gl.uniform1i(P.blurH.u("uNm"), nm);
-      bindTex(P.blurH, "uSrc", 0, srcTex);
-      targets(T.tmpA, T.tmpB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
-
-      gl.useProgram(P.blurV.p); common(P.blurV);
-      gl.uniform1f(P.blurV.u("uSigA"), sigA); gl.uniform1f(P.blurV.u("uSigB"), sigB);
-      gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform1i(P.blurV.u("uNm"), nm);
-      bindTex(P.blurV, "uA", 0, T.tmpA); bindTex(P.blurV, "uB", 1, T.tmpB);
-      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
-    }
-
-    gl.useProgram(P.up.p); common(P.up);
-    gl.uniform1i(P.up.u("uNm"), nm); gl.uniform1i(P.up.u("uSlot"), s);
-    bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
-    if(stencilMode) targets(T.far, T.near, s*S.N, S.N);
-    else            targets(T.near, T.far, s*S.N, S.N);
-    drawQuad();
-  }
-
-  gl.useProgram(P.aff.p); common(P.aff);
-  gl.uniform1i(P.aff.u("uC"), S.C);
-  gl.uniform1i(P.aff.u("uMode"), S.inter);
-  gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
-  gl.uniform1f(P.aff.u("uForce"), S.force);
-  gl.uniform1f(P.aff.u("uRepel"), S.repel);
-  bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
-  bindTex(P.aff, "uMat", 2, matTex); bindTex(P.aff, "uSlots", 3, slotTex);
-  targets(T.aff, null); drawQuad();
-
-  gl.useProgram(P.expa.p); common(P.expa);
-  gl.uniform1f(P.expa.u("uBeta"), S.beta);
-  gl.uniform1f(P.expa.u("uNoise"), S.noise);
-  gl.uniform1i(P.expa.u("uFrame"), S.tick & 0xffff);
-  bindTex(P.expa, "uA", 0, T.aff);
-  targets(T.expE, null); drawQuad();                       // E = exp(beta*A)
-
-  gl.useProgram(P.share.p); common(P.share);
-  bindTex(P.share, "uE", 0, T.expE); bindTex(P.share, "uRho", 1, T.rhoA);
-  targets(T.shareS, null); drawQuad();                     // S = rho / Z
-
-  gl.useProgram(P.move.p); common(P.move);
-  bindTex(P.move, "uE", 0, T.expE); bindTex(P.move, "uS", 1, T.shareS);
-  targets(T.rhoB, null); drawQuad();
-
-  const t = T.rhoA; T.rhoA = T.rhoB; T.rhoB = t;
-  S.tick++;
-}
+const seed = () => fillField(false);
+const seedDisc = () => fillField(true);
 
 /* ---------------------------------------------------------------- painting */
 // Deliberate mass injection. The conservation readout rebaselines afterwards,

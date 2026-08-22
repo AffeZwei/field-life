@@ -1258,6 +1258,98 @@ function fillField(disc){
 const seed = () => fillField(false);
 const seedDisc = () => fillField(true);
 
+/* ---------------------------------------------------------------- one simulation step */
+function common(prog){
+  gl.uniform1i(prog.u("uN"), S.N);
+  gl.uniform1i(prog.u("uL"), S.L);
+}
+function step(){
+  // How deep the pyramid has to go for the widest radius in the bank.
+  let deepest = 0;
+  for(const lv of bankLevels)
+    deepest = Math.max(deepest, mipFor(radiusOf(lv), S.inter === 2));
+  let src = T.rhoA, nsrc = S.N;
+  gl.useProgram(P.down.p); common(P.down);
+  for(let m = 0; m < deepest; m++){
+    const dst = pyramid[m];
+    gl.uniform1i(P.down.u("uNsrc"), nsrc); gl.uniform1i(P.down.u("uNdst"), dst.n);
+    bindTex(P.down, "uSrc", 0, src);
+    targets(dst.tex, null, 0, dst.n); gl.viewport(0, 0, dst.n*S.L, dst.n);
+    drawQuad();
+    src = dst.tex; nsrc = dst.n;
+  }
+
+  // Ring and Blob are Gaussians, so they go through two separable passes.
+  // Only Linear needs the 2-D stencil, and it runs on a coarser mip to pay for it.
+  const stencilMode = S.inter === 2;
+  for(let s = 0; s < bankLevels.length; s++){
+    const r = radiusOf(bankLevels[s]);
+    const m = mipFor(stencilMode ? r : r, stencilMode);
+    const nm = m ? pyramid[m-1].n : S.N;
+    const srcTex = m ? pyramid[m-1].tex : T.rhoA;
+    const k = S.N/nm;
+
+    if(stencilMode){
+      const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(r/k)));
+      gl.useProgram(P.force.p); common(P.force);
+      gl.uniform1i(P.force.u("uRad"), rad); gl.uniform1i(P.force.u("uMode"), 2);
+      gl.uniform1i(P.force.u("uNsrc"), nm); gl.uniform1i(P.force.u("uNm"), nm);
+      bindTex(P.force, "uSrc", 0, srcTex);
+      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+    }else{
+      const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
+      const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*4.0)));
+      gl.useProgram(P.blurH.p); common(P.blurH);
+      gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
+      gl.uniform1i(P.blurH.u("uRad"), rad);
+      gl.uniform1i(P.blurH.u("uNsrc"), nm); gl.uniform1i(P.blurH.u("uNm"), nm);
+      bindTex(P.blurH, "uSrc", 0, srcTex);
+      targets(T.tmpA, T.tmpB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+
+      gl.useProgram(P.blurV.p); common(P.blurV);
+      gl.uniform1f(P.blurV.u("uSigA"), sigA); gl.uniform1f(P.blurV.u("uSigB"), sigB);
+      gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform1i(P.blurV.u("uNm"), nm);
+      bindTex(P.blurV, "uA", 0, T.tmpA); bindTex(P.blurV, "uB", 1, T.tmpB);
+      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+    }
+
+    gl.useProgram(P.up.p); common(P.up);
+    gl.uniform1i(P.up.u("uNm"), nm); gl.uniform1i(P.up.u("uSlot"), s);
+    bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
+    if(stencilMode) targets(T.far, T.near, s*S.N, S.N);
+    else            targets(T.near, T.far, s*S.N, S.N);
+    drawQuad();
+  }
+
+  gl.useProgram(P.aff.p); common(P.aff);
+  gl.uniform1i(P.aff.u("uC"), S.C);
+  gl.uniform1i(P.aff.u("uMode"), S.inter);
+  gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
+  gl.uniform1f(P.aff.u("uForce"), S.force);
+  gl.uniform1f(P.aff.u("uRepel"), S.repel);
+  bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
+  bindTex(P.aff, "uMat", 2, matTex); bindTex(P.aff, "uSlots", 3, slotTex);
+  targets(T.aff, null); drawQuad();
+
+  gl.useProgram(P.expa.p); common(P.expa);
+  gl.uniform1f(P.expa.u("uBeta"), S.beta);
+  gl.uniform1f(P.expa.u("uNoise"), S.noise);
+  gl.uniform1i(P.expa.u("uFrame"), S.tick & 0xffff);
+  bindTex(P.expa, "uA", 0, T.aff);
+  targets(T.expE, null); drawQuad();                       // E = exp(beta*A)
+
+  gl.useProgram(P.share.p); common(P.share);
+  bindTex(P.share, "uE", 0, T.expE); bindTex(P.share, "uRho", 1, T.rhoA);
+  targets(T.shareS, null); drawQuad();                     // S = rho / Z
+
+  gl.useProgram(P.move.p); common(P.move);
+  bindTex(P.move, "uE", 0, T.expE); bindTex(P.move, "uS", 1, T.shareS);
+  targets(T.rhoB, null); drawQuad();
+
+  const t = T.rhoA; T.rhoA = T.rhoB; T.rhoB = t;
+  S.tick++;
+}
+
 /* ---------------------------------------------------------------- painting */
 // Deliberate mass injection. The conservation readout rebaselines afterwards,
 // since this is the user adding matter rather than the rule leaking it.

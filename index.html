@@ -835,9 +835,17 @@ out vec4 oD;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
   int tile = p.x / uNdst, lx = p.x - tile*uNdst;
-  ivec2 b = ivec2(tile*uNsrc + lx*2, p.y*2);
-  oD = 0.25*(texelFetch(uSrc, b, 0)               + texelFetch(uSrc, b + ivec2(1,0), 0)
-           + texelFetch(uSrc, b + ivec2(0,1), 0)  + texelFetch(uSrc, b + ivec2(1,1), 0));
+  // A 4x4 tent rather than a 2x2 box: the box aliases, and the aliasing shows
+  // up later as facets when the result is stretched back to full resolution.
+  vec4 sum = vec4(0.0); float wsum = 0.0;
+  for(int dy = -1; dy <= 2; dy++){
+    for(int dx = -1; dx <= 2; dx++){
+      float w = (1.5 - abs(float(dx) - 0.5))*(1.5 - abs(float(dy) - 0.5));
+      ivec2 q = ivec2(tile*uNsrc + wrapi(lx*2 + dx, uNsrc), wrapi(p.y*2 + dy, uNsrc));
+      sum += w*texelFetch(uSrc, q, 0); wsum += w;
+    }
+  }
+  oD = sum/wsum;
 }`;
 
 /* Stretch a blurred mip back to full resolution, into this pair's bank slice. */
@@ -852,6 +860,7 @@ void main(){
   float f = float(uN) / float(uNm);
   vec2 g = (vec2(float(lx), float(ly)) + 0.5)/f - 0.5;
   vec2 t = g - floor(g);
+  t = t*t*(3.0 - 2.0*t);            // ease the blend so the seams between mip cells vanish
   ivec2 i0 = ivec2(floor(g));
   int x0 = tile*uN + wrapi(i0.x, uNm), x1 = tile*uN + wrapi(i0.x + 1, uNm);
   int y0 = wrapi(i0.y, uNm), y1 = wrapi(i0.y + 1, uNm);

@@ -180,7 +180,7 @@ button.primary:hover{filter:brightness(1.08)}
 /* ------------------------------------------------------------ app shell */
 /* The page the live site uses, with the simulation as a block at its width and
    the compact controls floating on it. */
-.page{max-width:1040px; margin:0 auto; padding:22px 20px 40px;
+.page{max-width:1040px; margin:0 auto; padding:22px 20px 160px;
   display:flex; flex-direction:column; gap:16px}
 header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
 h1{
@@ -204,9 +204,10 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 @media (pointer:coarse){ .app{ --rowh:32px; --lab:62px; } }
 .app:fullscreen{aspect-ratio:auto; width:100vw; height:100vh; border:0; border-radius:0}
 .colophon{
-  max-width:880px; margin:0 auto; width:100%;
+  max-width:880px; margin:22px auto 0; width:100%;
+  border-top:1px solid var(--line); padding-top:12px;
   display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
-  font-size:10.5px; letter-spacing:.03em; color:var(--ink2); padding:0 2px;
+  font-size:10.5px; letter-spacing:.03em; color:var(--ink2);
 }
 .colophon a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
 .colophon a:hover{border-bottom-color:var(--accent)}
@@ -637,7 +638,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 <div class="colophon">
   <span>Made at <a href="https://2026.alife.org/">ALIFE 2026</a> by
     <a href="https://www.izhv.eu">Iliya Zhechev</a></span>
-  <span class="wip">Work in progress &middot; built with an LLM</span>
+  <span class="wip">August 2026 &middot; work in progress &middot; built with an LLM</span>
 </div>
 </div>
 

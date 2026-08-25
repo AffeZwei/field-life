@@ -191,7 +191,7 @@ h1{
 h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
 .tag b{color:var(--ink); font-weight:500}
-.app{position:relative; width:100%; aspect-ratio:16/10; overflow:hidden;
+.app{position:relative; width:100%; aspect-ratio:7/5; overflow:hidden;
   background:var(--screen); border:1px solid var(--line);
   border-radius:6px 8px 7px 7px; box-shadow:var(--shadow);
   /* Everything inside floats on a black canvas, so it keeps its own dark
@@ -210,8 +210,12 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .colophon a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
 .colophon a:hover{border-bottom-color:var(--accent)}
 .colophon .wip{opacity:.8}
-.below{max-width:66ch; color:var(--ink2);
+.below{max-width:880px; margin:0 auto; color:var(--ink2);
   font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:13.5px; line-height:1.65}
+.below h2:not(:first-child){margin-top:26px}
+.below a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
+.below a:hover{border-bottom-color:var(--accent)}
+.below a:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:2px}
 .below h2{font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:11px;
   font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
   margin:0 0 10px}
@@ -606,6 +610,15 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   <p>Because the matrix need not be symmetric, <i>M[c][d]</i> and <i>M[d][c]</i> can disagree: red
     can pursue green while green flees red. That asymmetry is where the chasing, orbiting and
     gliding come from.</p>
+
+  <h2>Acknowledgements</h2>
+  <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
+    take on particle life, <a href="https://github.com/aprowe/cip-life">cip-life</a>, which
+    initialises the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
+    discussion with <a href="https://mundyreimer.github.io/about">Mundy Reimer</a> and
+    <a href="https://www.seanjhardy.com/">Sean Hardy</a> at ALIFE 2026.</p>
+  <p>I am not completely sure this doesn't already exist &mdash; my Claude couldn't find references
+    to similar projects.</p>
 </section>
 
 <div class="colophon">

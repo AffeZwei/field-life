@@ -237,7 +237,7 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .brand{
   position:absolute; top:7px; left:9px; z-index:6; display:flex; align-items:center; gap:7px;
   font-family:"Bricolage Grotesque", system-ui, sans-serif; color:#EAF1F4;
-  text-shadow:0 1px 6px rgba(0,0,0,.75); pointer-events:none;
+  text-shadow:0 0 2px #000, 0 1px 3px rgba(0,0,0,.9); pointer-events:none;
 }
 .brand .hud{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.03em;
   color:#8FA3AA; display:flex; gap:7px; font-variant-numeric:tabular-nums}
@@ -250,8 +250,9 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .brand .hud #hmass{min-width:7ch}
 .brand .hud #hzoom{min-width:4ch}
 .corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:4px}
-.corner .iconly{background:transparent; border-color:transparent; color:#8FA3AA}
-.corner .iconly:hover{color:#EAF1F4}
+.corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px rgba(0,0,0,.85))}
+.corner .iconly:hover{color:#fff}
 .app.naked .corner{opacity:1}
 
 .panel, .dock{
@@ -468,10 +469,11 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="btns sm">
       <button id="play" class="primary" title="Pause or resume">Pause</button>
     </div>
+    <p class="note lead">Reseed the world</p>
     <div class="btns sm">
-      <button id="reseed" title="Refill with noise">Noise</button>
-      <button id="disc" title="Refill with a centre disc">Disc</button>
-      <button id="reclear" title="Empty the world">Empty</button>
+      <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
+      <button id="disc" title="Fill a single disc in the middle, leaving the rest empty">Disc</button>
+      <button id="reclear" title="Clear every color out of the world">Empty</button>
     </div>
 
     </details>

@@ -456,6 +456,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
+    <button id="roll" class="iconly" title="New world: a fresh interaction matrix and a centre disc to start it from." aria-label="New world">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
+    </button>
     <button id="hideui" class="iconly" title="Hide the controls (H)" aria-label="Hide the controls">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8S4.3 3.7 8 3.7 14.2 8 14.2 8 11.7 12.3 8 12.3 1.8 8 1.8 8Z"/><circle cx="8" cy="8" r="1.9"/></svg>
     </button>
@@ -476,6 +479,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="dens">Dens</label><input id="dens" title="How much mass each color starts with, as a fraction of the grid." type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
     <div class="btns sm">
       <button id="play" class="primary" title="Pause or resume">Pause</button>
+      <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
@@ -2866,6 +2870,21 @@ function boot(){
     else if(!e.relatedTarget.closest("[title],[data-tip]")) hideTip();
   });
   app.addEventListener("pointerdown", hideTip);
+  // One step, and pause so it stays where it lands.
+  $("stepone").addEventListener("click", () => {
+    if(S.running){ S.running = false; $("play").textContent = "Run"; }
+    step(); render();
+  });
+
+  // A whole new world: a matrix nobody has seen and a disc to start it from.
+  $("roll").addEventListener("click", () => {
+    resampleMatrix((Math.random()*1e6) | 0);
+    S.seedMode = "disc";
+    reseed();
+    mass0 = null;
+    S.holdUntil = performance.now() + 250;
+  });
+
   $("fs").addEventListener("click", () => {
     if(document.fullscreenElement) document.exitFullscreen();
     else if(app.requestFullscreen) app.requestFullscreen().catch(() => {});

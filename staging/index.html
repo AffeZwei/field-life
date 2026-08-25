@@ -1918,7 +1918,7 @@ function kernelPeek(){
   kpeek = document.createElement("div");
   kpeek.className = "kpeek";
   kpeek.innerHTML = '<canvas></canvas><div class="kmeta"></div>';
-  document.body.appendChild(kpeek);
+  ($("app") || document.body).appendChild(kpeek);
   return kpeek;
 }
 
@@ -2838,7 +2838,7 @@ function boot(){
   // Tooltips. title is moved onto data-tip the first time a control is
   // hovered, which covers the rows built later just as well as the markup.
   const tip = document.createElement("div");
-  tip.className = "tip"; document.body.appendChild(tip);
+  tip.className = "tip"; app.appendChild(tip);
   const placeTip = e => {
     const r = tip.getBoundingClientRect(), pad = 8;
     let x = e.clientX + 13, y = e.clientY + 16;

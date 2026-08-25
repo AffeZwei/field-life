@@ -239,9 +239,18 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 }
 .brand .hud{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.03em;
   color:#8FA3AA; display:flex; gap:7px; font-variant-numeric:tabular-nums}
-.brand .hud b{color:#CFDDE2; font-weight:500; font-size:9px; margin-right:2px}
-.brand .iconly{pointer-events:auto; background:transparent; border-color:transparent; color:#8FA3AA}
-.brand .iconly:hover{color:#EAF1F4}
+/* Each figure gets a fixed column. fps flipping between one and two digits
+   was moving the whole row. */
+.brand .hud b{color:#CFDDE2; font-weight:500; font-size:9px; margin-right:2px;
+  display:inline-block; text-align:right}
+.brand .hud #hfps{min-width:4ch}
+.brand .hud #hstep{min-width:6ch}
+.brand .hud #hmass{min-width:7ch}
+.brand .hud #hzoom{min-width:4ch}
+.corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:4px}
+.corner .iconly{background:transparent; border-color:transparent; color:#8FA3AA}
+.corner .iconly:hover{color:#EAF1F4}
+.app.naked .corner{opacity:1}
 
 .panel, .dock{
   position:absolute; z-index:4; background:color-mix(in srgb, var(--panel) 92%, transparent);
@@ -433,6 +442,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
   <div class="brand">
     <span class="hud"><span><b id="hfps">&ndash;</b>fps</span><span><b id="hstep">0</b>steps</span><span><b id="hmass">&ndash;</b>mass</span><span><b id="hzoom">1.0&times;</b>zoom</span></span>
+  </div>
+
+  <div class="corner">
     <button id="hideui" class="iconly" title="Hide the controls (H)" aria-label="Hide the controls">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8S4.3 3.7 8 3.7 14.2 8 14.2 8 11.7 12.3 8 12.3 1.8 8 1.8 8Z"/><circle cx="8" cy="8" r="1.9"/></svg>
     </button>
@@ -2391,7 +2403,7 @@ function applyConfig(c){
   buildMatrixUI(); buildKernelUI(); buildSwatches();
   syncControls();
   $("seedlab").textContent = "#" + S.seed;
-  $("chanv").textContent = S.C;
+  $("chanv").textContent = num(S.C);
   mass0 = null;
   return true;
 }
@@ -2611,8 +2623,8 @@ function boot(){
     const a = $(me), b = $(other);
     a.addEventListener("input", () => {
       S[key] = +a.value;
-      if(push(S[key], S[okey])){ S[okey] = S[key]; b.value = S[key]; $(other + "v").textContent = S[key]; }
-      $(me + "v").textContent = a.value;
+      if(push(S[key], S[okey])){ S[okey] = S[key]; b.value = S[key]; $(other + "v").textContent = num(S[okey]); }
+      $(me + "v").textContent = num(a.value);
       // move the whole band, keeping the spread the kernels already have
       const cap = radiusCap();
       const lo = Math.min(cap, Math.min(S.radMin, S.radMax));
@@ -2627,10 +2639,10 @@ function boot(){
   radPair("radmax", "radmin", "radMax", "radMin", (mx, mn) => mx < mn);
   SYNC.push(() => {
     for(const [id, k] of [["radmin","radMin"], ["radmax","radMax"]]){
-      $(id).value = S[k]; $(id + "v").textContent = S[k];
+      $(id).value = S[k]; $(id + "v").textContent = num(S[k]);
     }
     $("chan").value = S.C; $("chanv").textContent = S.C;
-    $("grid").value = S.N; $("gridv").textContent = S.N;
+    $("grid").value = S.N; $("gridv").textContent = num(S.N);
   });
   slider("force", "force");
   slider("repel", "repel");
@@ -2646,11 +2658,11 @@ function boot(){
     clearTimeout(mxrs);
     mxrs = setTimeout(() => { if(mat && mat.length === S.C*S.C) buildMatrixUI(); }, 120);
   });
-  $("grid").addEventListener("input", e => { $("gridv").textContent = e.target.value; });
+  $("grid").addEventListener("input", e => { $("gridv").textContent = num(e.target.value); });
   $("chan").addEventListener("input", e => { $("chanv").textContent = e.target.value; });
   $("chan").addEventListener("change", e => { S.C = +e.target.value; rebuildColors(); });
   $("grid").addEventListener("change", e => {
-    S.N = +e.target.value; $("gridv").textContent = S.N;
+    S.N = +e.target.value; $("gridv").textContent = num(S.N);
     allocate(); uploadKernels(); buildKernelUI(); mass0 = null;
   });
   $("play").addEventListener("click", e => {
@@ -2871,6 +2883,7 @@ function boot(){
   new ResizeObserver(resize).observe(cv);
   syncControls();          // radius is randomised in state; move the sliders to match
   resize();
+  clearTimeout(reAlloc);   // the opening sizing is not a reshape; seed once, below
   rebuildColors();
   S.holdUntil = performance.now() + 500;   // half a second of stillness, then life
   renderSetups();

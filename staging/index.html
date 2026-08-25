@@ -249,6 +249,14 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .brand .hud #hstep{min-width:6ch}
 .brand .hud #hmass{min-width:7ch}
 .brand .hud #hzoom{min-width:4ch}
+/* Our own tooltip. The native one waits a second, styles itself, and cannot be
+   read against a black field; this appears at once and looks like the rest. */
+.tip{position:fixed; z-index:100; background:#000; color:#fff;
+  font:10px/1.4 "IBM Plex Mono", ui-monospace, monospace; letter-spacing:.02em;
+  padding:4px 7px; max-width:250px; pointer-events:none; opacity:0;
+  transition:opacity .09s ease; box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.tip[data-show="1"]{opacity:1}
+@media (prefers-reduced-motion:reduce){ .tip{transition:none} }
 .corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:4px}
 .corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
   filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px rgba(0,0,0,.85))}
@@ -464,8 +472,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="grid">Res</label>
       <input id="grid" type="range" min="128" max="1536" step="64" value="512"
              title="Simulation resolution: cells down the short side of the screen. The long side gets proportionally more, so cells stay square. Rebuilds the world on release."><span class="val" id="gridv">512</span></div>
-    <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" type="range" min="2" max="32" step="1" value="6"><span class="val" id="chanv">6</span></div>
-    <div class="row"><label class="lab" for="dens">Dens</label><input id="dens" type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
+    <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" title="How many colors the world has. Each is its own field with its own kernel." type="range" min="2" max="32" step="1" value="6"><span class="val" id="chanv">6</span></div>
+    <div class="row"><label class="lab" for="dens">Dens</label><input id="dens" title="How much mass each color starts with, as a fraction of the grid." type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
     <div class="btns sm">
       <button id="play" class="primary" title="Pause or resume">Pause</button>
     </div>
@@ -478,13 +486,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
     </details>
 <details class="sec" open><summary class="ph">Physics</summary>
-    <div class="row"><label class="lab" for="radmin">R min</label><input id="radmin" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
-    <div class="row"><label class="lab" for="radmax">R max</label><input id="radmax" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
-    <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="400" step="1" value="90"><span class="val" id="forcev">90</span></div>
-    <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
-    <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
-    <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
-    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+    <div class="row"><label class="lab" for="radmin">R min</label><input id="radmin" title="Shortest reach a sampled kernel may take, in cells." type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
+    <div class="row"><label class="lab" for="radmax">R max</label><input id="radmax" title="Longest reach a sampled kernel may take, in cells." type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
+    <div class="row"><label class="lab" for="force">Force</label><input id="force" title="How strongly the affinity pulls. Scales the whole matrix at once." type="range" min="0" max="400" step="1" value="90"><span class="val" id="forcev">90</span></div>
+    <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" title="Dislike of crowding. Pushes mass out of cells that are already full." type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
+    <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbour. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
+    <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" title="Jitter added to the affinity. Lets shapes drift off the grid axes." type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
+    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
     <div class="row"><label class="lab" for="inter">Law</label><select id="inter" title="Built-in interaction shape, when no kernel is designed">
       <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
     </select></div>
@@ -498,19 +506,19 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     </select></div>
     <div class="row"><label class="lab" for="expo">Expo</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2" title="Display brightness only"><span class="val" id="expov">2.2</span></div>
     <div class="row"><label class="lab" for="pixels">Pixels</label>
-      <label class="chk" title="Smooth between cells instead of hard pixels"><input type="checkbox" id="pixels" checked> smooth</label></div>
+      <label class="chk" title="Smooth between cells instead of hard pixels"><input type="checkbox" id="pixels" title="Smooth between cells when drawing, instead of showing them as hard squares." checked> smooth</label></div>
 
     </details>
 <details class="sec"><summary class="ph">Setups</summary>
     <div class="row">
-      <input id="pname" type="text" placeholder="name this setup" maxlength="40" autocomplete="off">
+      <input id="pname" title="Name for the setup you are about to save." type="text" placeholder="name this setup" maxlength="40" autocomplete="off">
       <button id="psave" class="primary" style="flex:0 0 auto" title="Save the current setup">Save</button>
     </div>
     <div id="plist" class="plist"></div>
     <details class="pio">
       <summary title="Move setups between browsers as JSON">Import / export&nbsp; <span id="pcount"></span></summary>
       <div class="btns sm" style="margin-top:6px">
-        <button id="pexport">Export</button><button id="pimport">Import</button>
+        <button id="pexport" title="Copy every saved setup out as JSON.">Export</button><button id="pimport" title="Paste setups back in from JSON.">Import</button>
       </div>
       <textarea id="pjson" class="pjson" spellcheck="false" aria-label="Setup JSON"></textarea>
       <div id="pstatus" class="pstatus"></div>
@@ -582,7 +590,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.4 13.2h6.9M2.6 10.3l4.6-4.6 4.2 4.2-3.4 3.4H5.6z"/><path d="M7.2 5.7 9.9 3a1.1 1.1 0 0 1 1.6 0l2.6 2.6a1.1 1.1 0 0 1 0 1.6l-2.7 2.7"/></svg>
       </button>
     </div>
-    <label class="tctl" title="Brush size in cells">SIZE<input id="bsize" type="range" min="3" max="140" step="1" value="26" aria-label="Brush size"><b id="bsizev">26</b></label>
+    <label class="tctl" title="Brush size in cells">SIZE<input id="bsize" title="Brush radius, in cells." type="range" min="3" max="140" step="1" value="26" aria-label="Brush size"><b id="bsizev">26</b></label>
     <div class="sw" id="swatches" title="Which colors the brush touches"></div>
     <div class="seg ico">
       <button id="allcols" title="Select every color" aria-label="Select every color">
@@ -598,9 +606,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <nav class="tabs" id="tabs" aria-label="Control panels">
-    <button data-tab="world" class="on">World</button>
-    <button data-tab="rules">Rules</button>
-    <button data-tab="paint">Paint</button>
+    <button data-tab="world" title="World, physics, look and saved setups." class="on">World</button>
+    <button data-tab="rules" title="The interaction matrix and the kernels.">Rules</button>
+    <button data-tab="paint" title="Brush tools for painting mass into the world.">Paint</button>
     <button data-tab="none" title="Hide the controls">Hide</button>
   </nav>
 
@@ -2008,7 +2016,19 @@ function buildKernelUI(){
         v.textContent = num(i.value);
         refresh();
       });
+      const t = TIP[label] || (/^Amp/.test(label) ? "How strong this bump is, and which way it pulls."
+                : /^At/.test(label) ? "How far out this bump sits, as a fraction of the reach."
+                : /^Width/.test(label) ? "How wide this bump is. Narrow bumps alias on a coarse grid."
+                : "");
+      if(t) i.title = t;
       const r = row(label, i); r.appendChild(v);
+    };
+    const TIP = {
+      Reach:   "How far this color looks, in cells.",
+      Feather: "How far in from the rim the kernel fades to nothing.",
+      Sym:     "Fold the kernel onto itself. Anything but radial mirrors onto the grid axes.",
+      Beta:    "Where repulsion ends and attraction begins, as a fraction of the reach.",
+      Octaves: "Levels of detail in the noise. More is finer and harder for the grid to hold.",
     };
     slider("Reach", 4, 200, 1, () => k.R, x => k.R = x);
     slider("Feather", 0.02, 1, 0.02, () => k.feather, x => k.feather = x);
@@ -2019,6 +2039,7 @@ function buildKernelUI(){
     }
     sel.value = k.sym;
     sel.addEventListener("change", () => { k.sym = sel.value; refresh(); });
+    sel.title = TIP.Sym;
     row("Sym", sel);
     if(k.type === "disc"){
       /* nothing to configure: it is a circle */
@@ -2035,17 +2056,19 @@ function buildKernelUI(){
       });
     }
     const btns = document.createElement("div"); btns.className = "btns";
-    const mk = (txt, fn) => {
+    const mk = (txt, fn, tip) => {
       const b = document.createElement("button"); b.textContent = txt;
+      if(tip) b.title = tip;
       b.addEventListener("click", () => { fn(); buildKernelUI(); refresh(); });
       btns.appendChild(b);
     };
-    mk("New", () => Object.assign(k, sampleKernel(k.type)));
+    mk("New", () => Object.assign(k, sampleKernel(k.type)),
+       "Draw this one color a new kernel, leaving the others alone.");
     mk("Kind", () => {
       k.type = k.type === "disc" ? "pl" : k.type === "pl" ? "radial"
              : k.type === "radial" ? "perlin" : "disc";
       if(k.type === "pl" && k.beta === undefined) k.beta = 0.3;
-    });
+    }, "Cycle this kernel between a circle, particle life's law, a ring and noise.");
     ctl.appendChild(btns);
     d.appendChild(body);
     el.appendChild(d);
@@ -2811,6 +2834,38 @@ function boot(){
     $("hideui").title = (off ? "Show" : "Hide") + " the controls (H)";
   };
   $("hideui").addEventListener("click", toggleUI);
+
+  // Tooltips. title is moved onto data-tip the first time a control is
+  // hovered, which covers the rows built later just as well as the markup.
+  const tip = document.createElement("div");
+  tip.className = "tip"; document.body.appendChild(tip);
+  const placeTip = e => {
+    const r = tip.getBoundingClientRect(), pad = 8;
+    let x = e.clientX + 13, y = e.clientY + 16;
+    if(x + r.width > innerWidth - pad) x = e.clientX - r.width - 10;
+    if(y + r.height > innerHeight - pad) y = e.clientY - r.height - 10;
+    tip.style.left = Math.max(pad, x) + "px";
+    tip.style.top  = Math.max(pad, y) + "px";
+  };
+  const hideTip = () => { tip.dataset.show = "0"; };
+  app.addEventListener("pointerover", e => {
+    const el = e.target.closest("[title],[data-tip]");
+    if(!el){ hideTip(); return; }
+    if(el.title){ el.dataset.tip = el.title; el.removeAttribute("title"); }
+    const text = el.dataset.tip;
+    if(!text){ hideTip(); return; }
+    tip.textContent = text;
+    tip.dataset.show = "1";
+    placeTip(e);
+  });
+  app.addEventListener("pointermove", e => {
+    if(tip.dataset.show === "1") placeTip(e);
+  });
+  app.addEventListener("pointerout", e => {
+    if(!e.relatedTarget || !app.contains(e.relatedTarget)) hideTip();
+    else if(!e.relatedTarget.closest("[title],[data-tip]")) hideTip();
+  });
+  app.addEventListener("pointerdown", hideTip);
   $("fs").addEventListener("click", () => {
     if(document.fullscreenElement) document.exitFullscreen();
     else if(app.requestFullscreen) app.requestFullscreen().catch(() => {});

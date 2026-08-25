@@ -593,8 +593,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 <section class="below">
   <h2>How it works</h2>
   <p>Each color is a scalar field over the grid: one number per cell, the amount of that color
-    present there. Six colors on an 816&times;512 grid is six numbers in each of 418,000 cells,
-    all updated on the GPU every frame.</p>
+    present there. Every cell of every color is updated on the GPU each frame.</p>
   <p>One step has two halves. First, each color's field is <b>convolved with its kernel</b> &mdash;
     a weighted sum over the neighbourhood out to <b>Reach</b>, where the kernel gives the weight at
     each distance. The default kernel is a ring: negative close in, positive further out, zero past

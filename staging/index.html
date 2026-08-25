@@ -180,7 +180,7 @@ button.primary:hover{filter:brightness(1.08)}
 /* ------------------------------------------------------------ app shell */
 /* The page the live site uses, with the simulation as a block at its width and
    the compact controls floating on it. */
-.page{max-width:1240px; margin:0 auto; padding:22px 20px 40px;
+.page{max-width:1040px; margin:0 auto; padding:22px 20px 40px;
   display:flex; flex-direction:column; gap:16px}
 header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
 h1{
@@ -199,7 +199,9 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
      page outside stays whatever the live site is. */
   --panel:#0A0B0D; --panel2:#14171B; --ink:#E9E6E0; --ink2:#6B7076;
   --line:#23272C; --line2:#181B1F; --accent:#5AC2EC; --focus:#5AC2EC;
-  --pos:#FF6B35; --neg:#3FB8AF;}
+  --pos:#FF6B35; --neg:#3FB8AF;
+  --rowh:23px; --lab:46px;}
+@media (pointer:coarse){ .app{ --rowh:32px; --lab:62px; } }
 .app:fullscreen{aspect-ratio:auto; width:100vw; height:100vh; border:0; border-radius:0}
 .colophon{
   display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
@@ -429,6 +431,9 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <span class="hud"><span><b id="hfps">&ndash;</b>fps</span><span><b id="hstep">0</b>steps</span><span><b id="hmass">&ndash;</b>mass</span><span><b id="hzoom">1.0&times;</b>zoom</span></span>
     <button id="hideui" class="iconly" title="Hide the controls (H)" aria-label="Hide the controls">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8S4.3 3.7 8 3.7 14.2 8 14.2 8 11.7 12.3 8 12.3 1.8 8 1.8 8Z"/><circle cx="8" cy="8" r="1.9"/></svg>
+    </button>
+    <button id="fs" class="iconly" title="Fullscreen (or double-click the field)" aria-label="Fullscreen">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.2H2.2V6M10 2.2h3.8V6M6 13.8H2.2V10M10 13.8h3.8V10"/></svg>
     </button>
   </div>
 
@@ -2777,6 +2782,10 @@ function boot(){
     $("hideui").title = (off ? "Show" : "Hide") + " the controls (H)";
   };
   $("hideui").addEventListener("click", toggleUI);
+  $("fs").addEventListener("click", () => {
+    if(document.fullscreenElement) document.exitFullscreen();
+    else if(app.requestFullscreen) app.requestFullscreen().catch(() => {});
+  });
 
   // On a phone the panels stack into one bottom sheet and the tab bar says
   // which is up. On a desktop the same buttons still work, so a narrow window

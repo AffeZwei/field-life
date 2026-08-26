@@ -227,6 +227,39 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
    ragged gutter down the side of the section; the number just opens the line.
    Not grid: an <a> inside the item would become a grid item of its own and the
    links would drop into the number's column. */
+/* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
+   the browser page uses; object-fit crops them square here rather than
+   generating a second set of images. */
+.strip{margin:10px 0 0}
+.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 6px}
+.striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink2)}
+.stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
+  opacity:.75}
+.striprail{
+  display:flex; gap:7px; overflow-x:auto; overflow-y:hidden;
+  padding:2px 2px 9px; scroll-snap-type:x proximity;
+  scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+}
+.striprail::-webkit-scrollbar{height:7px}
+.striprail::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+.w-item{
+  flex:0 0 auto; scroll-snap-align:start; position:relative;
+  width:62px; height:62px; padding:0; cursor:pointer;
+  border:1px solid var(--line); border-radius:4px; overflow:hidden;
+  background:#07090C; transition:border-color .12s ease;
+}
+.w-item img{width:100%; height:100%; display:block; object-fit:cover}
+.w-item b{
+  position:absolute; left:0; bottom:0; font:500 9px/1 "IBM Plex Mono", monospace;
+  color:#DCE4E9; background:rgba(4,7,10,.72); padding:3px 4px; border-radius:0 3px 0 0;
+  font-variant-numeric:tabular-nums;
+}
+.w-item:hover{border-color:var(--ink2)}
+.w-item[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.w-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+@media (pointer:coarse){ .w-item{width:72px; height:72px} }
 .below .refs{list-style:none; counter-reset:ref; padding:0; margin:0}
 .below .refs li{counter-increment:ref; margin:0 0 11px; padding:0}
 .below .refs li::before{content:counter(ref) ". "; color:var(--ink2); opacity:.6;
@@ -481,7 +514,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
-    <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
+    <button id="roll" title="A fresh interaction matrix, and a centre circle to start it from.">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
       Generate new world
     </button>
@@ -513,7 +546,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
-      <button id="disc" title="Fill a single disc in the middle, leaving the rest empty">Disc</button>
+      <button id="disc" title="Fill a single circle in the middle, leaving the rest empty">Circle</button>
       <button id="reclear" title="Clear every color out of the world">Empty</button>
     </div>
 
@@ -590,7 +623,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       </select></div>
     <div class="row"><label class="lab" for="kterms">Lobes</label>
       <input id="kterms" type="range" min="1" max="4" step="1" value="2"
-             title="Bumps in the kernel's profile. 1 is a plain disc, 2 the classic ring, more adds rings."><span class="val" id="ktermsv">2</span></div>
+             title="Bumps in the kernel's profile. 1 is a plain circle, 2 the classic ring, more adds rings."><span class="val" id="ktermsv">2</span></div>
     <div class="row"><label class="lab" for="kwidth">Width</label>
       <input id="kwidth" type="range" min="0.02" max="1" step="0.01" value="0.7"
              title="Blob size for one lobe, and the narrowest bump for the rest. A fat single lobe needs a deeper counterweight around it."><span class="val" id="kwidthv">0.14</span></div>
@@ -645,6 +678,14 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <button data-tab="none" title="Hide the controls">Hide</button>
   </nav>
 
+</div>
+
+<div class="strip" id="strip" hidden>
+  <div class="striphead">
+    <span class="ph">Worlds</span>
+    <span class="stripnote" id="stripnote"></span>
+  </div>
+  <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
 </div>
 
 <section class="below">
@@ -2663,6 +2704,56 @@ async function loadPresetFile(){
   $("rcard").hidden = false;
 }
 
+// The shelf of worlds under the field. Its manifest is optional: a standalone
+// copy of this page with no worlds.json beside it simply has no shelf.
+async function loadWorlds(){
+  let data = null;
+  try{
+    const res = await fetch("worlds.json", { cache: "no-cache" });
+    if(res.ok) data = await res.json();
+  }catch(e){ data = null; }
+  const items = data && Array.isArray(data.setups) ? data.setups : null;
+  if(!items || !items.length) return;
+
+  const dir = (data.dir || "worlds").replace(/\/$/, "");
+  const rail = $("striprail");
+  const frag = document.createDocumentFragment();
+  items.forEach((it, i) => {
+    const b = document.createElement("button");
+    b.className = "w-item";
+    b.type = "button";
+    b.setAttribute("role", "option");
+    b.setAttribute("aria-selected", "false");
+    b.dataset.i = String(i);
+    b.dataset.tip = it.name + (it.tags ? " \u2014 " + it.tags.join(" ") : "");
+    const img = document.createElement("img");
+    img.src = dir + "/" + it.thumb;
+    img.alt = "";
+    img.loading = "lazy";
+    const n = document.createElement("b");
+    n.textContent = it.n ?? (i + 1);
+    b.append(img, n);
+    frag.appendChild(b);
+  });
+  rail.appendChild(frag);
+  $("stripnote").textContent = items.length + " found by search \u00b7 click to load";
+  $("strip").hidden = false;
+
+  rail.addEventListener("click", e => {
+    const b = e.target.closest(".w-item");
+    if(!b) return;
+    const it = items[+b.dataset.i];
+    if(!it) return;
+    for(const o of rail.children) o.setAttribute("aria-selected", String(o === b));
+    if(!applyConfig(it.cfg)){ status("\u201c" + it.name + "\u201d could not be loaded", true); return; }
+    // A preset carries the rule, not the field it was measured on, so start it
+    // from the same opening state the search gave it.
+    reseed();
+    mass0 = null;
+    status("Loaded \u201c" + it.name + "\u201d");
+  });
+}
+
 function rebuildColors(){
   palette = makePalette(S.C, S.palette);
   if(!S.paintMask || S.paintMask.length !== S.C) S.paintMask = new Uint8Array(S.C).fill(1);
@@ -3083,6 +3174,7 @@ function boot(){
   S.holdUntil = performance.now() + 500;   // half a second of stillness, then life
   renderSetups();
   loadPresetFile();
+  loadWorlds();
 
   // A handle on the running simulation, for driving it from outside the page:
   // exporting a setup, stepping it a fixed number of times, reading the field

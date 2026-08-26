@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Field Life</title>
 <!-- Google tag (gtag.js) -- same property as the blog, shared domain -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XYKY4Q36XR"></script>
@@ -45,10 +47,141 @@ body{
   background-image:var(--gridimg);
   background-attachment:fixed;
   font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  background-color:var(--bg);
+  background-image:var(--gridimg);
+  background-attachment:fixed;
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1240px; margin:0 auto; padding:22px 20px 40px; display:flex; flex-direction:column; gap:16px}
 
+
+/* ------------------------------------------------------- controls
+   A dat.GUI-style rack: every control is one short row -- name on the left,
+   control in the middle, value on the right -- separated by hairlines rather
+   than boxes. Nothing here has padding it does not need. */
+.row{
+  position:relative;
+  display:grid; grid-template-columns:var(--lab) minmax(0,1fr);
+  align-items:center; gap:5px; min-height:var(--rowh);
+  border-bottom:1px solid var(--line2); padding:0 1px;
+}
+.row:last-of-type{border-bottom:0}
+label.lab{
+  font-size:8.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--ink2);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+/* The value sits ON the track, right-aligned and out of flow, so however many
+   digits it grows to it can never push the slider around. White with a thin
+   dark stroke, so it reads on the amber fill and on the empty track alike. */
+.val{
+  position:absolute; right:4px; top:0; height:100%; z-index:1;
+  display:flex; align-items:center; pointer-events:none;
+  font-variant-numeric:tabular-nums; font-size:9.5px; font-weight:500;
+  color:#fff; -webkit-text-stroke:.5px #000; paint-order:stroke fill;
+  text-shadow:0 0 2px #000;
+}
+
+/* Slider: a filled bar, no knob to hunt for. --p is the fill, set on input. */
+input[type=range]{
+  -webkit-appearance:none; appearance:none; width:100%; min-width:0;
+  height:calc(var(--rowh) - 8px); background:transparent; cursor:ew-resize; margin:0;
+  --p:50%;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:calc(var(--rowh) - 8px); border-radius:0;
+  background:linear-gradient(to right, var(--accent) var(--p), var(--panel2) var(--p));
+  box-shadow:inset 0 0 0 1px var(--line2);
+}
+input[type=range]::-moz-range-track{
+  height:calc(var(--rowh) - 8px); border-radius:0;
+  background:linear-gradient(to right, var(--accent) var(--p), var(--panel2) var(--p));
+  box-shadow:inset 0 0 0 1px var(--line2);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:2px; height:calc(var(--rowh) - 8px);
+  background:var(--ink); opacity:.7; border:0; border-radius:0;
+}
+input[type=range]::-moz-range-thumb{
+  width:2px; height:calc(var(--rowh) - 8px); background:var(--ink);
+  opacity:.55; border:0; border-radius:0;
+}
+input[type=range]:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+
+select, input[type=text], textarea{
+  font:inherit; font-size:10.5px; line-height:1.1; color:var(--ink);
+  background:var(--panel2); border:1px solid var(--line2); border-radius:0;
+  padding:0 4px; width:100%; min-width:0; height:calc(var(--rowh) - 3px);
+}
+select{
+  -webkit-appearance:none; appearance:none; cursor:pointer; padding-right:13px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),
+                   linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
+  background-position:calc(100% - 9px) center, calc(100% - 5px) center;
+  background-size:4px 4px, 4px 4px; background-repeat:no-repeat;
+}
+textarea{height:auto; padding:4px; font-family:"IBM Plex Mono",monospace; font-size:9.5px}
+select:focus-visible, input:focus-visible, textarea:focus-visible{
+  outline:2px solid var(--focus); outline-offset:1px}
+.chk{display:flex; align-items:center; gap:5px; font-size:10px; color:var(--ink2); cursor:pointer}
+.chk input{accent-color:var(--accent); width:13px; height:13px; margin:0}
+
+button{
+  font:inherit; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--ink); background:var(--panel2); border:1px solid var(--line2);
+  border-radius:0; padding:0 5px; height:calc(var(--rowh) - 5px);
+  cursor:pointer; white-space:nowrap;
+}
+button:hover{border-color:var(--ink2)}
+button:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+button.primary{background:var(--accent); border-color:var(--accent); color:#0A0B0D; font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+.btns{display:flex; gap:3px; flex-wrap:wrap; padding:4px 0 1px}
+/* Four short buttons have to share 144px, so they shrink rather than wrap. */
+.btns button{flex:1 1 0; min-width:0; padding:0 3px; letter-spacing:.01em;
+  overflow:hidden; text-overflow:ellipsis}
+
+.seg{display:flex; border:1px solid var(--line2); border-radius:0; overflow:hidden; flex:0 0 auto}
+.seg button{border:0; border-right:1px solid var(--line2); border-radius:0; padding:0 7px}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent); color:#0A0B0D}
+.iconly, .seg.ico button{
+  display:grid; place-items:center; padding:0 7px; height:calc(var(--rowh) - 5px);
+  min-width:calc(var(--rowh) - 5px);
+}
+.iconly svg, .seg.ico svg{
+  width:13px; height:13px; display:block; fill:none; stroke:currentColor;
+  stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;
+}
+.seg.ico button svg circle{fill:currentColor; stroke:none}
+.danger:hover{border-color:var(--pos); color:var(--pos)}
+
+.tctl{position:relative; display:flex; align-items:center; gap:5px;
+  flex:1 1 120px; min-width:100px; font-size:9px; letter-spacing:.07em; color:var(--ink2)}
+.tctl b{position:absolute; right:4px; top:0; height:100%; display:flex; align-items:center;
+  pointer-events:none; font-size:9.5px; font-weight:500; font-variant-numeric:tabular-nums;
+  color:#fff; -webkit-text-stroke:.5px #000; paint-order:stroke fill;
+  text-shadow:0 0 2px #000}
+.sw{display:flex; gap:3px; flex-wrap:nowrap; flex:0 0 auto}
+.sw button{width:14px; height:14px; min-width:0; padding:0; border-radius:0;
+  border:1px solid var(--line2); opacity:.32; transition:opacity .12s, box-shadow .12s}
+.sw button.on{opacity:1; border-color:transparent;
+  box-shadow:0 0 0 1px var(--panel), 0 0 0 2px var(--ink)}
+@media (pointer:coarse){ .sw button{width:20px; height:20px} }
+
+.plist{max-height:88px; overflow-y:auto; overscroll-behavior:contain}
+.pitem{display:flex; align-items:center; gap:4px; min-height:var(--rowh);
+  border-bottom:1px solid var(--line2); font-size:10px}
+.pitem .load{flex:1 1 auto; text-align:left; background:none; border:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0}
+.pstatus{font-size:9.5px; color:var(--ink2); min-height:13px; margin-top:3px}
+.pjson{width:100%; height:60px; margin-top:5px; display:none}
+.pjson.on{display:block}
+
+/* ------------------------------------------------------------ app shell */
+/* The page the live site uses, with the simulation as a block at its width and
+   the compact controls floating on it. */
+.page{max-width:1040px; margin:0 auto; padding:22px 20px 160px;
+  display:flex; flex-direction:column; gap:16px}
 header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
@@ -58,142 +191,268 @@ h1{
 h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
 .tag b{color:var(--ink); font-weight:500}
-
-.app{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start}
-@media (max-width:900px){ .app{grid-template-columns:minmax(0,1fr)} }
-
-.stage:fullscreen{border-radius:0; border:0; aspect-ratio:auto; width:100vw; height:100vh}
-.stage:fullscreen canvas{width:100%; height:100%}
-.stage{
-  background:var(--screen); border:1px solid var(--line); border-radius:6px 8px 7px 7px;
-  box-shadow:var(--shadow); overflow:hidden; position:relative; aspect-ratio:1/1;
-}
-.stage canvas{display:block; width:100%; height:100%; image-rendering:auto; cursor:grab; touch-action:none}
-.stage canvas:active{cursor:grabbing}
-.hud{
-  position:absolute; left:10px; bottom:10px; display:flex; gap:12px;
-  font-size:11px; color:#8b8fa3; letter-spacing:.04em; pointer-events:none;
-  font-variant-numeric:tabular-nums;
-}
-.hud b{color:#d9dbe6; font-weight:500}
-#gl-error{
-  position:absolute; inset:0; display:none; place-items:center; padding:24px; text-align:center;
-  color:#d9dbe6; font-size:13px; line-height:1.6;
-}
-
-.col{display:flex; flex-direction:column; gap:12px; min-width:0}
+.app{position:relative; width:100%; aspect-ratio:7/5; overflow:hidden;
+  background:var(--screen); border:1px solid var(--line);
+  border-radius:6px 8px 7px 7px; box-shadow:var(--shadow);
+  /* Everything inside floats on a black canvas, so it keeps its own dark
+     palette regardless of the page theme around it. Scoped, not global: the
+     page outside stays whatever the live site is. */
+  --panel:#0A0B0D; --panel2:#14171B; --ink:#E9E6E0; --ink2:#6B7076;
+  --line:#23272C; --line2:#181B1F; --accent:#5AC2EC; --focus:#5AC2EC;
+  --pos:#FF6B35; --neg:#3FB8AF;
+  --rowh:23px; --lab:46px;}
+@media (pointer:coarse){ .app{ --rowh:32px; --lab:62px; } }
+.app:fullscreen{aspect-ratio:auto; width:100vw; height:100vh; border:0; border-radius:0}
 .colophon{
+  max-width:880px; margin:22px auto 0; width:100%;
+  border-top:1px solid var(--line); padding-top:12px;
   display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
-  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.03em;
-  color:var(--ink2); padding:0 2px;
+  font-size:10.5px; letter-spacing:.03em; color:var(--ink2);
 }
 .colophon a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
 .colophon a:hover{border-bottom-color:var(--accent)}
-.colophon a:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:2px}
 .colophon .wip{opacity:.8}
+.below{max-width:880px; margin:0 auto; color:var(--ink2);
+  font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:13.5px; line-height:1.65}
+.below h2:not(:first-child){margin-top:26px}
+.below a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
+.below a:hover{border-bottom-color:var(--accent)}
+.below a:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:2px}
+.below h2{font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:11px;
+  font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+  margin:0 0 10px}
+.below p{margin:0 0 10px}
+.below b{color:var(--ink); font-weight:500}
+/* Numbered and flush left. A hanging indent buys nothing here and puts a
+   ragged gutter down the side of the section; the number just opens the line.
+   Not grid: an <a> inside the item would become a grid item of its own and the
+   links would drop into the number's column. */
+/* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
+   the browser page uses; object-fit crops them square here rather than
+   generating a second set of images. */
+.strip{margin:10px 0 0}
+.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 6px}
+.striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink2)}
+.stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
+  opacity:.75}
+.striprail{
+  display:flex; gap:7px; overflow-x:auto; overflow-y:hidden;
+  padding:2px 2px 9px; scroll-snap-type:x proximity;
+  scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+}
+.striprail::-webkit-scrollbar{height:7px}
+.striprail::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+.w-item{
+  flex:0 0 auto; scroll-snap-align:start; position:relative;
+  width:62px; height:62px; padding:0; cursor:pointer;
+  border:1px solid var(--line); border-radius:4px; overflow:hidden;
+  background:#07090C; transition:border-color .12s ease;
+}
+.w-item img{width:100%; height:100%; display:block; object-fit:cover}
+.w-item b{
+  position:absolute; left:0; bottom:0; font:500 9px/1 "IBM Plex Mono", monospace;
+  color:#DCE4E9; background:rgba(4,7,10,.72); padding:3px 4px; border-radius:0 3px 0 0;
+  font-variant-numeric:tabular-nums;
+}
+.w-item:hover{border-color:var(--ink2)}
+.w-item[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.w-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+@media (pointer:coarse){ .w-item{width:72px; height:72px} }
+.below .refs{list-style:none; counter-reset:ref; padding:0; margin:0}
+.below .refs li{counter-increment:ref; margin:0 0 11px; padding:0}
+.below .refs li::before{content:counter(ref) ". "; color:var(--ink2); opacity:.6;
+  font-variant-numeric:tabular-nums}
+#cv{position:absolute; inset:0; width:100%; height:100%; display:block;
+  cursor:grab; touch-action:none}
+#cv:active{cursor:grabbing}
+#gl-error{position:absolute; inset:0; display:none; place-items:center; padding:24px;
+  text-align:center; color:#d9dbe6; font-size:13px; line-height:1.6}
+/* Where the brush will land. A white hairline over a black one, so it reads on
+   whatever the field happens to be underneath. */
+#bring{position:absolute; z-index:3; display:none; border-radius:50%;
+  border:1px solid rgba(255,255,255,.7); box-shadow:0 0 0 1px rgba(0,0,0,.55),
+  inset 0 0 0 1px rgba(0,0,0,.55); pointer-events:none; transform:translate(-50%,-50%)}
 
-.toolbar{
-  display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
-  background:var(--panel); border:1px solid var(--line); border-radius:5px 7px 6px 6px;
-  padding:8px 10px; box-shadow:var(--shadow);
+.brand{
+  position:absolute; top:7px; left:9px; z-index:6; display:flex; align-items:center; gap:7px;
+  font-family:"Bricolage Grotesque", system-ui, sans-serif; color:#EAF1F4;
+  text-shadow:0 0 2px #000, 0 1px 3px rgba(0,0,0,.9); pointer-events:none;
 }
-.seg{display:flex; border:1px solid var(--line); border-radius:4px; overflow:hidden; flex:0 0 auto}
-.seg button{
-  border:0; border-right:1px solid var(--line); border-radius:0; flex:0 0 auto;
-  padding:5px 11px; background:var(--panel2);
+.brand .hud{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.03em;
+  color:#8FA3AA; display:flex; gap:7px; font-variant-numeric:tabular-nums}
+/* Each figure gets a fixed column. fps flipping between one and two digits
+   was moving the whole row. */
+.brand .hud b{color:#CFDDE2; font-weight:500; font-size:9px; margin-right:2px;
+  display:inline-block; text-align:right}
+.brand .hud #hfps{min-width:4ch}
+.brand .hud #hstep{min-width:6ch}
+.brand .hud #hmass{min-width:7ch}
+.brand .hud #hzoom{min-width:4ch}
+/* Our own tooltip. The native one waits a second, styles itself, and cannot be
+   read against a black field; this appears at once and looks like the rest. */
+.tip{position:fixed; z-index:100; background:#000; color:#fff;
+  font:10px/1.4 "IBM Plex Mono", ui-monospace, monospace; letter-spacing:.02em;
+  padding:4px 7px; max-width:250px; pointer-events:none; opacity:0;
+  transition:opacity .09s ease; box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.tip[data-show="1"]{opacity:1}
+.tip kbd{display:inline-block; font:inherit; font-size:9px; line-height:1;
+  padding:2px 4px; margin-left:2px; border:1px solid #4A4F55; border-radius:2px;
+  background:#1B1E22; color:#CFCBC4; vertical-align:1px; letter-spacing:.06em}
+@media (prefers-reduced-motion:reduce){ .tip{transition:none} }
+/* The one control that is worth interrupting the field for. */
+/* The one control worth interrupting the field for. */
+#roll{
+  display:flex; align-items:center; gap:6px; height:auto; padding:5px 11px;
+  font-size:10.5px; letter-spacing:.09em; border-radius:2px;
+  background:var(--accent); border:1px solid var(--accent); color:#04080B;
+  font-weight:600; box-shadow:0 2px 10px rgba(0,0,0,.45);
+  opacity:.62; transition:opacity .13s ease;
 }
-.seg button:last-child{border-right:0}
-.seg button.on{background:var(--accent); color:var(--panel)}
-.seg button.on:hover{background:var(--accent); filter:brightness(1.06)}
-.tctl{
-  display:flex; align-items:center; gap:7px; flex:0 0 auto;
-  font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink2);
-}
-.tctl input[type=range]{width:84px; flex:0 0 auto}
-.tctl b{font-size:11px; font-weight:500; color:var(--ink); font-variant-numeric:tabular-nums;
-  min-width:28px; text-align:right}
-.sw{display:flex; gap:4px; flex:0 0 auto}
-.sw{gap:5px}
-.sw button{
-  width:16px; height:16px; padding:0; flex:0 0 auto; border-radius:3px;
-  border:1px solid var(--line); opacity:.3; transform:scale(.8);
-  transition:opacity .13s ease, transform .13s ease, box-shadow .13s ease;
-}
-.sw button:hover{opacity:.65; transform:scale(.9)}
-.sw button.on{
-  opacity:1; transform:scale(1); border-color:transparent;
-  box-shadow:0 0 0 2px var(--panel), 0 0 0 3px var(--ink);
-}
-.sw button.on:hover{opacity:1; transform:scale(1)}
-.clearbtn{flex:0 0 auto}
-.clearbtn:hover{border-color:var(--pos); color:var(--pos)}
-.rail{display:flex; flex-direction:column; gap:12px; min-width:0}
-.card{background:var(--panel); border:1px solid var(--line); border-radius:5px 7px 6px 6px;
-  padding:14px 15px 16px; box-shadow:var(--shadow)}
-.rail .card:nth-child(even){border-radius:7px 5px 6px 6px}
-.card h2{
-  font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:11px; font-weight:600;
-  text-transform:uppercase; letter-spacing:.16em; color:var(--accent); margin:0 0 11px;
-  display:flex; justify-content:space-between; align-items:center; gap:8px;
-}
-.card h2 span{font-family:"IBM Plex Mono",monospace; letter-spacing:.04em; text-transform:none; color:var(--ink2)}
+#roll:hover{opacity:1}
+#roll svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round}
+.app.naked #roll{opacity:0; pointer-events:none}
+@media (pointer:coarse){ #roll{padding:9px 14px; font-size:11px} }
+.corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:5px; align-items:center}
+.corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px rgba(0,0,0,.85))}
+.corner .iconly:hover{color:#fff}
+.app.naked .corner{opacity:1}
 
-.row{display:flex; align-items:center; gap:8px; margin-bottom:9px}
-.row:last-child{margin-bottom:0}
-label.lab{flex:0 0 88px; color:var(--ink2); font-size:11px; letter-spacing:.06em; text-transform:uppercase}
-.val{flex:0 0 46px; text-align:right; font-variant-numeric:tabular-nums; font-size:12px; font-weight:500}
-
-input[type=range]{ -webkit-appearance:none; appearance:none; flex:1 1 auto; height:18px; background:transparent; cursor:pointer; min-width:0}
-input[type=range]::-webkit-slider-runnable-track{height:2px; background:var(--line); border-radius:2px}
-input[type=range]::-moz-range-track{height:2px; background:var(--line); border-radius:2px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:13px; height:13px; margin-top:-5.5px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 0 0 3px var(--glow)}
-input[type=range]::-moz-range-thumb{width:13px; height:13px; border:2px solid var(--panel); border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--glow)}
-input[type=range]:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:3px}
-
-select, input[type=number]{
-  font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
-  border:1px solid var(--line); border-radius:4px; padding:5px 9px; flex:1 1 auto; min-width:0;
+.panel, .dock{
+  position:absolute; z-index:4; background:color-mix(in srgb, var(--panel) 92%, transparent);
+  border:1px solid var(--line); border-radius:0; box-shadow:none;
+  opacity:.5; transition:opacity .13s ease;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
 }
-select:focus-visible, input:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+.panel:hover, .panel:focus-within, .dock:hover, .dock:focus-within{opacity:1}
+.panel{top:37px; width:154px; padding:4px 5px 6px; max-height:calc(100vh - 83px);
+  overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column}
+.pL{left:9px}
+.pR{right:9px; width:168px}
+.panel::-webkit-scrollbar{width:6px}
+.panel::-webkit-scrollbar-thumb{background:var(--line); border-radius:0}
+.dock{left:50%; transform:translateX(-50%); bottom:9px;
+  display:flex; align-items:center; gap:7px; padding:4px 6px; max-width:calc(100vw - 18px)}
+.app.naked .panel, .app.naked .dock, .app.naked .brand .hud, .app.naked .tabs{
+  opacity:0; pointer-events:none}
 
-.chk{
-  display:flex; align-items:center; gap:7px; flex:1 1 auto; cursor:pointer;
-  font-size:11px; color:var(--ink2); letter-spacing:.05em; text-transform:uppercase;
-}
-.chk input{accent-color:var(--accent); width:14px; height:14px; margin:0; cursor:pointer}
-.chk input:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
-.chk:hover{color:var(--ink)}
+.ph{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:8.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.14em; color:var(--accent);
+  margin:9px 0 3px; display:flex; justify-content:space-between; align-items:baseline; gap:5px;
+  border-bottom:1px solid var(--line); padding-bottom:3px}
+.ph:first-child{margin-top:0}
+.ph span{color:var(--ink2); font-weight:400; letter-spacing:.02em; text-transform:none; font-size:8.5px}
+.note{color:var(--ink2); font-size:9px; line-height:1.45; margin:5px 0 0}
+.note b{color:var(--ink); font-weight:500}
+.note.lead{margin:7px 0 2px; font-size:8px; letter-spacing:.1em;
+  text-transform:uppercase; white-space:nowrap}
+.sec{border:0}
+.sec>summary{list-style:none; cursor:pointer}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary::after{content:"\002B"; margin-left:auto; opacity:.6; font-weight:600}
+.sec[open]>summary::after{content:"\2212"}
+.sec>summary:hover{color:var(--ink)}
+.pio{margin-top:5px}
+.pio>summary{cursor:pointer; list-style:none; font-size:9px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink2); min-height:var(--rowh); display:flex; align-items:center}
+.pio>summary::-webkit-details-marker{display:none}
+.pio>summary::before{content:"+ "; font-weight:600; margin-right:3px}
+.pio[open]>summary::before{content:"\2212 "}
 
-.btns{display:flex; gap:6px; flex-wrap:wrap}
-button{
-  font:inherit; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--ink); background:var(--panel2); border:1px solid var(--line);
-  border-radius:4px; padding:6px 11px; cursor:pointer; flex:1 1 auto;
-  transition:background .12s ease, border-color .12s ease, color .12s ease;
-}
-button:hover{background:var(--bg); border-color:var(--ink2)}
-button:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
-button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
-:root[data-theme="dark"] button.primary, :root:not([data-theme="light"]) button.primary{color:#0C0D12}
-@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) button.primary{color:#fff} }
-button.primary:hover{filter:brightness(1.08)}
-
-/* matrix editor */
-.mx{display:grid; gap:3px; user-select:none; touch-action:none}
+/* --------------------------------------------------------------- matrix */
+.mx{display:grid; gap:0; user-select:none; touch-action:none;
+  border:1px solid var(--line2); border-radius:0; overflow:hidden;
+  width:100%; aspect-ratio:1/1}
 .mx .hdr{display:flex; align-items:center; justify-content:center}
-.chip{width:14px; height:14px; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.22)}
-.cell{
-  position:relative; aspect-ratio:1/1; border-radius:3px; cursor:ns-resize;
-  display:grid; place-items:center; font-size:9px; font-variant-numeric:tabular-nums;
-  color:var(--ink); background:var(--panel2); border:1px solid var(--line2);
+/* No floor on the swatches: a 12px minimum was holding every row open, so the
+   grid stayed square in width and grew in height as colours were added. */
+.chip{width:100%; height:100%; max-width:12px; max-height:12px; border-radius:0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.mx .hdr{min-width:0; min-height:0}
+.cell{position:relative; width:100%; height:100%; cursor:ns-resize;
+  min-width:0; min-height:0;
+  background:var(--panel2); box-shadow:inset 0 0 0 .5px rgba(128,128,128,.09)}
+.cell:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cell:focus-visible{outline:2px solid var(--focus); outline-offset:-2px}
+.mxread{font:9.5px/1.4 "IBM Plex Mono",monospace; color:var(--ink2); margin:4px 0 0;
+  min-height:13px; font-variant-numeric:tabular-nums}
+.mxread b{color:var(--ink); font-weight:500}
+
+/* -------------------------------------------------------------- kernels */
+#kstack{max-height:168px; overflow-y:auto; overscroll-behavior:contain}
+#kstack::-webkit-scrollbar{width:6px}
+#kstack::-webkit-scrollbar-thumb{background:var(--line); border-radius:0}
+.kern{border-bottom:1px solid var(--line2)}
+.kern>summary{display:flex; align-items:center; gap:5px; padding:0 2px; cursor:pointer;
+  font-size:9.5px; color:var(--ink2); list-style:none; min-height:var(--rowh)}
+.kern>summary::-webkit-details-marker{display:none}
+.kern>summary canvas{width:16px; height:16px; border-radius:0;
+  image-rendering:pixelated; flex:0 0 auto}
+.kern>summary .kr{margin-left:auto; font-variant-numeric:tabular-nums; opacity:.7; font-size:9px}
+.kbody{padding:2px 0 5px}
+
+/* ------------------------------------------------------ mobile: one sheet
+   Side rails do not fit a phone, so the same panels become a bottom sheet
+   with a tab bar choosing which one is up, and the field keeps the screen. */
+.tabs{display:none}
+@media (max-width:760px), (pointer:coarse) and (max-width:900px){
+  .tabs{
+    display:flex; position:absolute; left:0; right:0; bottom:0; z-index:7;
+    background:color-mix(in srgb, var(--panel) 94%, transparent);
+    border-top:1px solid var(--line); backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px); transition:opacity .13s ease;
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+  }
+  .tabs button{
+    flex:1 1 0; height:42px; border:0; border-radius:0; background:transparent;
+    color:var(--ink2); font-size:9.5px; border-right:1px solid var(--line2);
+  }
+  .tabs button:last-child{border-right:0}
+  .tabs button.on{color:var(--accent); box-shadow:inset 0 2px 0 var(--accent)}
+  .panel, .dock{
+    position:absolute; left:0; right:0; top:auto;
+    bottom:calc(42px + env(safe-area-inset-bottom, 0px));
+    width:auto; max-width:none; min-width:0; transform:none;
+    max-height:min(48vh, 380px); overflow-y:auto;
+    border-radius:0; border-left:0; border-right:0; border-bottom:0;
+    opacity:1; display:none; padding:7px 11px 11px;
+  }
+  .dock{display:none; flex-wrap:wrap; gap:8px; align-items:center}
+  .app.tab-world .pL{display:flex}
+  .app.tab-rules .pR{display:flex; flex-direction:column}
+  .app.tab-paint .dock{display:flex}
+  .dock:hover, .dock:focus-within{transform:none}
+  .pR{max-width:none}
+  .mx{--cs:20px}
+  .brand .hud{display:none}
+  .brand b{font-size:12px}
+  #kstack{max-height:132px}
+  .tctl{flex:1 1 130px}
 }
-.cell:hover{border-color:var(--ink2)}
-.cell:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
-.mxnote{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:9px; line-height:1.5}
+
+/* Kernel inspector. Fixed to the viewport, not to the rail: .kern clips its
+   own overflow, so a popover parented inside it would lose its right edge. */
+.kpeek{position:fixed; z-index:60; pointer-events:none; opacity:0;
+  transition:opacity .12s ease; background:var(--panel);
+  border:1px solid var(--line); border-radius:0;
+  box-shadow:var(--shadow), 0 6px 22px rgba(4,8,11,.16);
+  padding:9px; display:flex; flex-direction:column; gap:7px}
+.kpeek[data-show="1"]{opacity:1}
+.kpeek canvas{display:block; border-radius:0; background:var(--screen)}
+.kpeek .kmeta{font:10px/1.45 var(--mono, ui-monospace, monospace); color:var(--ink2);
+  display:flex; flex-direction:column; gap:2px; max-width:360px}
+.kpeek .kmeta b{color:var(--ink); font-weight:500}
+.kpeek .kwarn{color:var(--pos)}
+@media (prefers-reduced-motion:reduce){ .kpeek{transition:none} }
+.kbody .row{margin-bottom:6px}
+.kbody label.lab{flex:0 0 62px; font-size:10px}
 
 input[type=text]{
   font:inherit; font-size:12px; color:var(--ink); background:var(--panel2);
-  border:1px solid var(--line); border-radius:4px; padding:5px 10px; flex:1 1 auto; min-width:0;
+  border:1px solid var(--line); border-radius:0; padding:5px 10px; flex:1 1 auto; min-width:0;
 }
 input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
@@ -211,50 +470,14 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 .pjson{
   display:none; width:100%; margin-top:8px; min-height:96px; resize:vertical;
   font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.45; color:var(--ink);
-  background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:7px;
+  background:var(--panel2); border:1px solid var(--line); border-radius:0; padding:7px;
   white-space:pre; overflow:auto;
 }
-.pjson{border-radius:5px}
 .pjson:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
 .pstatus{color:var(--ink2); font-size:10px; letter-spacing:.03em; margin-top:7px; min-height:13px}
 .pstatus.warn{color:var(--pos)}
 
-.bars{display:flex; flex-direction:column; gap:5px; margin-top:2px}
-.bar{display:flex; align-items:center; gap:7px}
-.bar .track{flex:1 1 auto; height:7px; background:var(--panel2); border-radius:999px; overflow:hidden; border:1px solid var(--line2)}
-.bar .fill{height:100%; width:0%; border-radius:999px; transition:width .25s ease}
-.bar .num{flex:0 0 52px; text-align:right; font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink2)}
 
-.note{
-  font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:13.5px; line-height:1.65;
-  color:var(--ink2); max-width:68ch;
-}
-.note b{color:var(--ink); font-weight:500}
-.note code{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink)}
-.explain{
-  font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:14.5px; line-height:1.75;
-  color:var(--ink2); display:flex; flex-direction:column; gap:15px;
-  margin-top:10px; padding:0 2px;
-}
-.explain h2{
-  font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:15px; font-weight:600;
-  text-transform:uppercase; letter-spacing:.14em; color:var(--ink2); margin:6px 0 0;
-}
-.explain p{margin:0}
-.explain b{color:var(--ink); font-weight:500}
-.explain figure{margin:6px 0; color:var(--ink); max-width:640px; width:100%}
-.explain figure.narrow svg{max-width:300px}
-.explain svg{display:block; width:100%; height:auto; overflow:visible}
-.explain figcaption{
-  font-size:11.5px; color:var(--ink2); margin-top:8px; line-height:1.5;
-  font-family:"IBM Plex Mono",monospace; letter-spacing:.01em;
-}
-.eqs{display:flex; flex-direction:column; gap:10px; margin:2px 0}
-.eq{border-left:2px solid var(--accent); border-radius:0 4px 4px 0; padding:2px 0 2px 12px}
-.eq code{
-  display:block; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
-  color:var(--ink); line-height:1.6;
-}
 .eq span{display:block; font-size:12px; color:var(--ink2); margin-top:3px; line-height:1.5}
 .eq sub{font-size:.75em} .eq sup{font-size:.75em}
 .foot{
@@ -271,303 +494,262 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   flex:0 0 auto; font-size:9px; padding:3px 6px; letter-spacing:.08em;
   font-family:"IBM Plex Mono",monospace;
 }
-.refs{margin:0; padding-left:16px; font-size:11px; line-height:1.5; color:var(--ink2)}
-.refs li{margin-bottom:7px}
-.refs li::marker{color:var(--ink2)}
-.refs b{color:var(--ink); font-weight:500}
-.refs code{font-family:"IBM Plex Mono",monospace; font-size:10px}
-.explain a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
-.explain a:hover{border-bottom-color:var(--accent)}
-.explain a:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:2px}
-#citebib{
-  margin:0; font-family:"IBM Plex Mono",monospace; font-size:10px; line-height:1.5;
-  color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:5px;
-  padding:9px 11px; overflow-x:auto; white-space:pre; user-select:all;
-}
-.citeline{font-size:10.5px; line-height:1.5; margin:8px 0 0 !important; color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
 
-<div class="wrap">
+<div class="page">
   <header>
     <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
     <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
 
-  <div class="app">
-    <div class="col">
-      <div class="stage">
-      <canvas id="cv"></canvas>
-      <div class="hud"><span><b id="hfps">–</b> fps</span><span>step <b id="hstep">0</b></span><span>mass <b id="hmass">–</b></span><span>zoom <b id="hzoom">1.0&times;</b></span></div>
-      <div id="gl-error"></div>
-    </div>
+<div class="app" id="app">
 
-      <div class="toolbar">
-        <div class="seg" id="tools">
-          <button data-tool="pan" class="on" title="Drag to pan. Right-drag pans in any tool.">Pan</button>
-          <button data-tool="brush" title="Paint mass into the selected colors">Brush</button>
-          <button data-tool="noise" title="Paint speckled mass">Noise</button>
-          <button data-tool="erase" title="Take mass away">Erase</button>
-        </div>
-        <label class="tctl">Size<input id="bsize" type="range" min="3" max="140" step="1" value="26"><b id="bsizev">26</b></label>
-        <label class="tctl">Flow<input id="bflow" type="range" min="0.05" max="2" step="0.05" value="0.55"><b id="bflowv">0.55</b></label>
-        <div class="sw" id="swatches" title="Which colors the brush touches"></div>
-        <div class="seg">
-          <button id="allcols" title="Select every color">All</button>
-          <button id="nocols" title="Select none">None</button>
-        </div>
-        <button id="clear" class="clearbtn" title="Empty the world">Clear</button>
-      </div>
+  <canvas id="cv"></canvas>
+  <div id="gl-error"></div>
+  <div id="bring" aria-hidden="true"></div>
 
-      <div class="colophon">
-        <span>Made at <a href="https://2026.alife.org/">ALIFE 2026</a> by
-          <a href="https://www.izhv.eu">Iliya Zhechev</a></span>
-        <span class="wip">Work in progress · built with an LLM, so read the code before you trust it</span>
-      </div>
-
-  <section class="explain">
-      <h2>How it works</h2>
-
-      <p>Every color is a <b>field</b>: one number in every cell of the grid saying how much of that color
-      is sitting there. Not a swarm of dots — a smear of stuff. Six colors on a 512 grid means six numbers
-      per cell, about a million and a half numbers in total, all updated on the GPU every frame.</p>
-
-      <p>One step has two halves. First work out <b>where each color would like to be</b>. Then <b>move the
-      mass there</b> — move, never create, never destroy.</p>
-
-      <figure>
-        <svg viewBox="0 0 700 208" role="img" preserveAspectRatio="xMidYMid meet"
-             aria-label="One simulation step: the particle life force law is convolved with each colour at the radius its pairs use, the interaction matrix turns those into an affinity map, and mass is then handed to neighbouring cells in proportion to the affinity, feeding back into the densities.">
-          <defs>
-            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
-            </marker>
-          </defs>
-          <g stroke="currentColor" fill="var(--panel2)" stroke-width="1.2">
-            <rect x="12"  y="40" width="116" height="62" rx="4"/>
-            <rect x="152" y="40" width="116" height="62" rx="4"/>
-            <rect x="292" y="40" width="116" height="62" rx="4"/>
-            <rect x="432" y="40" width="116" height="62" rx="4"/>
-            <rect x="572" y="40" width="116" height="62" rx="4"/>
-          </g>
-          <g fill="currentColor" font-size="12.5" text-anchor="middle">
-            <text x="70"  y="66">densities</text><text x="70"  y="84" font-style="italic">&#961;</text>
-            <text x="210" y="66">slide the force</text><text x="210" y="84">law over it</text>
-            <text x="350" y="58">pull</text>
-            <text x="490" y="66">affinity</text><text x="490" y="84" font-style="italic">A</text>
-            <text x="630" y="66">hand mass</text><text x="630" y="84">to neighbours</text>
-          </g>
-          <g stroke="var(--accent)" fill="none" stroke-width="1.6">
-            <path d="M302,90 L316,75 L330,75 L344,62 L358,75 L396,75"/>
-          </g>
-          <line x1="302" y1="75" x2="398" y2="75" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/>
-          <g stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)" fill="none">
-            <line x1="128" y1="71" x2="150" y2="71"/>
-            <line x1="268" y1="71" x2="290" y2="71"/>
-            <line x1="408" y1="71" x2="430" y2="71"/>
-            <line x1="548" y1="71" x2="570" y2="71"/>
-            <path d="M630,102 L630,150 L70,150 L70,104"/>
-          </g>
-          <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-            <text x="139" y="34">its radii</text>
-            <text x="279" y="34">per pair</text>
-            <text x="419" y="34">&#215; matrix</text>
-            <text x="559" y="34">e<tspan baseline-shift="super" font-size="8">&#946;A</tspan></text>
-            <text x="350" y="168">the new densities are the next step&#8217;s input</text>
-          </g>
-        </svg>
-        <figcaption>One step. Nothing in the loop can add or remove mass — the last box only ever moves it.</figcaption>
-      </figure>
-
-      <p>The kernel is particle life&#8217;s own force law, unchanged: strong repulsion at touching
-      distance, easing to nothing at 30% of the radius, then a triangle of attraction that peaks midway
-      out and fades to zero at the edge. Sliding it over a color field answers &#8220;which way, and how
-      hard, does this cell get pulled by that color?&#8221; Every pair of colors has its own radius, set
-      in the second matrix.</p>
-
-      <div class="eqs">
-        <div class="eq"><code>f(x) = x/&#946; &#8722; 1 &nbsp;if x &lt; &#946;, &nbsp; else 1 &#8722; |2x&#8722;1&#8722;&#946;| / (1&#8722;&#946;)</code>
-          <span>particle life&#8217;s force against distance <i>x</i> (as a fraction of the radius), with &#946; = 0.3</span></div>
-        <div class="eq"><code>A<sub>c</sub> = force &#183; &#8721;<sub>d</sub> M[c][d] &#183; (f &#8727; &#961;<sub>d</sub>) &#8722; repel &#183; crowding</code>
-          <span>where color <i>c</i> wants to be: the matrix says how it feels about every color, minus a dislike of crowds</span></div>
-        <div class="eq"><code>share(y &#8594; x) = e<sup>&#946;A(x)</sup> &#8260; Z(y)</code>
-          <span>the fraction of cell <i>y</i>&#8217;s mass that goes to neighbour <i>x</i>. <i>Z</i> is the total over <i>y</i>&#8217;s nine cells, so the nine shares add to exactly 1</span></div>
-      </div>
-
-      <p>That last line is the whole reason nothing ever explodes or dies out. Each cell gives away shares
-      of <b>its own</b> mass, and the shares sum to one — so every unit that leaves somewhere arrives
-      somewhere. Add it all up and the total is the same number forever, which is what the bars on the
-      right are showing you.</p>
-
-      <figure class="narrow">
-        <svg viewBox="0 0 300 190" role="img" preserveAspectRatio="xMidYMid meet"
-             aria-label="A cell splits its own mass among its nine neighbouring cells, with thicker arrows going to cells of higher affinity.">
-          <g stroke="currentColor" stroke-width="1.1" fill="none" opacity=".55">
-            <rect x="70"  y="30" width="52" height="52"/><rect x="122" y="30" width="52" height="52"/><rect x="174" y="30" width="52" height="52"/>
-            <rect x="70"  y="82" width="52" height="52"/><rect x="174" y="82" width="52" height="52"/>
-            <rect x="70"  y="134" width="52" height="52"/><rect x="122" y="134" width="52" height="52"/><rect x="174" y="134" width="52" height="52"/>
-          </g>
-          <rect x="122" y="82" width="52" height="52" fill="var(--accent)" opacity=".22" stroke="var(--accent)" stroke-width="1.4"/>
-          <g stroke="var(--accent)" marker-end="url(#ar)" fill="none" color="var(--accent)">
-            <line x1="148" y1="108" x2="106" y2="66"  stroke-width="1.2"/>
-            <line x1="148" y1="108" x2="148" y2="60"  stroke-width="4.5"/>
-            <line x1="148" y1="108" x2="190" y2="66"  stroke-width="2.6"/>
-            <line x1="148" y1="108" x2="104" y2="108" stroke-width="1"/>
-            <line x1="148" y1="108" x2="192" y2="108" stroke-width="3.4"/>
-            <line x1="148" y1="108" x2="106" y2="150" stroke-width="1"/>
-            <line x1="148" y1="108" x2="148" y2="156" stroke-width="1.6"/>
-            <line x1="148" y1="108" x2="190" y2="150" stroke-width="2.2"/>
-          </g>
-          <circle cx="148" cy="108" r="3.4" fill="var(--accent)"/>
-          <g fill="currentColor" font-size="11" text-anchor="middle" opacity=".8">
-            <text x="150" y="18">high affinity this way</text>
-            <text x="150" y="182">a share also stays put</text>
-          </g>
-        </svg>
-        <figcaption>How mass moves: thicker arrow, higher affinity, bigger share. The nine shares always add to one.</figcaption>
-      </figure>
-
-      <p>Change the matrix and you change what chases what. Because it need not be symmetric, red can be
-      drawn to green while green flees red — and that one asymmetry is where most of the chasing,
-      orbiting and swarming comes from.</p>
-
-      <div class="foot">
-        <div class="fcol">
-          <h3>Built on</h3>
-          <ol class="refs">
-            <li><b>MaCE</b> — the transport rule used here: each cell hands its mass to its nine neighbours
-              in proportion to <code>e<sup>&#946;A</sup></code>, so mass is conserved by construction.
-              Papadopoulos, V. &amp; Guichard, E. (2025). <i>MaCE: General Mass Conserving Dynamics for
-              Cellular Automata.</i> <a href="https://arxiv.org/abs/2507.12306">arXiv:2507.12306</a></li>
-            <li><b>Particle Life</b> — the interaction matrix and short-range repulsion, in its original
-              swarm-of-dots form. Mohr, T., <a href="https://particle-life.com/">particle-life.com</a>,
-              after Ventrella, J., <i>Clusters</i>,
-              <a href="https://www.ventrella.com/Clusters/">ventrella.com/Clusters</a></li>
-            <li><b>Lenia</b> — the continuous cellular automaton lineage: kernels convolved with a field,
-              fed through a growth function. Chan, B. W.-C. (2019). <i>Lenia — Biology of Artificial Life.</i>
-              Complex Systems 28(3), 251&#8211;286.
-              <a href="https://arxiv.org/abs/1812.05433">arXiv:1812.05433</a></li>
-            <li><b>Flow-Lenia</b> — the nearest relative: per-channel affinity, an anti-crowding term and
-              mass conservation on a grid, via reintegration tracking rather than a softmax.
-              Plantec, E., Hamon, G., Etcheverry, M., Chan, B. W.-C., Oudeyer, P.-Y. &amp; Moulin-Frier, C.
-              (2023). <a href="https://arxiv.org/abs/2212.07906">arXiv:2212.07906</a></li>
-            <li><b>Non-reciprocal Cahn&#8211;Hilliard</b> — the same asymmetric-matrix idea as continuum
-              physics, where it produces travelling waves and &#8220;chasing&#8221; phases.
-              Saha, S., Agudo-Canalejo, J. &amp; Golestanian, R. (2020). Phys. Rev. X 10, 041009.
-              <a href="https://arxiv.org/abs/2005.07101">arXiv:2005.07101</a></li>
-          </ol>
-        </div>
-
-        <div class="fcol">
-          <h3>Cite this <button id="citecopy">copy</button></h3>
-          <pre id="citebib">@misc{fieldlife,
-    author = {Zhechev, Iliya},
-    title  = {Field Life: particle life as
-              mass-conserving continuous fields},
-    year   = {2026},
-    url    = {https://www.izhv.eu/field-life}
-  }</pre>
-          <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as mass-conserving
-            continuous fields.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
-          <div id="citestatus" class="pstatus"></div>
-        </div>
-      </div>
-    </section>
-      </div>
-
-
-    <div class="rail">
-
-      <div class="card" id="rcard" hidden>
-        <h2>Presets <span id="rcount"></span></h2>
-        <div class="row">
-          <select id="rsel" title="Load a preset from presets.json"></select>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>World <span id="wsize">512 &times; 512</span></h2>
-        <div class="row"><label class="lab" for="grid">Grid</label><select id="grid">
-          <option>128</option><option>256</option><option>384</option><option selected>512</option><option>768</option>
-        </select></div>
-        <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" type="range" min="2" max="8" step="1" value="6"><span class="val" id="chanv">6</span></div>
-        <div class="row"><label class="lab" for="dens">Density</label><input id="dens" type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
-        <div class="btns" style="margin-top:11px">
-          <button id="play" class="primary">Pause</button>
-          <button id="reseed">Reseed</button>
-          <button id="disc">Center disc</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Interaction matrix <span id="seedlab">#0</span></h2>
-        <div id="mx" class="mx"></div>
-        <div class="btns" style="margin-top:11px">
-          <button id="resample" class="primary">Resample</button>
-          <button id="symm">Symmetrize</button>
-          <button id="zero">Zero</button>
-        </div>
-        <p class="mxnote">Row = who feels, column = about whom. Drag a cell up/down to edit, double-click to zero. Asymmetry is what makes one color chase another.</p>
-      </div>
-
-      <div class="card">
-        <h2>Interaction radius <span id="banklab">1 blur level</span></h2>
-        <div id="rx" class="mx"></div>
-        <div class="btns" style="margin-top:11px">
-          <button id="rresample" class="primary">Resample</button>
-          <button id="rflat">Flatten</button>
-        </div>
-        <p class="mxnote">How far each pair reaches, in pixels. Cells step through five stops interpolating from <b>Rad min</b> to <b>Rad max</b>; move either slider and the whole matrix rescales. Only the distinct stops in use cost GPU work &mdash; a flat matrix is as cheap as a single radius. The crowding term uses the shortest reach in play.</p>
-      </div>
-
-      <div class="card">
-        <h2>Physics</h2>
-        <div class="row"><label class="lab" for="radmin">Rad min</label><input id="radmin" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
-        <div class="row"><label class="lab" for="radmax">Rad max</label><input id="radmax" type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
-        <div class="row"><label class="lab" for="force">Force</label><input id="force" type="range" min="0" max="400" step="1" value="60"><span class="val" id="forcev">60</span></div>
-        <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" type="range" min="0" max="20" step="0.25" value="6"><span class="val" id="repelv">6</span></div>
-        <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" type="range" min="0" max="12" step="0.1" value="3"><span class="val" id="betav">3</span></div>
-        <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
-        <div class="row"><label class="lab" for="steps">Steps/f</label><input id="steps" type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
-        <div class="row"><label class="lab" for="inter">Interaction</label><select id="inter">
-          <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
-        </select></div>
-        <div class="row"><label class="lab" for="cmap">Colors</label><select id="cmap"></select></div>
-        <div class="row"><label class="lab" for="blend">Blend</label><select id="blend">
-          <option value="0">Dominant</option><option value="1">Soft</option>
-          <option value="2">Additive</option><option value="3">Winner</option>
-        </select></div>
-        <div class="row"><label class="lab" for="pixels">Pixels</label>
-          <label class="chk"><input type="checkbox" id="pixels" checked> interpolate</label></div>
-        <div class="row"><label class="lab" for="expo">Exposure</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2"><span class="val" id="expov">2.2</span></div>
-      </div>
-
-      <div class="card">
-        <h2>Setups <span id="pcount">none saved</span></h2>
-        <div class="row">
-          <input id="pname" type="text" placeholder="name this setup" maxlength="40" autocomplete="off">
-          <button id="psave" class="primary" style="flex:0 0 auto">Save</button>
-        </div>
-        <div id="plist" class="plist"></div>
-        <div class="btns" style="margin-top:10px">
-          <button id="pexport">Export JSON</button>
-          <button id="pimport">Import</button>
-        </div>
-        <textarea id="pjson" class="pjson" spellcheck="false" aria-label="Setup JSON"></textarea>
-        <div id="pstatus" class="pstatus"></div>
-        <p class="mxnote" id="pnote">Everything but the field itself: colors, grid, both matrices and all
-          the physics. Loading one keeps the world running if the grid and color count match, so you can
-          A/B two matrices on the same field. Saved in this browser only.</p>
-      </div>
-
-      <div class="card">
-        <h2>Mass per color <span id="conserv">exact</span></h2>
-        <div class="bars" id="bars"></div>
-      </div>
-
-    </div>
+  <div class="brand">
+    <span class="hud"><span><b id="hfps">&ndash;</b>fps</span><span><b id="hstep">0</b>steps</span><span><b id="hmass">&ndash;</b>mass</span><span><b id="hzoom">1.0&times;</b>zoom</span></span>
   </div>
 
+  <div class="corner">
+    <button id="roll" title="A fresh interaction matrix, and a center circle to start it from.">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
+      Generate new world
+    </button>
+    <button id="shot" class="iconly" title="Save the field as a PNG" aria-label="Save a screenshot">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 5.2h2.6l1-1.7h5.6l1 1.7h2.6v7.6H1.6z"/><circle cx="8" cy="9" r="2.6"/></svg>
+    </button>
+    <button id="hideui" class="iconly" title="Hide the controls" aria-label="Hide the controls">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8S4.3 3.7 8 3.7 14.2 8 14.2 8 11.7 12.3 8 12.3 1.8 8 1.8 8Z"/><circle cx="8" cy="8" r="1.9"/></svg>
+    </button>
+    <button id="fs" class="iconly" title="Fullscreen, or double-click the field" aria-label="Fullscreen">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.2H2.2V6M10 2.2h3.8V6M6 13.8H2.2V10M10 13.8h3.8V10"/></svg>
+    </button>
+  </div>
+
+  <!-- left: what the world is and how it looks -->
+  <aside class="panel pL" id="panelL">
+    <details class="sec" open><summary class="ph">World <span id="wsize"></span></summary>
+    <div class="row"><label class="lab" for="grid">Res</label>
+      <input id="grid" type="range" min="128" max="1536" step="64" value="512"
+             title="Simulation resolution: cells down the short side of the screen. The long side gets proportionally more, so cells stay square. Rebuilds the world on release."><span class="val" id="gridv">512</span></div>
+    <div class="row"><label class="lab" for="chan">Colors</label><input id="chan" title="How many colors the world has. Each is its own field with its own kernel." type="range" min="2" max="32" step="1" value="6"><span class="val" id="chanv">6</span></div>
+    <div class="row"><label class="lab" for="dens">Dens</label><input id="dens" title="How much mass each color starts with, as a fraction of the grid." type="range" min="0.03" max="0.5" step="0.01" value="0.12"><span class="val" id="densv">0.12</span></div>
+    <div class="btns sm">
+      <button id="play" class="primary" title="Pause or resume">Pause</button>
+      <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
+    </div>
+    <p class="note lead">Reseed the world</p>
+    <div class="btns sm">
+      <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
+      <button id="disc" title="Fill a single circle in the middle, leaving the rest empty">Circle</button>
+      <button id="reclear" title="Clear every color out of the world">Empty</button>
+    </div>
+
+    </details>
+<details class="sec" open><summary class="ph">Physics</summary>
+    <div class="row"><label class="lab" for="radmin">R min</label><input id="radmin" title="Shortest reach a sampled kernel may take, in cells." type="range" min="2" max="256" step="1" value="18"><span class="val" id="radminv">18</span></div>
+    <div class="row"><label class="lab" for="radmax">R max</label><input id="radmax" title="Longest reach a sampled kernel may take, in cells." type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
+    <div class="row"><label class="lab" for="force">Force</label><input id="force" title="How strongly the affinity pulls. Scales the whole matrix at once." type="range" min="0" max="400" step="1" value="90"><span class="val" id="forcev">90</span></div>
+    <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" title="Dislike of crowding. Pushes mass out of cells that are already full." type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
+    <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbor. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
+    <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" title="Jitter added to the affinity. Lets shapes drift off the grid axes." type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
+    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+    <div class="row"><label class="lab" for="inter">Law</label><select id="inter" title="Built-in interaction shape, when no kernel is designed">
+      <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
+    </select></div>
+
+    </details>
+<details class="sec"><summary class="ph">Look</summary>
+    <div class="row"><label class="lab" for="cmap">Pal</label><select id="cmap" title="Colors the fields are drawn in"></select></div>
+    <div class="row"><label class="lab" for="blend">Blend</label><select id="blend" title="How overlapping colors combine">
+      <option value="0">Dominant</option><option value="1">Soft</option>
+      <option value="2">Additive</option><option value="3">Winner</option>
+    </select></div>
+    <div class="row"><label class="lab" for="expo">Expo</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2" title="Display brightness only"><span class="val" id="expov">2.2</span></div>
+    <div class="row"><label class="lab" for="pixels">Pixels</label>
+      <label class="chk" title="Smooth between cells instead of hard pixels"><input type="checkbox" id="pixels" title="Smooth between cells when drawing, instead of showing them as hard squares." checked> smooth</label></div>
+
+    </details>
+<details class="sec"><summary class="ph">Setups</summary>
+    <div class="row">
+      <input id="pname" title="Name for the setup you are about to save." type="text" placeholder="name this setup" maxlength="40" autocomplete="off">
+      <button id="psave" class="primary" style="flex:0 0 auto" title="Save the current setup">Save</button>
+    </div>
+    <div id="plist" class="plist"></div>
+    <details class="pio">
+      <summary title="Move setups between browsers as JSON">Import / export&nbsp; <span id="pcount"></span></summary>
+      <div class="btns sm" style="margin-top:6px">
+        <button id="pexport" title="Copy every saved setup out as JSON.">Export</button><button id="pimport" title="Paste setups back in from JSON.">Import</button>
+      </div>
+      <textarea id="pjson" class="pjson" spellcheck="false" aria-label="Setup JSON"></textarea>
+      <div id="pstatus" class="pstatus"></div>
+      <p class="note" id="pnote">Saved in this browser only.</p>
+    </details>
+  </details>
+</aside>
+
+  <!-- right: the rules -- who chases whom, and through what shape -->
+  <aside class="panel pR" id="panelR">
+    <details class="sec" open><summary class="ph">Matrix <span id="seedlab">#0</span></summary>
+    <div id="mx" class="mx"></div>
+    <div id="mxread" class="mxread">&nbsp;</div>
+    <div class="row"><label class="lab" for="cfreq">Bands</label>
+      <input id="cfreq" type="range" min="0.3" max="3.2" step="0.1" value="1.1"
+             title="How fast the CPPN varies across the matrix. Low is broad bands, high approaches noise."><span class="val" id="cfreqv">1.1</span></div>
+    <div class="row"><label class="lab" for="cdepth">Depth</label>
+      <input id="cdepth" type="range" min="1" max="4" step="1" value="2"
+             title="Layers in the sampling network. Deeper gives more intricate structure."><span class="val" id="cdepthv">2</span></div>
+    <p class="note lead">Redraw whole matrix</p>
+    <div class="btns sm">
+      <button id="resample" title="Draw every entry independently, uniform in -1..1">Uniform</button>
+      <button id="cppn" title="Sample from coordinates, so the matrix comes out structured">CPPN</button>
+      <button id="zero" title="Set every entry to zero">Zero</button>
+    </div>
+
+    </details>
+<details class="sec" open><summary class="ph">Kernels <span id="klab"></span></summary>
+    <div id="kstack"></div>
+    <div class="row"><label class="lab" for="ktype">Kind</label>
+      <select id="ktype" title="Ring is the default, and stays on the fast blur path. Linear is particle life's exact law, but it needs the coarser stencil.">
+        <option value="radial" selected>Ring</option>
+        <option value="pl">Linear &mdash; exact, coarser</option>
+        <option value="disc">Circle</option>
+        <option value="perlin">Perlin</option>
+      </select></div>
+    <div class="row"><label class="lab" for="kterms">Lobes</label>
+      <input id="kterms" type="range" min="1" max="4" step="1" value="2"
+             title="Bumps in the kernel's profile. 1 is a plain circle, 2 the classic ring, more adds rings."><span class="val" id="ktermsv">2</span></div>
+    <div class="row"><label class="lab" for="kwidth">Width</label>
+      <input id="kwidth" type="range" min="0.02" max="1" step="0.01" value="0.7"
+             title="Blob size for one lobe, and the narrowest bump for the rest. A fat single lobe needs a deeper counterweight around it."><span class="val" id="kwidthv">0.14</span></div>
+    <div class="row"><label class="lab" for="ksym">Sym</label>
+      <select id="ksym" title="Which symmetries sampling may pick">
+        <option value="radial">Radial only</option>
+        <option value="mixed" selected>Mostly radial</option>
+        <option value="any">Any</option>
+      </select></div>
+    <p class="note lead">Redraw all kernels</p>
+    <div class="btns sm">
+      <button id="ksample" title="Draw a new kernel for every color">Sample all</button>
+    </div>
+  </details>
+</aside>
+
+  <!-- bottom: painting -->
+  <div class="dock" id="dock">
+    <div class="seg ico" id="tools">
+      <button data-tool="pan" class="on" title="Pan &mdash; drag to move the view" aria-label="Pan">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v13M1.5 8h13M8 1.5 6 3.6M8 1.5l2 2.1M8 14.5l-2-2.1M8 14.5l2-2.1M1.5 8l2.1-2M1.5 8l2.1 2M14.5 8l-2.1-2M14.5 8l-2.1 2"/></svg>
+      </button>
+      <button data-tool="brush" title="Brush &mdash; paint mass" aria-label="Brush">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.5 2.2 13.8 4.5 7.2 11.1 4.9 8.8z"/><path d="M4.9 8.8 3.4 12.6l3.8-1.5M3.4 12.6 2.2 13.8"/></svg>
+      </button>
+      <button data-tool="noise" title="Noise &mdash; paint speckled mass" aria-label="Noise">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="4.5" r=".9"/><circle cx="9" cy="3" r=".9"/><circle cx="12.5" cy="6" r=".9"/><circle cx="6.5" cy="8" r=".9"/><circle cx="3.2" cy="11" r=".9"/><circle cx="10" cy="11.5" r=".9"/><circle cx="13" cy="12.5" r=".9"/></svg>
+      </button>
+      <button data-tool="erase" title="Erase &mdash; take mass away" aria-label="Erase">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.4 13.2h6.9M2.6 10.3l4.6-4.6 4.2 4.2-3.4 3.4H5.6z"/><path d="M7.2 5.7 9.9 3a1.1 1.1 0 0 1 1.6 0l2.6 2.6a1.1 1.1 0 0 1 0 1.6l-2.7 2.7"/></svg>
+      </button>
+    </div>
+    <label class="tctl" title="Brush size in cells">SIZE<input id="bsize" title="Brush radius, in cells. [ and ] step it." type="range" min="3" max="140" step="1" value="26" aria-label="Brush size"><b id="bsizev">26</b></label>
+    <div class="sw" id="swatches" title="Which colors the brush touches"></div>
+    <div class="seg ico">
+      <button id="allcols" title="Select every color" aria-label="Select every color">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.4 6.2 11.8 13.2 4.6"/></svg>
+      </button>
+      <button id="nocols" title="Select no colors" aria-label="Select no colors">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6"/></svg>
+      </button>
+    </div>
+    <button id="clear" class="iconly danger" title="Empty the world" aria-label="Empty the world">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.4h10M6.4 4.4V2.9h3.2v1.5M4.3 4.4l.7 8.4a.8.8 0 0 0 .8.7h4.4a.8.8 0 0 0 .8-.7l.7-8.4"/></svg>
+    </button>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Control panels">
+    <button data-tab="world" title="World, physics, look and saved setups." class="on">World</button>
+    <button data-tab="rules" title="The interaction matrix and the kernels.">Rules</button>
+    <button data-tab="paint" title="Brush tools for painting mass into the world.">Paint</button>
+    <button data-tab="none" title="Hide the controls">Hide</button>
+  </nav>
+
+</div>
+
+<div class="strip" id="strip" hidden>
+  <div class="striphead">
+    <span class="ph">Worlds</span>
+    <span class="stripnote" id="stripnote"></span>
+  </div>
+  <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+</div>
+
+<section class="below">
+  <h2>How it works</h2>
+  <p>Each color is a scalar field over the grid: one number per cell, saying how much of that color
+    sits there. Every cell of every color is updated on the GPU each frame.</p>
+  <p>One step has two halves. First, each color's field is <b>convolved with its own kernel</b>.
+    A kernel is a small table of weights, one per distance, that stops at a fixed radius of a few
+    dozen cells. Convolving means: for every cell, add up that color's field over all cells within
+    the radius, each multiplied by the kernel's weight for its distance. The number that comes out
+    says how much of that color is nearby, counted the way the kernel says to count it. The default
+    kernel is negative on the cells close in and positive on a ring further out, so the sum is
+    largest when the color forms a hollow shell at the ring's distance instead of a solid blob.</p>
+  <p>The <b>interaction matrix</b> then mixes the colors. Entry <i>M[c][d]</i> is how strongly
+    color <i>c</i> is pulled towards the amount of color <i>d</i> that its kernel just measured;
+    negative entries push away instead. Adding those up over every <i>d</i>, multiplying by a global
+    strength, and subtracting an amount proportional to how crowded the cell already is leaves one
+    number per cell per color. Call it <i>A</i>: how much that color wants to be in that cell.</p>
+  <p>Second, the mass moves. Each cell splits its own contents among its nine neighbors, itself
+    included, giving each a share proportional to <i>e<sup>&beta;A</sup></i> at that neighbor,
+    with the nine shares scaled to sum to exactly one. Every unit that leaves a cell arrives at
+    another, so the total per color never changes for the life of the run &mdash; the simulation
+    only moves mass around, it cannot create or destroy it.</p>
+  <p>The matrix need not be symmetric, so <i>M[c][d]</i> and <i>M[d][c]</i> can disagree: red can
+    chase green while green flees red. That asymmetry is where the chasing, orbiting and gliding
+    come from.</p>
+
+  <h2>Acknowledgements</h2>
+  <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
+    take on particle life, <a href="https://github.com/aprowe/cip-life">cip-life</a>, which
+    initializes the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
+    discussion with <a href="https://mundyreimer.github.io/about">Mundy Reimer</a> and
+    <a href="https://www.seanjhardy.com/">Sean Hardy</a> about continuity and the concept of a
+    field.</p>
+  <p>I am not completely sure this doesn't already exist &mdash; my Claude couldn't find references
+    to similar projects.</p>
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Jeffrey Ventrella. <a href="https://www.ventrella.com/Clusters/">Clusters</a>. The original
+      particle life: a handful of particle types, one attraction number for each ordered pair of
+      them, and a force law that repels hard up close. The kernel and the interaction matrix here
+      are the same two ideas, moved onto a grid.</li>
+    <li>Tom Mohr. <a href="https://particle-life.com/">Particle Life</a>. The implementation most
+      people have actually watched, and the source of the parameter ranges the defaults start
+      from.</li>
+    <li>Vassilis Papadopoulos and Etienne Guichard, 2025.
+      <a href="https://arxiv.org/abs/2507.12306">MaCE: General Mass Conserving Dynamics for Cellular
+      Automata</a>. Where the softmax transport step comes from &mdash; cells hand their contents to
+      their neighbors in shares that sum to one, so nothing is created or lost. It is what lets a
+      grid version of particle life hold together instead of blowing up or fading out.</li>
+    <li>Bert Wang-Chak Chan, 2019. <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of
+      Artificial Life</a>. Continuous states, continuous space, and a growth rule driven by a
+      convolution &mdash; the reason a field can carry creatures at all.</li>
+    <li>Erwan Plantec, Gautier Hamon, Mayalen Etcheverry, Bert Wang-Chak Chan,
+      Pierre-Yves Oudeyer and Cl&eacute;ment Moulin-Frier, 2023.
+      <a href="https://arxiv.org/abs/2212.07906">Flow-Lenia</a>. The other route to a
+      mass-conserving Lenia, by advection rather than by redistribution.</li>
+  </ol>
+
+</section>
+
+<div class="colophon">
+  <span>Made at <a href="https://2026.alife.org/">ALIFE 2026</a> by
+    <a href="https://www.izhv.eu">Iliya Zhechev</a></span>
+  <span class="wip">August 2026 &middot; work in progress &middot; built with an LLM</span>
+</div>
 </div>
 
 <script>
@@ -576,8 +758,33 @@ const $ = id => document.getElementById(id);
 const cv = $("cv");
 const gl = cv.getContext("webgl2", {antialias:false, alpha:false, preserveDrawingBuffer:false});
 
+let wantShot = false;                 // set by the camera button, cleared after the draw
+
+function saveShot(){
+  // drawImage copies the live drawing buffer synchronously, which is the whole
+  // point of doing this here: the buffer is not preserved, and toBlob's callback
+  // would not run until well after the next frame had wiped it.
+  const c = document.createElement("canvas");
+  c.width = cv.width; c.height = cv.height;
+  c.getContext("2d").drawImage(cv, 0, 0);
+
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  c.toBlob(b => {
+    if(!b) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = `field-life-${stamp}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }, "image/png");
+}
+
 function fatal(msg){
-  const e = $("gl-error"); e.style.display = "grid"; e.textContent = msg;
+  const e = $("gl-error");
+  e.style.display = "grid"; e.textContent = msg;
+  e.style.whiteSpace = "pre-wrap"; e.style.font = "11px/1.5 monospace"; e.style.overflow = "auto";
 }
 if(!gl){ fatal("This page needs WebGL2, which this browser did not provide."); }
 const extF = gl && gl.getExtension("EXT_color_buffer_float");
@@ -589,7 +796,8 @@ in vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
 
 const HEAD = `#version 300 es
 precision highp float; precision highp int; precision highp sampler2D;
-uniform int uN;   // grid side
+uniform ivec2 uN; // grid size. The world need not be square, so every
+                  // stride carries both axes and wraps on its own one.
 uniform int uL;   // number of RGBA layers packed side by side in the atlas
 // Toroidal wrap. NOTE: integer % with a negative operand is UNDEFINED in
 // GLSL ES 3.00, so this must go through float mod() -- using % here breaks the
@@ -623,53 +831,87 @@ float plForce(float x){            // x is distance as a fraction of the radius
 `;
 
 const FS_BLURH = HEAD + KERNEL + `
-uniform sampler2D uSrc; uniform float uSigA, uSigB; uniform int uRad;
-uniform int uNsrc, uNm;                          // source tile stride, working grid size
+uniform sampler2D uSrc; uniform vec4 uSigA, uSigB; uniform int uRad;
+uniform ivec2 uNsrc, uNm;                        // source tile stride, working grid size
 layout(location=0) out vec4 oA;
 layout(location=1) out vec4 oB;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uNm, lx = p.x - tile*uNm;     // scratch is packed at the mip's stride
+  int tile = p.x / uNm.x, lx = p.x - tile*uNm.x; // scratch is packed at the mip's stride
   int sy = p.y;
   float rad = float(uRad);
-  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
+  vec4 sa = vec4(0.0), sb = vec4(0.0), wa = vec4(0.0), wb = vec4(0.0);
   for(int i = -uRad; i <= uRad; i++){
-    vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+i, uNm), sy), 0);
-    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
+    vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc.x + wrapi(lx+i, uNm.x), sy), 0);
+    vec4 ka = vec4(kw(float(i), uSigA.x, rad), kw(float(i), uSigA.y, rad),
+                   kw(float(i), uSigA.z, rad), kw(float(i), uSigA.w, rad));
+    vec4 kb = vec4(kw(float(i), uSigB.x, rad), kw(float(i), uSigB.y, rad),
+                   kw(float(i), uSigB.z, rad), kw(float(i), uSigB.w, rad));
     sa += v*ka; sb += v*kb; wa += ka; wb += kb;
   }
-  oA = sa/wa; oB = sb/wb;
+  oA = sa/max(wa, vec4(1e-6)); oB = sb/max(wb, vec4(1e-6));
 }`;
 
 const FS_BLURV = HEAD + KERNEL + `
-uniform sampler2D uA, uB; uniform float uSigA, uSigB; uniform int uRad; uniform int uNm;
+uniform sampler2D uA, uB; uniform vec4 uSigA, uSigB; uniform int uRad; uniform ivec2 uNm;
 layout(location=0) out vec4 oA;
 layout(location=1) out vec4 oB;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
   int ly = p.y;
   float rad = float(uRad);
-  vec4 sa = vec4(0.0), sb = vec4(0.0); float wa = 0.0, wb = 0.0;
+  vec4 sa = vec4(0.0), sb = vec4(0.0), wa = vec4(0.0), wb = vec4(0.0);
   for(int i = -uRad; i <= uRad; i++){
-    int sy = wrapi(ly + i, uNm);
-    float ka = kw(float(i), uSigA, rad), kb = kw(float(i), uSigB, rad);
+    int sy = wrapi(ly + i, uNm.y);
+    vec4 ka = vec4(kw(float(i), uSigA.x, rad), kw(float(i), uSigA.y, rad),
+                   kw(float(i), uSigA.z, rad), kw(float(i), uSigA.w, rad));
+    vec4 kb = vec4(kw(float(i), uSigB.x, rad), kw(float(i), uSigB.y, rad),
+                   kw(float(i), uSigB.z, rad), kw(float(i), uSigB.w, rad));
     sa += texelFetch(uA, ivec2(p.x, sy), 0)*ka;
     sb += texelFetch(uB, ivec2(p.x, sy), 0)*kb;
     wa += ka; wb += kb;
   }
-  oA = sa/wa; oB = sb/wb;
+  oA = sa/max(wa, vec4(1e-6)); oB = sb/max(wb, vec4(1e-6));
 }`;
 
 /* affinity: mix every colour's neighbourhood integral through the matrix */
 // Each (feeling color, felt color) pair reads its blur from its own slice of
 // the blur bank, so every pair can have its own interaction radius.
+// One kernel per colour, baked into an RGBA atlas: a tap fetches the four
+// colours of a layer and their four weights together, so an arbitrary 2-D
+// shape costs the same as a radial one and the cost stays linear in colours.
+const FS_CONV = HEAD + `
+uniform sampler2D uSrc, uKern;
+uniform int uKR; uniform ivec2 uNsrc, uNm;   // half-width, source stride, working size
+layout(location=0) out vec4 oF;   // the interaction integral
+layout(location=1) out vec4 oN;   // a tight blur of the same field, for crowding
+void main(){
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  int tile = p.x / uNm.x, lx = p.x - tile*uNm.x;
+  int K = 2*uKR + 1;
+  vec4 acc = vec4(0.0), near = vec4(0.0);
+  float wn = 0.0, rn = max(1.0, float(uKR)*0.22);
+  for(int dy = -uKR; dy <= uKR; dy++){
+    for(int dx = -uKR; dx <= uKR; dx++){
+      vec4 w = texelFetch(uKern, ivec2(dx + uKR, tile*K + dy + uKR), 0);
+      float r2 = float(dx*dx + dy*dy);
+      float g = exp(-0.5*r2/(rn*rn));
+      if(w == vec4(0.0) && g < 1e-4) continue;
+      vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc.x + wrapi(lx+dx, uNm.x), wrapi(p.y+dy, uNm.y)), 0);
+      acc += v*w; near += v*g; wn += g;
+    }
+  }
+  oF = acc;
+  oN = near/max(wn, 1e-6);
+}`;
+
 const FS_FORCE = HEAD + KERNEL + `
-uniform sampler2D uSrc; uniform int uRad, uNsrc, uNm, uMode;
+uniform sampler2D uSrc; uniform int uRad, uMode; uniform ivec2 uNsrc, uNm;
 layout(location=0) out vec4 oF;    // the interaction integral for this radius
 layout(location=1) out vec4 oN;    // a small blur of the same field, for crowding
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uNm, lx = p.x - tile*uNm;
+  int tile = p.x / uNm.x, lx = p.x - tile*uNm.x;
   float Rs = float(uRad);                      // stencil half-width, in cells here
   float R  = uMode == 2 ? Rs : Rs/2.2;         // the interaction radius itself
   float sf = R*0.55, sn = R*0.22;
@@ -696,7 +938,7 @@ void main(){
       }
       f /= 9.0; gf /= 9.0; gn /= 9.0;
       if(f == 0.0 && gf == 0.0 && gn == 0.0) continue;
-      vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc + wrapi(lx+dx, uNm), wrapi(p.y+dy, uNm)), 0);
+      vec4 v = texelFetch(uSrc, ivec2(tile*uNsrc.x + wrapi(lx+dx, uNm.x), wrapi(p.y+dy, uNm.y)), 0);
       accN += v*gn; sumN += gn;
       if(uMode == 2) accL += v*f; else { accF += v*gf; sumF += gf; }
     }
@@ -709,28 +951,25 @@ void main(){
 }`;
 
 const FS_AFF = HEAD + `
-uniform sampler2D uNear, uFar, uMat, uSlots;
-uniform int uC, uBase, uMode; uniform float uForce, uRepel;
+uniform sampler2D uNear, uFar, uMat;
+uniform int uC, uBase; uniform float uForce, uRepel;
 out vec4 oA;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
   vec4 acc = vec4(0.0); float crowd = 0.0;
   for(int l = 0; l < uL; l++){
-    crowd += dot(texelFetch(uNear, ivec2(l*uN + lx, uBase*uN + p.y), 0),
+    crowd += dot(texelFetch(uNear, ivec2(l*uN.x + lx, p.y), 0),
                  vec4(l*4 + 0 < uC ? 1.0 : 0.0, l*4 + 1 < uC ? 1.0 : 0.0,
                       l*4 + 2 < uC ? 1.0 : 0.0, l*4 + 3 < uC ? 1.0 : 0.0));
     for(int k = 0; k < 4; k++){
       int d = l*4 + k;
       if(d >= uC) break;
+      float ring = texelFetch(uFar, ivec2(l*uN.x + lx, p.y), 0)[k];
       for(int c = 0; c < 4; c++){
         int cc = tile*4 + c;
         if(cc >= uC) break;
-        int slot = int(texelFetch(uSlots, ivec2(d, cc), 0).r + 0.5);
-        ivec2 q = ivec2(l*uN + lx, slot*uN + p.y);
-        float w = texelFetch(uFar, q, 0)[k];
-        if(uMode == 0) w -= texelFetch(uNear, q, 0)[k];     // Ring subtracts, Blob does not
-        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * w;
+        acc[c] += texelFetch(uMat, ivec2(d, cc), 0).r * ring;
       }
     }
   }
@@ -765,10 +1004,10 @@ uniform int uC, uFrame;
 out vec4 oR;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
   vec4 v = texelFetch(uRho, p, 0);
-  vec2 d = vec2(float(lx), float(p.y)) + 0.5 - uAt*float(uN);   // measure from cell centres
-  d -= float(uN)*round(d/float(uN));               // shortest way round the torus
+  vec2 d = vec2(float(lx), float(p.y)) + 0.5 - uAt*vec2(uN);    // measure from cell centres
+  d -= vec2(uN)*round(d/vec2(uN));                 // shortest way round the torus
   float f = 1.0 - smoothstep(uRad*0.45, uRad, length(d));
   if(f <= 0.0){ oR = v; return; }
   for(int k = 0; k < 4; k++){
@@ -801,12 +1040,15 @@ float vnoise(vec2 p, int freq, int chan){       // tileable value noise
 }
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
-  vec2 uv = (vec2(float(lx), float(p.y)) + 0.5)/float(uN);
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
+  vec2 uv = (vec2(float(lx), float(p.y)) + 0.5)/vec2(uN);
   float mask = 1.0;
   if(uDisc == 1){
-    float d = length(uv - 0.5)*float(uN);
-    float e = clamp((float(uN)*0.2 - d)/max(1.5, float(uN)*0.012), 0.0, 1.0);
+    // Round on screen whatever the aspect: measure the disc in cells, not in a
+    // uv square that a wide world would stretch into an ellipse.
+    float m = float(min(uN.x, uN.y));
+    float d = length((uv - 0.5)*vec2(uN));
+    float e = clamp((m*0.2 - d)/max(1.5, m*0.012), 0.0, 1.0);
     mask = e*e*(3.0 - 2.0*e);
   }
   vec4 o = vec4(0.0);
@@ -832,7 +1074,7 @@ uniform sampler2D uRho; uniform float uMul[16]; uniform int uC;
 out vec4 oR;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN;
+  int tile = p.x / uN.x;
   vec4 v = texelFetch(uRho, p, 0);
   for(int k = 0; k < 4; k++){
     int c = tile*4 + k;
@@ -849,7 +1091,14 @@ void main(){
   vec4 a = uBeta*texelFetch(uA, p, 0);
   if(uNoise > 0.0)
     a += uNoise*vec4(rnd(p,0,uFrame), rnd(p,1,uFrame), rnd(p,2,uFrame), rnd(p,3,uFrame));
-  oE = exp(clamp(a, -60.0, 60.0));
+  // +-20, not +-60. MaCE conserves mass exactly in real arithmetic, but this
+  // is float32: share is rho/Z, and the mass a cell keeps is E*share. With a
+  // range of 60 a cold cell next to a hot one computes exp(-60)*rho/exp(60),
+  // about 1e-52 -- far below the smallest float32, so it flushes to zero and
+  // that mass is simply gone. A blob touching a strong neighbour is exactly
+  // when that contrast appears, and the field drains from there. A span of 40
+  // in the exponent is already winner-take-all, so nothing is lost by it.
+  oE = exp(clamp(a, -20.0, 20.0));
 }`;
 
 /* MaCE, part 2: Z = 3x3 sum of E, and the share S = rho/Z each cell hands out */
@@ -858,13 +1107,13 @@ uniform sampler2D uE, uRho;
 out vec4 oS;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
   vec4 Z = vec4(0.0);
   for(int dy = -1; dy <= 1; dy++)
     for(int dx = -1; dx <= 1; dx++)
-      Z += texelFetch(uE, ivec2(tile*uN + wrapi(lx+dx, uN), wrapi(p.y+dy, uN)), 0);
+      Z += texelFetch(uE, ivec2(tile*uN.x + wrapi(lx+dx, uN.x), wrapi(p.y+dy, uN.y)), 0);
   // Guard against 0/0 only. The floor must sit far below the smallest honest Z
-  // (nine exp(-60) terms ~ 8e-26) -- a higher floor silently deletes mass.
+  // (nine exp(-20) terms ~ 1.8e-8) -- a higher floor silently deletes mass.
   // No overflow is possible downstream: cell ij is inside its own neighbours'
   // neighbourhoods, so Z >= E_ij there and E_ij * S <= rho by construction.
   oS = texelFetch(uRho, p, 0) / max(Z, vec4(1e-32));
@@ -876,11 +1125,11 @@ uniform sampler2D uE, uS;
 out vec4 oR;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
   vec4 s = vec4(0.0);
   for(int dy = -1; dy <= 1; dy++)
     for(int dx = -1; dx <= 1; dx++)
-      s += texelFetch(uS, ivec2(tile*uN + wrapi(lx+dx, uN), wrapi(p.y+dy, uN)), 0);
+      s += texelFetch(uS, ivec2(tile*uN.x + wrapi(lx+dx, uN.x), wrapi(p.y+dy, uN.y)), 0);
   oR = texelFetch(uE, p, 0) * s;
 }`;
 
@@ -888,18 +1137,18 @@ void main(){
    A blur of sigma 60 costs the same as sigma 6 if you do it on a grid 8x
    smaller and stretch the result back, which is what lets Rad max reach 256. */
 const FS_DOWN = HEAD + `
-uniform sampler2D uSrc; uniform int uNsrc, uNdst;
+uniform sampler2D uSrc; uniform ivec2 uNsrc, uNdst;
 out vec4 oD;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uNdst, lx = p.x - tile*uNdst;
+  int tile = p.x / uNdst.x, lx = p.x - tile*uNdst.x;
   // A 4x4 tent rather than a 2x2 box: the box aliases, and the aliasing shows
   // up later as facets when the result is stretched back to full resolution.
   vec4 sum = vec4(0.0); float wsum = 0.0;
   for(int dy = -1; dy <= 2; dy++){
     for(int dx = -1; dx <= 2; dx++){
       float w = (1.5 - abs(float(dx) - 0.5))*(1.5 - abs(float(dy) - 0.5));
-      ivec2 q = ivec2(tile*uNsrc + wrapi(lx*2 + dx, uNsrc), wrapi(p.y*2 + dy, uNsrc));
+      ivec2 q = ivec2(tile*uNsrc.x + wrapi(lx*2 + dx, uNsrc.x), wrapi(p.y*2 + dy, uNsrc.y));
       sum += w*texelFetch(uSrc, q, 0); wsum += w;
     }
   }
@@ -908,61 +1157,88 @@ void main(){
 
 /* Stretch a blurred mip back to full resolution, into this pair's bank slice. */
 const FS_UP = HEAD + `
-uniform sampler2D uA, uB; uniform int uNm, uSlot;
+uniform sampler2D uA, uB; uniform ivec2 uNm; uniform int uSlot, uCombine; uniform vec4 uKmul;
 layout(location=0) out vec4 oA;
 layout(location=1) out vec4 oB;
+vec4 cr(vec4 a, vec4 b, vec4 c, vec4 d, float t){
+  return b + 0.5*t*(c - a + t*(2.0*a - 5.0*b + 4.0*c - d + t*(3.0*(b - c) + d - a)));
+}
+vec4 cubic4(sampler2D s, int xs[4], int ys[4], vec2 t){
+  vec4 r[4];
+  for(int j = 0; j < 4; j++)
+    r[j] = cr(texelFetch(s, ivec2(xs[0], ys[j]), 0), texelFetch(s, ivec2(xs[1], ys[j]), 0),
+              texelFetch(s, ivec2(xs[2], ys[j]), 0), texelFetch(s, ivec2(xs[3], ys[j]), 0), t.x);
+  return cr(r[0], r[1], r[2], r[3], t.y);
+}
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uN, lx = p.x - tile*uN;
-  int ly = p.y - uSlot*uN;
-  float f = float(uN) / float(uNm);
+  int tile = p.x / uN.x, lx = p.x - tile*uN.x;
+  int ly = p.y - uSlot*uN.y;
+  vec2 f = vec2(uN) / vec2(uNm);
   vec2 g = (vec2(float(lx), float(ly)) + 0.5)/f - 0.5;
+  // Catmull-Rom, not eased bilinear. Smoothstepping the blend was meant to
+  // hide the seams between mip cells, but easing a LINEAR blend makes the
+  // value flatten out at every source texel instead: at mip 2 that plateaus
+  // each 4x4 block, stamping a grid of squares onto the affinity map that
+  // MaCE then faithfully transports at full resolution. A cubic has no such
+  // plateau -- it is smooth through the sample points, not flat at them.
   vec2 t = g - floor(g);
-  t = t*t*(3.0 - 2.0*t);            // ease the blend so the seams between mip cells vanish
   ivec2 i0 = ivec2(floor(g));
-  int x0 = tile*uN + wrapi(i0.x, uNm), x1 = tile*uN + wrapi(i0.x + 1, uNm);
-  int y0 = wrapi(i0.y, uNm), y1 = wrapi(i0.y + 1, uNm);
-  oA = mix(mix(texelFetch(uA, ivec2(x0,y0), 0), texelFetch(uA, ivec2(x1,y0), 0), t.x),
-           mix(texelFetch(uA, ivec2(x0,y1), 0), texelFetch(uA, ivec2(x1,y1), 0), t.x), t.y);
-  oB = mix(mix(texelFetch(uB, ivec2(x0,y0), 0), texelFetch(uB, ivec2(x1,y0), 0), t.x),
-           mix(texelFetch(uB, ivec2(x0,y1), 0), texelFetch(uB, ivec2(x1,y1), 0), t.x), t.y);
+  int xs[4], ys[4];
+  for(int i = 0; i < 4; i++){
+    xs[i] = tile*uN.x + wrapi(i0.x + i - 1, uNm.x);
+    ys[i] = wrapi(i0.y + i - 1, uNm.y);
+  }
+  vec4 a = cubic4(uA, xs, ys, t);
+  vec4 b = cubic4(uB, xs, ys, t);
+  // uCombine: the two blurs are the wide and tight halves of a ring, so take
+  // their difference here and hand the tight one on for the crowding term.
+  oA = (uCombine == 1 ? a - b : a)*uKmul;
+  oB = uCombine == 1 ? b : b;
 }`;
 
 /* 4x4 box reduction, kept strictly inside each layer so colors never mix */
 const FS_REDUCE = `#version 300 es
 precision highp float; precision highp int; precision highp sampler2D;
-uniform sampler2D uSrc; uniform int uNsrc, uNdst;
+uniform sampler2D uSrc; uniform ivec2 uNsrc, uNdst;
 out vec4 oS;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy);
-  int tile = p.x / uNdst, lx = p.x - tile*uNdst;
+  int tile = p.x / uNdst.x, lx = p.x - tile*uNdst.x;
   vec4 s = vec4(0.0);
   for(int dy = 0; dy < 4; dy++){
-    int sy = p.y*4 + dy; if(sy >= uNsrc) break;
+    int sy = p.y*4 + dy; if(sy >= uNsrc.y) break;
     for(int dx = 0; dx < 4; dx++){
-      int sx = lx*4 + dx; if(sx >= uNsrc) break;
-      s += texelFetch(uSrc, ivec2(tile*uNsrc + sx, sy), 0);
+      int sx = lx*4 + dx; if(sx >= uNsrc.x) break;
+      s += texelFetch(uSrc, ivec2(tile*uNsrc.x + sx, sy), 0);
     }
   }
   oS = s;
 }`;
 
 const FS_DRAW = HEAD + `
-uniform sampler2D uRho; uniform vec3 uPal[16]; uniform int uC;
+uniform sampler2D uRho; uniform vec3 uPal[32]; uniform int uC;
 uniform vec2 uRes, uPan; uniform float uExp, uZoom, uSmooth; uniform int uBlend;
 out vec4 oC;
 vec4 cell(int l, int ix, int iy){
-  return texelFetch(uRho, ivec2(l*uN + wrapi(ix, uN), wrapi(iy, uN)), 0);
+  return texelFetch(uRho, ivec2(l*uN.x + wrapi(ix, uN.x), wrapi(iy, uN.y)), 0);
 }
 void main(){
   // Purely a window onto the lattice: uZoom picks how many cells fit across the
   // canvas and uPan where the middle sits. The simulation never sees any of it,
   // so an interaction radius stays the same number of cells at every zoom.
-  // Keep cells square whatever shape the canvas is: the longer axis simply
-  // shows more of the world, which wraps anyway.
-  float span = float(uN) / uZoom;
-  vec2 asp = uRes / min(uRes.x, uRes.y);
-  vec2 g = uPan*float(uN) + (((gl_FragCoord.xy / uRes) - 0.5)*asp)*span - 0.5;
+  // The lattice is allocated at the canvas aspect, so at zoom 1 the whole
+  // world maps onto the canvas exactly once -- no tiling and no letterbox, and
+  // cells stay square because uN was sized from the canvas in the first place.
+  // Normally the lattice is allocated at the canvas aspect and these agree, so
+  // span is just uN. They disagree for the moment between a resize and the
+  // reallocation that follows it -- entering fullscreen, most visibly -- and
+  // stretching there is what skewed the cells. Fit the shorter axis instead:
+  // the longer one shows a little more of a world that wraps anyway.
+  vec2 span = vec2(uN);
+  float ca = uRes.x/uRes.y, la = float(uN.x)/float(uN.y);
+  if(ca > la) span.y = span.x/ca; else span.x = span.y*ca;
+  vec2 g = uPan*vec2(uN) + ((gl_FragCoord.xy / uRes) - 0.5)*span/uZoom - 0.5;
   ivec2 i0 = ivec2(floor(g)); vec2 f = g - floor(g);
   // Snapping the blend weights to 0 or 1 turns the same bilinear fetch into a
   // nearest one, so zooming in shows the lattice cells as they really are.
@@ -1022,6 +1298,7 @@ function initGL(){
   P.blurH  = program(FS_BLURH);
   P.blurV  = program(FS_BLURV);
   P.force  = program(FS_FORCE);
+  P.conv   = program(FS_CONV);
   P.aff    = program(FS_AFF);
   P.expa   = program(FS_EXPA);
   P.share  = program(FS_SHARE);
@@ -1062,11 +1339,18 @@ function drawQuad(){ gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLES, 0, 3)
 
 /* ---------------------------------------------------------------- state */
 // A fresh reach every refresh, alongside the fresh matrix.
-const R0 = 18 + Math.floor(Math.random()*18);     // 18..35 px
+// The live site draws its reach from 18-35px and measures the ring out to
+// 4 sigma, which is 2.2x that; here the kernel disc IS the reach, so scale it.
+// What the live site runs: a reach of 18-35px measured out to 4 sigma, which
+// is 2.2x that once the kernel disc IS the reach, and one reach shared by every
+// colour rather than a band. Force 90 is the same setting recalibrated for the
+// unit-L1 normalisation kernels use here.
+const R0 = Math.round(2.2*(18 + Math.floor(Math.random()*18)));
+const R_LO = R0;
 
 const S = {
   N: 512, C: 6, L: 2, density: 0.12,
-  radMin: R0, radMax: R0, force: 60, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
+  radMin: R_LO, radMax: R0, force: 90, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
   seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
   seedMode: "disc",                   // whichever starting field you last asked for
   running: true, frame: 0, tick: 0,
@@ -1074,12 +1358,15 @@ const S = {
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
   smooth: true,                        // false = show the lattice cells as squares
   palette: "Spectrum", blend: 0, inter: 0,
+  kterms: 2, kwidth: 0.7, ksym: "mixed",    // how Sample all draws a kernel
+  cfreq: 1.1, cdepth: 2,                    // how CPPN draws a matrix
   tool: "pan", brush: 26, flow: 0.55,  // painting: radius in cells, mass per second
   paintMask: null
 };
 let T = {};            // simulation textures
 let matTex = null, mat = null, palette = [], reduceChain = [];
-let slotTex = null, radMat = null, slotOf = null, bankLevels = [], pyramid = [];
+let pyramid = [];
+let kernels = [], kernTex = null, kernelKR = 8, kernelMip = 0;
 
 // The blur bank. A pair's radius is one of RSTEPS stops interpolated from
 // Rad min to Rad max, so the two sliders set the range and the matrix picks
@@ -1090,53 +1377,16 @@ const BASE_LEVEL = RSTEPS - 1;           // the crowding term always uses Rad ma
 // Past about N/4.5 the kernel is wider than the world wraps, both Gaussians go
 // flat, and the ring vanishes -- so the slider's reach is capped by the grid.
 // Cells show the radius they actually get.
-const radiusCap = () => Math.max(3, Math.floor(S.N/4.5));
+const radiusCap = () => Math.max(3, Math.floor(Math.min(S.NX, S.NY)/4.5));
 const radiusOf = lv => Math.min(radiusCap(), S.radMin + (S.radMax - S.radMin)*(lv/(RSTEPS - 1)));
 
-function rebuildBank(defer){
-  bankLevels = [...new Set(radMat)].sort((a, b) => a - b);
-  slotOf = new Map(bankLevels.map((lv, i) => [lv, i]));
-  const slots = new Float32Array(S.C*S.C);
-  for(let i = 0; i < S.C*S.C; i++) slots[i] = slotOf.get(radMat[i]);
-  if(slotTex && slotTex._c !== S.C){ gl.deleteTexture(slotTex); slotTex = null; }
-  if(!slotTex){
-    slotTex = gl.createTexture(); slotTex._c = S.C;
-    gl.bindTexture(gl.TEXTURE_2D, slotTex);
-    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R32F, S.C, S.C);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  } else gl.bindTexture(gl.TEXTURE_2D, slotTex);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.C, S.C, gl.RED, gl.FLOAT, slots);
-  const n = bankLevels.length;
-  $("banklab").textContent = n + (n === 1 ? " blur pass" : " blur passes") + " · cap " + radiusCap() + "px";
-  if(!defer && T.near && T.near._h !== S.N*n) allocBank();   // deeper/shallower bank, same world
-}
 
 // Only the blur bank changes size here. rho is left alone, so editing a radius
 // never restarts the simulation you are watching.
-function allocBank(){
-  const HB = S.N*Math.max(1, bankLevels.length);
-  for(const k of ["near","far"]){
-    if(T[k]) gl.deleteTexture(T[k]);
-    T[k] = makeTex(S.N*S.L, HB);
-  }
-}
 
 // Cost scales with how many DISTINCT stops are in play -- each one is its own
 // pass over every colour. Resampling therefore draws from three of the five
 // rather than all of them; you can still reach any stop by hand.
-function resampleRadii(seed){
-  const r = mulberry32(seed >>> 0);
-  const pick = [];
-  while(pick.length < 3){
-    const v = Math.floor(r()*RSTEPS);
-    if(!pick.includes(v)) pick.push(v);
-  }
-  radMat = new Int32Array(S.C*S.C).map(() => pick[Math.floor(r()*pick.length)]);
-  rebuildBank(); paintRadii();
-}
 
 function mulberry32(a){
   return function(){
@@ -1182,6 +1432,60 @@ function resampleMatrix(seed){
   uploadMatrix(); buildMatrixUI();
   $("seedlab").textContent = "#" + seed;
 }
+// Sample the matrix from a small random network reading the *coordinates* of
+// each entry rather than drawing every entry independently. Feeding it row and
+// column, their difference and their sum makes nearby colours behave alike, so
+// the result comes out banded, blocked or striped where iid noise never is --
+// and the difference channel is what gives it a consistent chasing direction.
+function cppnMatrix(seed){
+  S.seed = seed;
+  const r = mulberry32(seed >>> 0);
+  const ACTS = [Math.sin, Math.tanh, x => Math.exp(-x*x), x => Math.abs(x) - 0.5,
+                x => x/(1 + Math.abs(x)), x => Math.cos(x*1.7),
+                x => Math.sin(x)*Math.exp(-0.3*x*x), x => x - Math.floor(x) - 0.5,
+                x => Math.sign(x)*Math.sqrt(Math.abs(x)), x => Math.sin(3.0*x)*0.6];
+  // Bands sets the spatial frequency: low keeps neighbouring colours behaving
+  // alike, high walks toward the iid matrix this is an alternative to. Every
+  // draw jitters around it, and picks its own view of the pair below, so
+  // repeated clicks do not all come out looking like each other.
+  const NIN = 6, H = 5 + Math.floor(r()*7), DEPTH = Math.max(1, Math.round(S.cdepth));
+  const gain = Math.max(0.25, S.cfreq*(0.6 + r()*0.9));
+  const layer = (nin, nout) => {
+    const w = [];
+    for(let j = 0; j < nout; j++){
+      const row = [];
+      for(let i = 0; i < nin; i++) row.push((r()*2 - 1)*gain/Math.sqrt(nin));
+      row.push((r()*2 - 1)*0.6);                       // bias
+      w.push(row);
+    }
+    return { w, act: ACTS[Math.floor(r()*ACTS.length)] };
+  };
+  const nets = [layer(NIN, H)];
+  for(let d = 1; d < DEPTH; d++) nets.push(layer(H, H));
+  const out = layer(H, 1);
+  const bias = 1.1 + r()*1.6;                  // how hard the output saturates
+  const sx = 0.5 + r()*1.5, sy = 0.5 + r()*1.5, sd = r()*2.2, ss = r()*1.4, sr = r()*1.6;
+  const run = (v, L) => L.w.map(row => {
+    let s = row[row.length - 1];
+    for(let i = 0; i < v.length; i++) s += row[i]*v[i];
+    return L.act(s);
+  });
+
+  const C = S.C;
+  mat = new Float32Array(C*C);
+  for(let i = 0; i < C; i++){
+    for(let j = 0; j < C; j++){
+      const x = C === 1 ? 0 : i/(C - 1)*2 - 1;
+      const y = C === 1 ? 0 : j/(C - 1)*2 - 1;
+      let v = [x*sx, y*sy, (x - y)*sd, (x + y)*ss, Math.hypot(x, y)*sr, 1];
+      for(const L of nets) v = run(v, L);
+      mat[i*C + j] = Math.max(-1, Math.min(1, Math.tanh(run(v, out)[0]*bias)));
+    }
+  }
+  uploadMatrix(); buildMatrixUI();
+  $("seedlab").textContent = "cppn #" + seed;
+}
+
 function uploadMatrix(){
   if(matTex && matTex._c !== S.C){ gl.deleteTexture(matTex); matTex = null; }
   if(!matTex){
@@ -1204,35 +1508,95 @@ function mipFor(r, stencil){
   let m = 0;
   if(stencil){
     // the 2-D stencil: step down while it stays at least 11 cells across
-    while(m < 6 && (r/(1 << (m + 1))) >= 11.0 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+    while(m < 6 && (r/(1 << (m + 1))) >= 11.0 && pyramid.length > m) m++;
   }else{
     // separable gaussians: keep the narrow one at least 4.5 texels wide. Lower
     // than that and large-radius presets visibly change shape; higher costs
     // roughly double for no visible gain.
     const sigA = Math.max(0.6, r*0.22);
-    while(m < 6 && (sigA/(1 << (m + 1))) >= 4.5 && (S.N >> (m + 1)) >= 48 && ((S.N >> m) % 2) === 0) m++;
+    while(m < 6 && (sigA/(1 << (m + 1))) >= 4.5 && pyramid.length > m) m++;
   }
   return m;
 }
 
-function allocate(){
+// S.N is the resolution along the SHORT axis; the long axis gets proportionally
+// more cells so a cell is square and the world covers the canvas exactly once.
+// Rounded to a multiple of 8 so the pyramid still has halvings to give.
+function sizeGrid(){
+  const w = cv.clientWidth || cv.width || 1, ht = cv.clientHeight || cv.height || 1;
+  const asp = w/ht, Q = 8, snap = v => Math.max(Q, Math.round(v/Q)*Q);
+  S.NX = asp >= 1 ? snap(S.N*asp) : S.N;
+  S.NY = asp >= 1 ? S.N : snap(S.N/asp);
+  // A tall phone asks for a lot of cells at the same short-side detail as a
+  // wide desktop -- 512 across a 390x844 screen is over half a million. Cap the
+  // total and scale both axes together, so the aspect survives the trim.
+  const budget = matchMedia("(pointer:coarse)").matches ? 220000 : 4200000;
+  const over = (S.NX*S.NY)/budget;
+  if(over > 1){
+    const s = Math.sqrt(over);
+    S.NX = Math.max(Q, Math.round(S.NX/s/Q)*Q);
+    S.NY = Math.max(Q, Math.round(S.NY/s/Q)*Q);
+  }
+  // A texture row is NX*L wide; stay inside what the driver will actually make.
+  const cap = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
+  while(S.NX*Math.ceil(S.C/4) > cap && S.NX > Q) S.NX -= Q;
+  while(S.NY > cap && S.NY > Q) S.NY -= Q;
+}
+
+// Going fullscreen changes the aspect, which changes the lattice, which used
+// to mean a brand new world -- you lost whatever you were watching. Read the
+// field out first and resample it into the new shape instead.
+function snapshotField(){
+  if(!T.rhoA) return null;
+  const w = S.NX*S.L, h = S.NY, px = new Float32Array(w*h*4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, T.rhoA, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, null, 0);
+  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+  gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, px);
+  return { px, nx: S.NX, ny: S.NY, L: S.L };
+}
+function restoreField(s){
+  if(!s || s.L !== S.L || !T.rhoA) return false;
+  const w = S.NX*S.L, out = new Float32Array(w*S.NY*4), sw = s.nx*s.L;
+  for(let y = 0; y < S.NY; y++){
+    const sy = Math.min(s.ny - 1, (y*s.ny/S.NY) | 0);
+    for(let l = 0; l < S.L; l++){
+      for(let x = 0; x < S.NX; x++){
+        const sx = Math.min(s.nx - 1, (x*s.nx/S.NX) | 0);
+        const d = (y*w + l*S.NX + x)*4, o = (sy*sw + l*s.nx + sx)*4;
+        out[d] = s.px[o]; out[d+1] = s.px[o+1]; out[d+2] = s.px[o+2]; out[d+3] = s.px[o+3];
+      }
+    }
+  }
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, S.NY, gl.RGBA, gl.FLOAT, out);
+  return true;
+}
+
+function allocate(keep){
   for(const k in T) if(T[k]) gl.deleteTexture(T[k]);
   for(const t of reduceChain) gl.deleteTexture(t);
   for(const p of pyramid) gl.deleteTexture(p.tex);
   T = {}; reduceChain = []; pyramid = [];
+  releaseReadback();
   S.L = Math.ceil(S.C / 4);
-  const W = S.N * S.L, H = S.N, HB = S.N * Math.max(1, bankLevels.length);
+  sizeGrid();
+  const W = S.NX * S.L, H = S.NY;
   for(const k of ["rhoA","rhoB","aff","expE","shareS","tmpA","tmpB","mipA","mipB"]) T[k] = makeTex(W, H);
-  for(const k of ["near","far"]) T[k] = makeTex(W, HB);     // one full-res slice per bank level
+  for(const k of ["near","far"]) T[k] = makeTex(W, H);      // one full-res slice per bank level
   pyramid = [];                                             // as deep as this grid allows
-  let pn = S.N;
-  while(pn % 2 === 0 && (pn >> 1) >= 48 && pyramid.length < 6){
-    pn >>= 1; pyramid.push({ n: pn, tex: makeTex(pn*S.L, pn) });
+  let px = S.NX, py = S.NY;
+  while(px % 2 === 0 && py % 2 === 0 && Math.min(px, py) >> 1 >= 48 && pyramid.length < 6){
+    px >>= 1; py >>= 1; pyramid.push({ nx: px, ny: py, tex: makeTex(px*S.L, py) });
   }
-  let n = S.N;
-  while(n > 4){ n = Math.ceil(n/4); reduceChain.push(makeTex(n*S.L, n)); }
-  $("wsize").textContent = S.N + " × " + S.N;
-  reseed();
+  let nx = S.NX, ny = S.NY;
+  while(nx > 4 || ny > 4){
+    nx = Math.ceil(nx/4); ny = Math.ceil(ny/4);
+    reduceChain.push(makeTex(nx*S.L, ny));
+  }
+  $("wsize").textContent = S.NX + " × " + S.NY;
+  if(!(keep && restoreField(keep))) reseed();
 }
 
 // Resizing the world, or asking for a new one, refills it the way you last chose.
@@ -1251,7 +1615,7 @@ function fillField(disc){
   targets(T.rhoA, null); drawQuad();
 
   const m = measure();                       // per-colour mass, straight off the GPU
-  const want = S.density*S.N*S.N;
+  const want = S.density*S.NX*S.NY;
   const mul = new Float32Array(16);
   for(let c = 0; c < S.C; c++) mul[c] = m[c] > 1e-9 ? Math.min(50, want/m[c]) : 0;
   if(disc) for(let c = 0; c < S.C; c++) mul[c] = 1;   // the disc sets its own level
@@ -1270,75 +1634,84 @@ const seedDisc = () => fillField(true);
 
 /* ---------------------------------------------------------------- one simulation step */
 function common(prog){
-  gl.uniform1i(prog.u("uN"), S.N);
+  gl.uniform2i(prog.u("uN"), S.NX, S.NY);
   gl.uniform1i(prog.u("uL"), S.L);
 }
 function step(){
-  // How deep the pyramid has to go for the widest radius in the bank.
-  let deepest = 0;
-  for(const lv of bankLevels)
-    deepest = Math.max(deepest, mipFor(radiusOf(lv), S.inter === 2));
-  let src = T.rhoA, nsrc = S.N;
-  gl.useProgram(P.down.p); common(P.down);
-  for(let m = 0; m < deepest; m++){
-    const dst = pyramid[m];
-    gl.uniform1i(P.down.u("uNsrc"), nsrc); gl.uniform1i(P.down.u("uNdst"), dst.n);
-    bindTex(P.down, "uSrc", 0, src);
-    targets(dst.tex, null, 0, dst.n); gl.viewport(0, 0, dst.n*S.L, dst.n);
-    drawQuad();
-    src = dst.tex; nsrc = dst.n;
+  const plan = separablePlan();
+
+  // How far down the pyramid we go: the stencil path follows the kernel radius,
+  // the separable path follows its tightest gaussian, exactly as the blur used to.
+  let mip = kernelMip;
+  if(plan){
+    mip = 0;
+    while(mip < 6 && (plan.fine/(1 << (mip + 1))) >= 4.5
+          && pyramid.length > mip) mip++;
   }
+  if(mip > pyramid.length) mip = pyramid.length;
 
-  // Ring and Blob are Gaussians, so they go through two separable passes.
-  // Only Linear needs the 2-D stencil, and it runs on a coarser mip to pay for it.
-  const stencilMode = S.inter === 2;
-  for(let s = 0; s < bankLevels.length; s++){
-    const r = radiusOf(bankLevels[s]);
-    const m = mipFor(stencilMode ? r : r, stencilMode);
-    const nm = m ? pyramid[m-1].n : S.N;
-    const srcTex = m ? pyramid[m-1].tex : T.rhoA;
-    const k = S.N/nm;
+  let src = T.rhoA, sx = S.NX, sy = S.NY;
+  gl.useProgram(P.down.p); common(P.down);
+  for(let m = 0; m < mip; m++){
+    const dst = pyramid[m];
+    gl.uniform2i(P.down.u("uNsrc"), sx, sy); gl.uniform2i(P.down.u("uNdst"), dst.nx, dst.ny);
+    bindTex(P.down, "uSrc", 0, src);
+    targets(dst.tex, null, 0, dst.ny); gl.viewport(0, 0, dst.nx*S.L, dst.ny);
+    drawQuad();
+    src = dst.tex; sx = dst.nx; sy = dst.ny;
+  }
+  const nmx = mip ? pyramid[mip-1].nx : S.NX, nmy = mip ? pyramid[mip-1].ny : S.NY;
 
-    if(stencilMode){
-      const rad = Math.max(2, Math.min(Math.floor(nm/2 - 1), Math.round(r/k)));
-      gl.useProgram(P.force.p); common(P.force);
-      gl.uniform1i(P.force.u("uRad"), rad); gl.uniform1i(P.force.u("uMode"), 2);
-      gl.uniform1i(P.force.u("uNsrc"), nm); gl.uniform1i(P.force.u("uNm"), nm);
-      bindTex(P.force, "uSrc", 0, srcTex);
-      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
-    }else{
-      const sigA = Math.max(0.6, r*0.22/k), sigB = Math.max(1.0, r*0.55/k);
-      const rad = Math.min(128, Math.min(Math.floor(nm/2), Math.ceil(sigB*3.2)));
+  if(plan){
+    const k = S.NY/nmy;                                    // cells per working cell
+    const rad = Math.min(128, Math.min(Math.floor(Math.min(nmx, nmy)/2),
+                                       Math.ceil(plan.wide/k*3.2)));
+    for(let l = 0; l < plan.L; l++){
+      const sa = plan.sigA[l].map(v => Math.max(0.6, v/k));
+      const sb = plan.sigB[l].map(v => Math.max(0.4, v/k));
       gl.useProgram(P.blurH.p); common(P.blurH);
-      gl.uniform1f(P.blurH.u("uSigA"), sigA); gl.uniform1f(P.blurH.u("uSigB"), sigB);
+      gl.uniform4fv(P.blurH.u("uSigA"), sa); gl.uniform4fv(P.blurH.u("uSigB"), sb);
       gl.uniform1i(P.blurH.u("uRad"), rad);
-      gl.uniform1i(P.blurH.u("uNsrc"), nm); gl.uniform1i(P.blurH.u("uNm"), nm);
-      bindTex(P.blurH, "uSrc", 0, srcTex);
-      targets(T.tmpA, T.tmpB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+      gl.uniform2i(P.blurH.u("uNsrc"), nmx, nmy); gl.uniform2i(P.blurH.u("uNm"), nmx, nmy);
+      bindTex(P.blurH, "uSrc", 0, src);
+      targets(T.tmpA, T.tmpB, 0, nmy); gl.viewport(l*nmx, 0, nmx, nmy); drawQuad();
 
       gl.useProgram(P.blurV.p); common(P.blurV);
-      gl.uniform1f(P.blurV.u("uSigA"), sigA); gl.uniform1f(P.blurV.u("uSigB"), sigB);
-      gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform1i(P.blurV.u("uNm"), nm);
+      gl.uniform4fv(P.blurV.u("uSigA"), sa); gl.uniform4fv(P.blurV.u("uSigB"), sb);
+      gl.uniform1i(P.blurV.u("uRad"), rad); gl.uniform2i(P.blurV.u("uNm"), nmx, nmy);
       bindTex(P.blurV, "uA", 0, T.tmpA); bindTex(P.blurV, "uB", 1, T.tmpB);
-      targets(T.mipA, T.mipB, 0, nm); gl.viewport(0, 0, nm*S.L, nm); drawQuad();
+      targets(T.mipA, T.mipB, 0, nmy); gl.viewport(l*nmx, 0, nmx, nmy); drawQuad();
     }
+    gl.useProgram(P.up.p); common(P.up);
+    gl.uniform2i(P.up.u("uNm"), nmx, nmy); gl.uniform1i(P.up.u("uSlot"), 0);
+    gl.uniform1i(P.up.u("uCombine"), plan.combine);
+    bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
+    for(let l = 0; l < plan.L; l++){
+      gl.uniform4fv(P.up.u("uKmul"), plan.mul[l]);
+      targets(T.far, T.near, 0, S.NY); gl.viewport(l*S.NX, 0, S.NX, S.NY); drawQuad();
+    }
+  }else{
+    gl.useProgram(P.conv.p); common(P.conv);
+    gl.uniform1i(P.conv.u("uKR"), kernelKR);
+    gl.uniform2i(P.conv.u("uNsrc"), nmx, nmy); gl.uniform2i(P.conv.u("uNm"), nmx, nmy);
+    bindTex(P.conv, "uSrc", 0, src); bindTex(P.conv, "uKern", 1, kernTex);
+    targets(T.mipA, T.mipB, 0, nmy); gl.viewport(0, 0, nmx*S.L, nmy); drawQuad();
 
     gl.useProgram(P.up.p); common(P.up);
-    gl.uniform1i(P.up.u("uNm"), nm); gl.uniform1i(P.up.u("uSlot"), s);
+    gl.uniform2i(P.up.u("uNm"), nmx, nmy); gl.uniform1i(P.up.u("uSlot"), 0);
+    gl.uniform1i(P.up.u("uCombine"), 0);
+    gl.uniform4fv(P.up.u("uKmul"), [1, 1, 1, 1]);   // the stencil already scaled
     bindTex(P.up, "uA", 0, T.mipA); bindTex(P.up, "uB", 1, T.mipB);
-    if(stencilMode) targets(T.far, T.near, s*S.N, S.N);
-    else            targets(T.near, T.far, s*S.N, S.N);
-    drawQuad();
+    targets(T.far, T.near, 0, S.NY); drawQuad();
   }
 
   gl.useProgram(P.aff.p); common(P.aff);
   gl.uniform1i(P.aff.u("uC"), S.C);
-  gl.uniform1i(P.aff.u("uMode"), S.inter);
   gl.uniform1i(P.aff.u("uBase"), 0);   // bankLevels is sorted, so slot 0 is the shortest reach
   gl.uniform1f(P.aff.u("uForce"), S.force);
   gl.uniform1f(P.aff.u("uRepel"), S.repel);
   bindTex(P.aff, "uNear", 0, T.near); bindTex(P.aff, "uFar", 1, T.far);
-  bindTex(P.aff, "uMat", 2, matTex); bindTex(P.aff, "uSlots", 3, slotTex);
+  bindTex(P.aff, "uMat", 2, matTex);
   targets(T.aff, null); drawQuad();
 
   gl.useProgram(P.expa.p); common(P.expa);
@@ -1385,40 +1758,42 @@ function paintAt(u, v, dt){
 
 function clearField(){
   if(!T.rhoA) return;
-  const W = S.N*S.L;
+  const W = S.NX*S.L;
   gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, S.N, gl.RGBA, gl.FLOAT, new Float32Array(W*S.N*4));
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, S.NY, gl.RGBA, gl.FLOAT, new Float32Array(W*S.NY*4));
   S.tick = 0; mass0 = null;
 }
 
 // Screen position -> world coordinates, undoing the current zoom and pan.
 function viewToWorld(e){
   const r = cv.getBoundingClientRect();
-  const m = Math.min(r.width, r.height);
-  const sx = ((e.clientX - r.left)/r.width - 0.5)*(r.width/m);
-  const sy = (0.5 - (e.clientY - r.top)/r.height)*(r.height/m);
+  const sx = (e.clientX - r.left)/r.width - 0.5;
+  const sy = 0.5 - (e.clientY - r.top)/r.height;
   return [S.panU + sx/S.zoom, S.panV + sy/S.zoom];
 }
 
 /* ---------------------------------------------------------------- readouts */
-function measure(){
+// Fold the field down to a few texels, and point the framebuffer at the last
+// one. Shared by the blocking and non-blocking readers below.
+function reduceField(){
   gl.useProgram(P.reduce.p);
-  let src = T.rhoA, nsrc = S.N;
+  let src = T.rhoA, sx = S.NX, sy = S.NY;
   for(const dst of reduceChain){
-    const ndst = Math.ceil(nsrc/4);
-    gl.uniform1i(P.reduce.u("uNsrc"), nsrc);
-    gl.uniform1i(P.reduce.u("uNdst"), ndst);
+    const dx = Math.ceil(sx/4), dy = Math.ceil(sy/4);
+    gl.uniform2i(P.reduce.u("uNsrc"), sx, sy);
+    gl.uniform2i(P.reduce.u("uNdst"), dx, dy);
     bindTex(P.reduce, "uSrc", 0, src);
     targets(dst, null); drawQuad();
-    src = dst; nsrc = ndst;
+    src = dst; sx = dx; sy = dy;
   }
-  const w = src._w, h = src._h;
-  const px = new Float32Array(w*h*4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, src, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, null, 0);
   gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-  gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, px);
+  return { w: src._w, h: src._h, nsrc: sx };
+}
+
+function sumLayers(px, w, h, nsrc){
   const out = new Float32Array(S.C);
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     const layer = Math.floor(x / nsrc);
@@ -1428,6 +1803,58 @@ function measure(){
     }
   }
   return out;
+}
+
+// Blocking read. Only for the places that need the answer this instant --
+// seeding, which has to rescale the field it has just drawn.
+function measure(){
+  const d = reduceField();
+  const px = new Float32Array(d.w*d.h*4);
+  gl.readPixels(0, 0, d.w, d.h, gl.RGBA, gl.FLOAT, px);
+  return sumLayers(px, d.w, d.h, d.nsrc);
+}
+
+// Non-blocking read, for the readout that runs every 60 frames. readPixels
+// straight to memory stalls the pipeline until the GPU catches up, and doing
+// that on a fixed period is exactly a periodic judder. Read into a pixel
+// buffer instead, drop a fence, and collect it on some later frame -- the
+// number is a second stale at worst and nothing waits for it.
+let packBuf = null, packFence = null, packDims = null, packMass = null;
+function releaseReadback(){
+  if(packFence){ gl.deleteSync(packFence); packFence = null; }
+  if(packBuf){ gl.deleteBuffer(packBuf); packBuf = null; }
+  packDims = null;
+}
+// Collect a finished read, if there is one. Cheap enough to call every frame,
+// which is what keeps the readout current: polling only as often as we start a
+// read would leave every answer waiting a whole extra interval.
+function collectMass(){
+  if(!packFence) return null;
+  const st = gl.clientWaitSync(packFence, 0, 0);         // poll, never wait
+  if(st !== gl.ALREADY_SIGNALED && st !== gl.CONDITION_SATISFIED) return null;
+  gl.deleteSync(packFence); packFence = null;
+  const { w, h, nsrc } = packDims;
+  const px = new Float32Array(w*h*4);
+  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, packBuf);
+  gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, px);
+  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+  packMass = sumLayers(px, w, h, nsrc);
+  return packMass;
+}
+
+function measureAsync(){
+  if(packFence) return packMass;                         // one in flight already
+  const d = reduceField();
+  const bytes = d.w*d.h*4*4;
+  if(!packBuf){ packBuf = gl.createBuffer(); }
+  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, packBuf);
+  if(!packDims || packDims.bytes !== bytes)
+    gl.bufferData(gl.PIXEL_PACK_BUFFER, bytes, gl.STREAM_READ);
+  gl.readPixels(0, 0, d.w, d.h, gl.RGBA, gl.FLOAT, 0);   // into the buffer
+  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+  packDims = { w: d.w, h: d.h, nsrc: d.nsrc, bytes };
+  packFence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  return packMass;
 }
 
 function render(){
@@ -1451,7 +1878,14 @@ function render(){
 /* ---------------------------------------------------------------- UI */
 function buildMatrixUI(){
   const el = $("mx"), C = S.C;
-  el.style.gridTemplateColumns = `16px repeat(${C}, 1fr)`;
+  // Fit the grid to whatever width the rail actually has: one header column
+  // plus C cells and their gaps. Cells shrink with the colour count rather
+  // than the card growing past its rail.
+  // Fixed box whatever the colour count: rows are pinned as well as columns,
+  // because a grid item stretches to its row by default and would otherwise
+  // ignore its own aspect ratio and keep the rows tall.
+  el.style.gridTemplateColumns = `14px repeat(${C}, 1fr)`;
+  el.style.gridTemplateRows = `14px repeat(${C}, 1fr)`;
   el.innerHTML = "";
   el.appendChild(document.createElement("div"));
   for(let c = 0; c < C; c++){
@@ -1473,11 +1907,12 @@ function buildMatrixUI(){
   paintMatrix();
 }
 function paintMatrix(){
+  // No text in the cells: at any useful colour count the numbers do not fit,
+  // and the readout under the grid says the one you are pointing at.
   for(const cell of $("mx").querySelectorAll(".cell")){
     const v = mat[+cell.dataset.i];
-    const a = Math.min(1, Math.abs(v))*0.8;
+    const a = Math.min(1, Math.abs(v))*0.85;
     cell.style.background = `color-mix(in srgb, var(--${v >= 0 ? "pos" : "neg"}) ${Math.round(a*100)}%, var(--panel2))`;
-    cell.textContent = v.toFixed(2).replace("0.", ".").replace("-.", "−.");
   }
 }
 function setCell(i, v){
@@ -1489,14 +1924,28 @@ function setCell(i, v){
   $("mx").addEventListener("pointerdown", e => {
     const cell = e.target.closest(".cell"); if(!cell) return;
     drag = { i: +cell.dataset.i, y: e.clientY, v: mat[+cell.dataset.i] };
-    cell.setPointerCapture(e.pointerId);
+    try{ cell.setPointerCapture(e.pointerId); }catch(err){}
     e.preventDefault();
   });
   $("mx").addEventListener("pointermove", e => {
     if(!drag) return;
     setCell(drag.i, drag.v + (drag.y - e.clientY)*0.01);
+    const r = (drag.i/S.C)|0, c = drag.i%S.C;
+    $("mxread").innerHTML = "<b>" + (r + 1) + " &rarr; " + (c + 1) + "</b>  "
+      + mat[drag.i].toFixed(2).replace("-", "\u2212");
   });
   addEventListener("pointerup", () => drag = null);
+  const read = $("mxread");
+  $("mx").addEventListener("pointerover", e => {
+    const cell = e.target.closest(".cell"); if(!cell) return;
+    const i = +cell.dataset.i, r = (i/S.C)|0, c = i%S.C;
+    read.innerHTML = "<b>" + (r + 1) + " &rarr; " + (c + 1) + "</b>  "
+      + mat[i].toFixed(2).replace("-", "\u2212");
+  });
+  $("mx").addEventListener("pointerout", e => {
+    if(!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("#mx"))
+      read.innerHTML = "&nbsp;";
+  });
   $("mx").addEventListener("dblclick", e => {
     const cell = e.target.closest(".cell"); if(cell) setCell(+cell.dataset.i, 0);
   });
@@ -1505,57 +1954,6 @@ function setCell(i, v){
     const i = +cell.dataset.i;
     if(e.key === "ArrowUp"){ setCell(i, mat[i] + 0.05); e.preventDefault(); }
     if(e.key === "ArrowDown"){ setCell(i, mat[i] - 0.05); e.preventDefault(); }
-  });
-})();
-
-function buildRadiusUI(){
-  const el = $("rx"), C = S.C;
-  el.style.gridTemplateColumns = `16px repeat(${C}, 1fr)`;
-  el.innerHTML = "";
-  el.appendChild(document.createElement("div"));
-  const chip = c => { const d = document.createElement("div"); d.className = "hdr";
-    const k = document.createElement("div"); k.className = "chip"; k.style.background = css(palette[c]);
-    d.appendChild(k); return d; };
-  for(let c = 0; c < C; c++) el.appendChild(chip(c));
-  for(let r = 0; r < C; r++){
-    el.appendChild(chip(r));
-    for(let c = 0; c < C; c++){
-      const cell = document.createElement("div");
-      cell.className = "cell"; cell.tabIndex = 0; cell.dataset.i = r*C + c;
-      el.appendChild(cell);
-    }
-  }
-  paintRadii();
-}
-function paintRadii(){
-  for(const cell of $("rx").querySelectorAll(".cell")){
-    const lv = radMat[+cell.dataset.i], px = radiusOf(lv);
-    cell.style.background = `color-mix(in srgb, var(--accent) ${Math.round((lv + 1)/RSTEPS*70)}%, var(--panel2))`;
-    cell.textContent = px < 10 ? px.toFixed(1) : Math.round(px);
-    cell.title = "reach " + px.toFixed(1) + " px  (stop " + (lv + 1) + " of " + RSTEPS + ")";
-  }
-}
-function setRadius(i, lv){
-  lv = Math.max(0, Math.min(RSTEPS - 1, lv));
-  if(lv === radMat[i]) return;
-  radMat[i] = lv; rebuildBank(); paintRadii();
-}
-(function radiusDrag(){
-  let drag = null;
-  $("rx").addEventListener("pointerdown", e => {
-    const cell = e.target.closest(".cell"); if(!cell) return;
-    drag = { i: +cell.dataset.i, y: e.clientY, v: radMat[+cell.dataset.i] };
-    cell.setPointerCapture(e.pointerId); e.preventDefault();
-  });
-  $("rx").addEventListener("pointermove", e => {
-    if(drag) setRadius(drag.i, Math.round(drag.v + (drag.y - e.clientY)/14));
-  });
-  addEventListener("pointerup", () => drag = null);
-  $("rx").addEventListener("keydown", e => {
-    const cell = e.target.closest(".cell"); if(!cell) return;
-    const i = +cell.dataset.i;
-    if(e.key === "ArrowUp"){ setRadius(i, radMat[i] + 1); e.preventDefault(); }
-    if(e.key === "ArrowDown"){ setRadius(i, radMat[i] - 1); e.preventDefault(); }
   });
 })();
 
@@ -1579,33 +1977,533 @@ function setMask(v){
   for(const b of $("swatches").children) b.className = v ? "on" : "";
 }
 
-function buildBars(){
-  const el = $("bars"); el.innerHTML = "";
-  for(let c = 0; c < S.C; c++){
-    const row = document.createElement("div"); row.className = "bar";
-    const chip = document.createElement("div"); chip.className = "chip"; chip.style.background = css(palette[c]);
-    const track = document.createElement("div"); track.className = "track";
-    const fill = document.createElement("div"); fill.className = "fill"; fill.style.background = css(palette[c]);
-    const num = document.createElement("div"); num.className = "num"; num.textContent = "–";
-    track.appendChild(fill); row.append(chip, track, num); el.appendChild(row);
+// Paint a baked kernel into a canvas. `cell` is screen px per stencil texel;
+// cells are inset by `gap` so the panel behind shows through as a soft seam,
+// which keeps the seam colour correct in both themes without a stroke. Texels
+// outside the disc are left unpainted, so the kernel's real shape is visible.
+function paintKernel(cv2, c, KR, cell, gap, css){
+  const K = 2*KR + 1;
+  const k = bakeKernel(kernels[c], KR);
+  let mx = 1e-9;
+  for(const v of k) mx = Math.max(mx, Math.abs(v));
+  const dpr = Math.min(2, window.devicePixelRatio || 1), px = K*cell;
+  cv2.width = Math.round(px*dpr); cv2.height = Math.round(px*dpr);
+  // css pins the on-screen size. Dragging Reach changes the baked half-width,
+  // which would otherwise resize the canvas under the pointer and make the
+  // whole panel jump while you are still sliding.
+  const shown = css || px;
+  cv2.style.width = shown + "px"; cv2.style.height = shown + "px";
+  const g = cv2.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, px, px);
+  const col = palette[c];
+  for(let y = 0; y < K; y++){
+    for(let x = 0; x < K; x++){
+      if(Math.hypot(x - KR, y - KR)/KR > 1) continue;      // outside the disc
+      // Strength goes to alpha, not to a brightness floor. The floor was the
+      // bug: every cell inside the disc got a base tint, so a cell holding
+      // exactly zero still painted rgb(14,16,22) against a panel of about
+      // rgb(10,11,13) -- the whole disc read as a grey plate ending in a hard
+      // circle, and that circle was the "grey ring", not the counterweight
+      // out there, which is under 5% of peak. Fading to transparent instead
+      // lets a zero cell be the panel exactly, so only real signal shows.
+      const t = k[y*K + x]/mx;
+      const m = Math.pow(Math.abs(t), 0.65);
+      // Don't draw the shallow zero-mean counterweight. It is real but it is
+      // a wash, and drawing it put a halo round every single-lobe kernel.
+      if(m < 0.012 || (t < 0 && Math.abs(t) < 0.18)) continue;
+      g.globalAlpha = Math.min(1, m);
+      g.fillStyle = t >= 0
+        ? "rgb(" + (255*col[0] | 0) + "," + (255*col[1] | 0) + "," + (255*col[2] | 0) + ")"
+        : "rgb(96,112,158)";                               // the cool side of zero
+      g.fillRect(x*cell + gap/2, y*cell + gap/2,
+                 Math.max(0.5, cell - gap), Math.max(0.5, cell - gap));
+    }
   }
+  g.globalAlpha = 1;
+}
+
+function drawKernelChip(cv2, c){
+  paintKernel(cv2, c, 11, 1, 0);
+}
+
+// The half-width this colour's kernel is actually baked at at runtime, which is
+// what uploadKernels() derives -- not the chip's cosmetic 11. Showing the real
+// one is the point: it is where the stencil's coarseness becomes visible.
+function runtimeKR(c){
+  const Rmax = Math.max(...kernels.slice(0, S.C).map(k => k.R), 1);
+  return Math.max(2, Math.round(kernelKR*Math.min(1, kernels[c].R/Rmax)));
+}
+
+let kpeek = null;
+function kernelPeek(){
+  if(kpeek) return kpeek;
+  kpeek = document.createElement("div");
+  kpeek.className = "kpeek";
+  kpeek.innerHTML = '<canvas></canvas><div class="kmeta"></div>';
+  ($("app") || document.body).appendChild(kpeek);
+  return kpeek;
+}
+
+function showKernelPeek(anchor, c){
+  const el = kernelPeek(), cv2 = el.querySelector("canvas");
+  el._anchor = anchor; el._c = c;
+  const KR = runtimeKR(c), K = 2*KR + 1, k = kernels[c];
+  // Big enough to read a texel at a glance, never below the 3px floor.
+  const cell = Math.max(3, Math.min(16, Math.round(340/K)));
+  paintKernel(cv2, c, KR, cell, 0.6);
+
+  const sep = separablePlan();
+  const meta = el.querySelector(".kmeta");
+  const rows = [
+    "<b>Color " + (c + 1) + "</b> &middot; " + k.type + " &middot; " + k.sym,
+    "reach " + Math.round(k.R) + "px &middot; feather " + (+k.feather).toFixed(2)
+      + " (" + (k.feather*KR).toFixed(1) + " cells)",
+    "baked " + K + "&times;" + K + " @ " + cell + "px/texel"
+  ];
+  rows.push(sep ? "path: separable blur (smooth)"
+                : '<span class="kwarn">path: ' + K + '&times;' + K + ' stencil</span>');
+  if(!sep && k.type !== "perlin")
+    rows.push('<span class="kwarn">one non-separable kernel puts every color here</span>');
+  meta.innerHTML = rows.map(r => "<div>" + r + "</div>").join("");
+
+  // Clamp into the viewport so the full kernel is always on screen, preferring
+  // the side of the anchor with more room.
+  el.dataset.show = "1";
+  const r = anchor.getBoundingClientRect(), b = el.getBoundingClientRect();
+  const pad = 8;
+  let x = r.left - b.width - 10;
+  if(x < pad) x = Math.min(r.right + 10, window.innerWidth - b.width - pad);
+  x = Math.max(pad, Math.min(x, window.innerWidth - b.width - pad));
+  let y = r.top + r.height/2 - b.height/2;
+  y = Math.max(pad, Math.min(y, window.innerHeight - b.height - pad));
+  el.style.left = Math.round(x) + "px";
+  el.style.top  = Math.round(y) + "px";
+}
+
+function hideKernelPeek(){ if(kpeek) kpeek.dataset.show = "0"; }
+
+// Redraw the floating preview in place while its kernel is being edited.
+function repaintKernelPeek(c){
+  if(kpeek && kpeek.dataset.show === "1" && kpeek._c === c && kpeek._anchor)
+    showKernelPeek(kpeek._anchor, c);
+}
+
+function buildKernelUI(){
+  const el = $("kstack");
+  el.innerHTML = "";
+  for(let c = 0; c < S.C; c++){
+    const k = kernels[c];
+    const d = document.createElement("details"); d.className = "kern";
+    const sum = document.createElement("summary");
+    sum.title = "Kernel for color " + (c + 1);
+    const chip = document.createElement("canvas");
+    const rr = document.createElement("i");
+    rr.className = "kr"; rr.style.fontStyle = "normal";
+    rr.textContent = Math.round(k.R) + "px";
+    sum.append(chip, rr); d.appendChild(sum);
+    // Hover or keyboard focus anywhere on the row -- header or open body --
+    // holds the preview up. Anchoring to the whole row rather than just the
+    // header is what keeps it visible while a slider is being dragged.
+    const peek = () => showKernelPeek(sum, c);
+    d.addEventListener("mouseenter", peek);
+    d.addEventListener("mouseleave", hideKernelPeek);
+    d.addEventListener("focusin", peek);
+    d.addEventListener("focusout", e => {
+      if(!d.contains(e.relatedTarget)) hideKernelPeek();
+    });
+    const body = document.createElement("div"); body.className = "kbody";
+    // Editing a kernel without seeing it properly is guesswork, so the open
+    // panel carries the same full-size view the hover preview shows.
+    // No preview in here: the floating one is already full size and costs the
+    // panel no width, so the sliders get all of it.
+    const ctl = body;
+    const refresh = () => {
+      drawKernelChip(chip, c);
+      rr.textContent = Math.round(kernels[c].R) + "px";
+      uploadKernels(); mass0 = null;
+      repaintKernelPeek(c);
+    };
+    const row = (label, node) => {
+      const r = document.createElement("div"); r.className = "row";
+      const l = document.createElement("label"); l.className = "lab"; l.textContent = label;
+      r.append(l, node); ctl.appendChild(r); return r;
+    };
+    const slider = (label, min, max, step, get, set) => {
+      const i = document.createElement("input");
+      i.type = "range"; i.min = min; i.max = max; i.step = step; i.value = get();
+      const v = document.createElement("span"); v.className = "val";
+      v.textContent = num(get());
+      i.addEventListener("input", () => {
+        set(parseFloat(i.value));
+        v.textContent = num(i.value);
+        refresh();
+      });
+      const t = TIP[label] || (/^Amp/.test(label) ? "How strong this bump is, and which way it pulls."
+                : /^At/.test(label) ? "How far out this bump sits, as a fraction of the reach."
+                : /^Width/.test(label) ? "How wide this bump is. Narrow bumps alias on a coarse grid."
+                : "");
+      if(t) i.title = t;
+      const r = row(label, i); r.appendChild(v);
+    };
+    const TIP = {
+      Reach:   "How far this color looks, in cells.",
+      Feather: "How far in from the rim the kernel fades to nothing.",
+      Sym:     "Fold the kernel onto itself. Anything but radial mirrors onto the grid axes.",
+      Beta:    "Where repulsion ends and attraction begins, as a fraction of the reach.",
+      Octaves: "Levels of detail in the noise. More is finer and harder for the grid to hold.",
+    };
+    slider("Reach", 4, 200, 1, () => k.R, x => k.R = x);
+    slider("Feather", 0.02, 1, 0.02, () => k.feather, x => k.feather = x);
+    const sel = document.createElement("select");
+    for(const o of ["radial","lateral","quad","rot4","none"]){
+      const op = document.createElement("option"); op.value = op.textContent = o;
+      sel.appendChild(op);
+    }
+    sel.value = k.sym;
+    sel.addEventListener("change", () => { k.sym = sel.value; refresh(); });
+    sel.title = TIP.Sym;
+    row("Sym", sel);
+    if(k.type === "disc"){
+      /* nothing to configure: it is a circle */
+    }else if(k.type === "pl"){
+      slider("Beta", 0.02, 0.9, 0.01, () => k.beta === undefined ? 0.3 : k.beta,
+             x => k.beta = x);
+    }else if(k.type === "perlin"){
+      slider("Octaves", 1, 5, 1, () => k.oct, x => k.oct = Math.round(x));
+    }else{
+      k.terms.forEach((t, ti) => {
+        slider("Amp " + (ti + 1), -1, 1, 0.05, () => t.a, x => t.a = x);
+        slider("At " + (ti + 1), 0, 1, 0.02, () => t.r, x => t.r = x);
+        slider("Width " + (ti + 1), 0.03, 0.8, 0.01, () => t.w, x => t.w = x);
+      });
+    }
+    const btns = document.createElement("div"); btns.className = "btns";
+    const mk = (txt, fn, tip) => {
+      const b = document.createElement("button"); b.textContent = txt;
+      if(tip) b.title = tip;
+      b.addEventListener("click", () => { fn(); buildKernelUI(); refresh(); });
+      btns.appendChild(b);
+    };
+    mk("New", () => Object.assign(k, sampleKernel(k.type)),
+       "Draw this one color a new kernel, leaving the others alone.");
+    mk("Kind", () => {
+      k.type = k.type === "disc" ? "pl" : k.type === "pl" ? "radial"
+             : k.type === "radial" ? "perlin" : "disc";
+      if(k.type === "pl" && k.beta === undefined) k.beta = 0.3;
+    }, "Cycle this kernel between a circle, particle life's law, a ring and noise.");
+    ctl.appendChild(btns);
+    d.appendChild(body);
+    el.appendChild(d);
+    drawKernelChip(chip, c);
+  }
+  $("klab").textContent = kernelKR*2 + 1 + "px stencil";
+}
+
+function sampleKernel(type){
+  const rnd = Math.random;
+  const cap = radiusCap();
+  const lo = Math.min(cap, Math.min(S.radMin, S.radMax));
+  const hi = Math.min(cap, Math.max(S.radMin, S.radMax));
+  const R = lo + rnd()*(hi - lo);          // every sampled kernel picks its own reach
+  // Symmetries other than radial mirror onto the grid axes, which is its own
+  // source of square-looking structure, so how often they come up is a choice.
+  const POOL = { radial: ["radial"],
+                 mixed:  ["radial","radial","radial","lateral","quad","rot4"],
+                 any:    ["radial","lateral","quad","rot4"] };
+  const pool = POOL[S.ksym] || POOL.mixed;
+  const sym = pool[Math.floor(rnd()*pool.length)];
+  const n = Math.max(1, Math.round(S.kterms));
+  const wmin = S.kwidth;
+  if(type === "perlin")
+    return { type: "perlin", sym, R, feather: 0.15 + rnd()*0.4,
+             seed: (rnd()*65535)|0, oct: Math.max(1, Math.min(5, n + 1)), terms: [] };
+  // Lobes counts the bumps in the profile, and one means one: a single centred
+  // gaussian, which draws as a plain disc. Two is the classic ring -- a wide
+  // lobe minus a tight one, particle life's own law. Both of those are built
+  // from CENTRED gaussians, which is what keeps them on the smooth separable
+  // blur; three and up add off-centre rings and pay for the 2-D stencil.
+  // A lone positive lobe has to be balanced by negative weight spread over the
+  // rest of the disc -- that is what zero-mean means -- and how deep that
+  // counterweight goes is set entirely by how much of the disc the lobe fills.
+  // At w 0.30 it is 14% of peak and reads as a grey donut; at 0.14 it is 3.5%
+  // and vanishes. So one lobe takes its width from the Width control, which
+  // until now only reached the extra rings and left this one hardcoded wide.
+  // Two lobes do not have the problem: a wide gaussian minus a tight one is
+  // already zero-mean, so the ring keeps its own proportions.
+  if(type === "disc")
+    return { type: "disc", sym: "radial", R, feather: 0.35 + rnd()*0.4,
+             seed: 1, oct: 3, terms: [] };
+  if(type === "pl")
+    // Beta near a third: below about 0.2 the repulsive core is too thin for the
+    // grid to hold and it aliases, above about 0.45 nothing gets close enough
+    // to anything to form. Feather is small on purpose -- the law already
+    // reaches zero at the reach, so this only softens the very last cell.
+    return { type: "pl", sym: "radial", R, beta: 0.24 + rnd()*0.16,
+             feather: 0.14, seed: 1, oct: 3, terms: [] };
+  const terms = [];
+  if(n === 1){
+    // One blob. Its width sets how deep the zero-mean counterweight has to be,
+    // so it comes from the Width control.
+    terms.push({ a: 1.0, r: 0, w: Math.max(0.05, wmin*(0.65 + rnd()*0.5)) });
+  }else if(n === 2){
+    // A ring, or an anti-ring. Both are a wide centred gaussian against a tight
+    // one, so both stay separable; which sign leads decides whether the colour
+    // gathers at a distance or right on top of itself. The ratio spread is what
+    // moves the crossing in and out -- holding it near 3 gave every draw the
+    // same profile.
+    const wide = 0.20 + rnd()*0.30, tight = wide/(1.7 + rnd()*4.0);
+    const flip = rnd() < 0.35 ? -1 : 1;
+    terms.push({ a: flip, r: 0, w: wide },
+               { a: -flip*(wide*wide)/(tight*tight), r: 0, w: tight });
+  }else{
+    // Three or more: centred gaussians spread geometrically from the finest the
+    // grid can carry out to most of the reach, signs drawn freely. Sampling used
+    // to put rings at random RADII, which gave this variety and aliased badly --
+    // a thin off-centre ring is the one shape a coarse stencil cannot hold.
+    // Stacking centred scales spans the same family of profiles out of shapes
+    // the grid can actually represent.
+    const top = 0.55;
+    for(let i = 0; i < n; i++){
+      const f = i/(n - 1);
+      const w = Math.max(0.03, Math.min(0.7,
+        wmin*Math.pow(top/Math.max(wmin, 0.02), f)*(0.85 + rnd()*0.3)));
+      terms.push({ a: rnd()*2 - 1, r: 0, w });
+    }
+  }
+  return { type: "radial", sym: n <= 2 ? "radial" : sym, R,
+           feather: 0.15 + rnd()*0.4, seed: 1, oct: 3, terms };
 }
 
 // Each control registers how to redraw itself from state, so loading a setup
 // can push every slider back to where it belongs.
 const SYNC = [];
-function slider(id, key, fmt){
+// Two decimals at most, and none at all when the value is whole -- a readout
+// that changes width as you drag used to shove the track around.
+const num = v => String(Math.round(Number(v)*100)/100);
+
+function slider(id, key){
   const s = $(id), v = $(id + "v");
-  const show = () => v.textContent = fmt ? fmt(S[key]) : String(S[key]);
+  const show = () => {
+    const n = Number(S[key]);
+    if(!Number.isFinite(n)) S[key] = parseFloat(s.value) || 0;    // survive a bad saved value
+    v.textContent = num(S[key]);
+  };
   s.addEventListener("input", () => { S[key] = parseFloat(s.value); show(); });
   SYNC.push(() => { s.value = S[key]; show(); });
   S[key] = parseFloat(s.value); show();
 }
 const syncControls = () => SYNC.forEach(f => f());
 
+/* ------------------------------------------------------------ kernel design */
+// One kernel per colour. Everything is baked on the CPU into an RGBA atlas --
+// four colours per texel -- and only when something changes, so the GPU just
+// reads it. Kernels are zero-mean (a flat world pulls nowhere) and unit-L1
+// (so Force means the same whatever shape you build).
+const KMAX = 15;                       // kernel half-width in working cells
+
+// The ring the live site runs, written in this language: a wide gaussian minus
+// a tight one. w = sigma*sqrt(2) here, and the amplitudes are the peak ratio of
+// the two normalised gaussians, so the profile matches to four decimals.
+// The ring the live site runs, and the reason it looks the way it does: a wide
+// centred gaussian minus a tight one, sigma 0.55R against 0.22R, matching its
+// profile to four decimals. It reads as particle life -- repel close, attract
+// at a distance, nothing beyond -- but unlike the exact triangle law it is a
+// difference of two gaussians, so it is SEPARABLE. That is what buys the
+// smoothness: two 1-D blurs at full resolution instead of a 2-D stencil on a
+// field downsampled fourfold. Linear is the literal law and cannot be
+// separable, which is why it comes out coarser and slower to move.
+function defaultKernel(reach){
+  return { R: reach, type: "radial", sym: "radial", feather: 0.10, seed: 1, oct: 3,
+           terms: [{ a: 1.0, r: 0.0, w: 0.354 }, { a: -6.25, r: 0.0, w: 0.141 }] };
+}
+
+function vnoise2(x, y, freq, seed){
+  const h = (i, j) => {
+    let n = Math.imul(((i % freq) + freq) % freq + 374761393, 1)
+          + Math.imul(((j % freq) + freq) % freq + 668265263, 1) + seed*2654435761;
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0)/4294967296*2 - 1;
+  };
+  const fx = x*freq, fy = y*freq;
+  const i0 = Math.floor(fx), j0 = Math.floor(fy);
+  let tx = fx - i0, ty = fy - j0;
+  tx = tx*tx*(3 - 2*tx); ty = ty*ty*(3 - 2*ty);
+  return (h(i0,j0)*(1-tx) + h(i0+1,j0)*tx)*(1-ty)
+       + (h(i0,j0+1)*(1-tx) + h(i0+1,j0+1)*tx)*ty;
+}
+
+// Build one colour's kernel as a KxK grid of weights.
+function bakeKernel(k, KR){
+  const K = 2*KR + 1, out = new Float32Array(K*K);
+
+  // A stencil KR cells across cannot carry detail finer than about two cells.
+  // Sampled kernels routinely ask for narrower than that -- widths go down to
+  // 0.08 of the reach, which at a typical KR of 9 is under one cell -- and a
+  // gaussian that thin does not resolve, it aliases into the axis-aligned
+  // rings that show up as squares in the field. Two fixes, both of which the
+  // built-in force law in FS_FORCE already applies:
+  //   1. widen any term below what this KR can represent, and
+  //   2. sample every cell on a 3x3 sub-grid rather than at its centre.
+  const wmin = 2.0/KR;
+  const terms = (k.terms || []).map(t => ({ a: t.a, r: t.r, w: Math.max(t.w, wmin) }));
+  // Same limit for noise: the finest octave's lattice must span a few cells.
+  const octMax = Math.max(1, Math.floor(Math.log2(Math.max(2, 2*KR/3))));
+  const oct = Math.max(1, Math.min(k.oct, octMax));
+
+  for(let y = -KR; y <= KR; y++){
+    for(let x = -KR; x <= KR; x++){
+      let acc = 0;
+      for(let sy = -1; sy <= 1; sy++){
+        for(let sx = -1; sx <= 1; sx++){
+          const px = x + sx/3, py = y + sy/3;
+          const rr = Math.hypot(px, py)/KR;
+          if(rr > 1) continue;               // dividing by 9 below, not by the
+          let v = 0;                         // hit count, feathers the rim too
+          if(k.type === "disc"){
+            v = 1.0;                         // a solid circle, and nothing else
+          }else if(k.type === "pl"){
+            // Particle life's law, exactly: hard repulsion inside beta, a
+            // triangle of attraction peaking midway, nothing past the reach.
+            const B = Math.min(0.9, Math.max(0.02, k.beta === undefined ? 0.3 : k.beta));
+            v = rr < B ? rr/B - 1.0
+                       : 1.0 - Math.abs(2.0*rr - 1.0 - B)/(1.0 - B);
+          }else if(k.type === "perlin"){
+            let amp = 1, f = 2;
+            for(let o = 0; o < oct; o++){
+              v += amp*vnoise2((px/KR + 1)/2, (py/KR + 1)/2, f, k.seed + o*101);
+              amp *= 0.5; f *= 2;
+            }
+          }else{
+            for(const t of terms)
+              v += t.a*Math.exp(-(((rr - t.r)/t.w)**2));
+          }
+          acc += v;
+        }
+      }
+      out[(y + KR)*K + (x + KR)] = acc/9;
+    }
+  }
+
+  // symmetry: fold the grid onto itself
+  const at = (x, y) => out[(y + KR)*K + (x + KR)];
+  const folded = new Float32Array(K*K);
+  for(let y = -KR; y <= KR; y++){
+    for(let x = -KR; x <= KR; x++){
+      let v;
+      if(k.sym === "lateral")      v = (at(x,y) + at(-x,y))/2;
+      else if(k.sym === "quad")    v = (at(x,y) + at(-x,y) + at(x,-y) + at(-x,-y))/4;
+      else if(k.sym === "rot4")    v = (at(x,y) + at(-y,x) + at(-x,-y) + at(y,-x))/4;
+      else                         v = at(x,y);
+      folded[(y + KR)*K + (x + KR)] = v;
+    }
+  }
+  // Feather the rim, then zero the mean -- but subtracting a flat constant
+  // would undo the feather, putting the mean straight back into the rim cells
+  // the taper had just brought to zero. That leaves a hard circular cliff at
+  // the disc edge, and a hard circle drawn on a square lattice is exactly what
+  // shows up as square artefacts downstream. So subtract a multiple of the
+  // taper itself instead: it still sums to zero, and it is still zero at the
+  // rim, because the taper is.
+  const taper = new Float32Array(K*K);
+  let sumG = 0, sumW = 0, l1 = 0;
+  for(let y = -KR; y <= KR; y++){
+    for(let x = -KR; x <= KR; x++){
+      const rr = Math.hypot(x, y)/KR, i = (y + KR)*K + (x + KR);
+      if(rr > 1){ folded[i] = 0; continue; }
+      const f = Math.max(0, Math.min(1, (1 - rr)/Math.max(1e-3, k.feather)));
+      const w = f*f*(3 - 2*f);
+      taper[i] = w;
+      folded[i] *= w;
+      sumG += folded[i]; sumW += w;
+    }
+  }
+  // Particle life's law carries its own repulsive core, so it owes nothing and
+  // is exempt -- that core IS the negative half, not a wash paid out to balance
+  // the books. Anything built from gaussian lobes still pays: a lone positive
+  // lobe with nothing negative in it is pure attraction, and collapses.
+  const c = (k.type !== "pl" && k.type !== "disc" && sumW > 1e-9) ? sumG/sumW : 0;
+  for(let i = 0; i < K*K; i++){
+    folded[i] -= c*taper[i];
+    l1 += Math.abs(folded[i]);
+  }
+  if(l1 > 0) for(let i = 0; i < K*K; i++) folded[i] /= l1;
+  return folded;
+}
+// A kernel made of two centred gaussians whose normalised weights cancel is a
+// difference of blurs -- separable, so it needs no stencil and no downsampling
+// to stay sharp. That is what the default ring is, and it is the shape whose
+// tight core the 2-D stencil could not sample without going square.
+function separablePlan(){
+  const L = Math.ceil(S.C/4);
+  const sigA = [], sigB = [], mul = [];
+  for(let l = 0; l < L; l++){ sigA.push([1,1,1,1]); sigB.push([1,1,1,1]); mul.push([0,0,0,0]); }
+  let fine = 1e9, wide = 0, combine = -1;
+  for(let c = 0; c < S.C; c++){
+    const k = kernels[c];
+    if(k.type !== "radial" || k.sym !== "radial") return null;
+    if(k.terms.length !== 1 && k.terms.length !== 2) return null;
+    const t = k.terms.slice().sort((a, b) => b.w - a.w);          // wide term first
+    if(t.some(x => x.r !== 0)) return null;
+    const one = t.length === 1;
+    if(one !== (combine === 0) && combine !== -1) return null;    // no mixing per frame
+    combine = one ? 0 : 1;
+    const s1 = t[0].w*k.R/Math.SQRT2;
+    // A lone lobe still needs a tight blur beside it for the crowding term.
+    const s2 = one ? Math.max(0.4, s1*0.25) : t[1].w*k.R/Math.SQRT2;
+    if(s2 < 0.4 || s1 <= s2) return null;
+    if(!one){
+      const c1 = t[0].a*s1*s1, c2 = t[1].a*s2*s2;                 // as normalised gaussians
+      if(Math.abs(c1 + c2) > 0.02*(Math.abs(c1) + Math.abs(c2))) return null;
+    }
+    // L1 of the profile, so Force keeps meaning whichever shape this is
+    let l1 = 0;
+    for(let r = 0.25; r < 6*s1; r += 0.25)
+      l1 += Math.abs(Math.exp(-0.5*r*r/(s1*s1))/(s1*s1)
+                   - (one ? 0 : Math.exp(-0.5*r*r/(s2*s2))/(s2*s2)))*r*0.25;
+    const l = c >> 2, i = c & 3;
+    sigA[l][i] = s1; sigB[l][i] = s2;
+    mul[l][i] = Math.sign(t[0].a || 1)/Math.max(l1, 1e-6);
+    fine = Math.min(fine, s2); wide = Math.max(wide, s1);
+  }
+  return { sigA, sigB, mul, fine, wide, L, combine: combine === 1 ? 1 : 0 };
+}
+
+// Pack every colour's kernel into one RGBA texture, scaled so they share a grid.
+function uploadKernels(){
+  const Rmax = Math.max(...kernels.slice(0, S.C).map(k => k.R), 1);
+  kernelMip = 0;
+  while(kernelMip < 6 && (Rmax/(1 << kernelMip)) > KMAX
+        && pyramid.length > kernelMip) kernelMip++;
+  const scale = 1 << kernelMip;
+  kernelKR = Math.max(3, Math.min(KMAX, Math.round(Rmax/scale)));
+  const K = 2*kernelKR + 1, L = Math.ceil(S.C/4);
+  const data = new Float32Array(K*K*L*4);
+  for(let c = 0; c < S.C; c++){
+    const k = kernels[c];
+    const kr = Math.max(2, Math.round(kernelKR*Math.min(1, k.R/Rmax)));
+    const small = bakeKernel(k, kr), SK = 2*kr + 1;
+    const layer = c >> 2, comp = c & 3;
+    for(let y = 0; y < SK; y++)
+      for(let x = 0; x < SK; x++){
+        const gy = y - kr + kernelKR, gx = x - kr + kernelKR;
+        data[((layer*K + gy)*K + gx)*4 + comp] = small[y*SK + x];
+      }
+  }
+  if(kernTex) gl.deleteTexture(kernTex);
+  kernTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, kernTex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, K, K*L);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, K, K*L, gl.RGBA, gl.FLOAT, data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+}
+
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","inter"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kterms","kwidth","ksym","cfreq","cdepth"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -1622,16 +2520,17 @@ function writeSetups(list){
 }
 
 function currentConfig(){
-  const cfg = { seed: S.seed, mat: [...mat], radMat: [...radMat] };
+  const cfg = { seed: S.seed, mat: [...mat],
+                kernels: JSON.parse(JSON.stringify(kernels.slice(0, S.C))) };
   for(const k of SCALARS) cfg[k] = S[k];
   return cfg;
 }
 
 function validConfig(c){
-  return c && Number.isFinite(c.C) && c.C >= 2 && c.C <= 8
-    && Number.isFinite(c.N) && [128,256,384,512,768].includes(c.N)
+  return c && Number.isFinite(c.C) && c.C >= 2 && c.C <= 32
+    && Number.isFinite(c.N) && c.N >= 64 && c.N <= 2048
     && Array.isArray(c.mat) && c.mat.length === c.C*c.C
-    && Array.isArray(c.radMat) && c.radMat.length === c.C*c.C;
+    && (c.kernels === undefined || Array.isArray(c.kernels));
 }
 
 function applyConfig(c){
@@ -1641,15 +2540,21 @@ function applyConfig(c){
   S.seed = c.seed ?? S.seed;
   palette = makePalette(S.C, S.palette);
   mat = Float32Array.from(c.mat);
-  radMat = Int32Array.from(c.radMat);
   uploadMatrix();
-  rebuildBank(resize);                 // sets bankLevels, which allocate() sizes against
   if(resize) allocate();               // new dimensions mean new textures and a fresh field
   if(!S.paintMask || S.paintMask.length !== S.C) S.paintMask = new Uint8Array(S.C).fill(1);
-  buildMatrixUI(); buildRadiusUI(); buildBars(); buildSwatches();
+  if(Array.isArray(c.kernels) && c.kernels.length === S.C){
+    kernels = JSON.parse(JSON.stringify(c.kernels));
+  }else if(kernels.length !== S.C){
+    kernels = [];
+    for(let i = 0; i < S.C; i++) kernels.push(defaultKernel(S.radMax));
+  }
+  for(const k of kernels) k.R = Math.min(k.R, radiusCap());
+  uploadKernels();
+  buildMatrixUI(); buildKernelUI(); buildSwatches();
   syncControls();
   $("seedlab").textContent = "#" + S.seed;
-  $("chanv").textContent = S.C;
+  $("chanv").textContent = num(S.C);
   mass0 = null;
   return true;
 }
@@ -1757,63 +2662,96 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
-// Presets that ship with the page, as opposed to the ones you save yourself.
-// Served from a file, so a standalone copy of this HTML simply has none and
-// the card stays hidden rather than showing an error.
-async function loadPresetFile(){
-  let list = null;
+// The shelf of worlds under the field. Its manifest is optional: a standalone
+// copy of this page with no worlds.json beside it simply has no shelf.
+async function loadWorlds(){
+  let data = null;
   try{
-    const res = await fetch("presets.json", { cache: "no-cache" });
-    if(res.ok) list = parseSetups(await res.text());
-  }catch(e){ list = null; }
-  if(!list || !list.length) return;
+    const res = await fetch("worlds.json", { cache: "no-cache" });
+    if(res.ok) data = await res.json();
+  }catch(e){ data = null; }
+  const items = data && Array.isArray(data.setups) ? data.setups : null;
+  if(!items || !items.length) return;
 
-  const sel = $("rsel");
-  sel.innerHTML = "";
-  const first = document.createElement("option");
-  first.value = ""; first.textContent = "Choose a preset…";
-  sel.appendChild(first);
-  list.forEach((it, i) => {
-    const o = document.createElement("option");
-    o.value = String(i);
-    o.textContent = it.name + "  ·  " + it.cfg.C + "c " + it.cfg.N;
-    sel.appendChild(o);
+  const dir = (data.dir || "worlds").replace(/\/$/, "");
+  const rail = $("striprail");
+  const frag = document.createDocumentFragment();
+  items.forEach((it, i) => {
+    const b = document.createElement("button");
+    b.className = "w-item";
+    b.type = "button";
+    b.setAttribute("role", "option");
+    b.setAttribute("aria-selected", "false");
+    b.dataset.i = String(i);
+    b.dataset.tip = it.name + (it.tags ? " \u2014 " + it.tags.join(" ") : "");
+    const img = document.createElement("img");
+    img.src = dir + "/" + it.thumb;
+    img.alt = "";
+    img.loading = "lazy";
+    const n = document.createElement("b");
+    n.textContent = it.n ?? (i + 1);
+    b.append(img, n);
+    frag.appendChild(b);
   });
-  sel.addEventListener("change", () => {
-    if(sel.value === "") return;          // the placeholder; +"" would index 0
-    const it = list[+sel.value];
+  rail.appendChild(frag);
+  $("stripnote").textContent = items.length + " found by search \u00b7 click to load";
+  $("strip").hidden = false;
+
+  rail.addEventListener("click", e => {
+    const b = e.target.closest(".w-item");
+    if(!b) return;
+    const it = items[+b.dataset.i];
     if(!it) return;
-    if(!applyConfig(it.cfg)) status("“" + it.name + "” could not be loaded", true);
-    else status("Loaded “" + it.name + "”");
+    for(const o of rail.children) o.setAttribute("aria-selected", String(o === b));
+    if(!applyConfig(it.cfg)){ status("\u201c" + it.name + "\u201d could not be loaded", true); return; }
+    // A preset carries the rule, not the field it was measured on, so start it
+    // from the same opening state the search gave it.
+    reseed();
+    mass0 = null;
+    status("Loaded \u201c" + it.name + "\u201d");
   });
-  $("rcount").textContent = list.length + " to try";
-  $("rcard").hidden = false;
 }
 
 function rebuildColors(){
   palette = makePalette(S.C, S.palette);
   if(!S.paintMask || S.paintMask.length !== S.C) S.paintMask = new Uint8Array(S.C).fill(1);
-  radMat = new Int32Array(S.C*S.C).fill(BASE_LEVEL);
-  rebuildBank();
+  kernels = [];
+  for(let c = 0; c < S.C; c++) kernels.push(defaultKernel(S.radMax));
   resampleMatrix(S.seed);
-  buildRadiusUI();
   allocate();
-  buildBars();
+  uploadKernels();
+  buildKernelUI();
   buildSwatches();
   mass0 = null;
 }
 
 /* ---------------------------------------------------------------- loop */
 let lastT = performance.now(), fpsAcc = 0, fpsN = 0, mass0 = null, painting = null;
+let massWait = 60;   // frames since the last completed mass read
+let frameErr = 0;
 function frame(){
   requestAnimationFrame(frame);
-  if(!gl || !T.rhoA) return;
+  try{ frameBody(); }
+  catch(err){
+    if(frameErr++ === 0) fatal("Stopped on the first frame.\n\n" + (err && err.stack || err));
+  }
+}
+function frameBody(){
+  if(!gl || !T.rhoA){
+    if(frameErr++ === 0)
+      fatal("Nothing to draw.\n\n" +
+            "gl: " + !!gl + "\nT keys: " + Object.keys(T).join(",") +
+            "\npyramid: " + pyramid.length + "  kernelMip: " + kernelMip +
+            "  kernelKR: " + kernelKR + "\nkernTex: " + !!kernTex +
+            "\nC: " + S.C + "  grid: " + S.NX + "x" + S.NY + "  L: " + S.L);
+    return;
+  }
   if(painting){
     const now = performance.now(), dt = Math.min(0.05, (now - painting.t)/1000) || 0.016;
     painting.t = now;
     const [ax, ay] = painting.last, [bx, by] = painting.cur;
     // space the dabs along the stroke so a fast drag leaves a line, not beads
-    const span = Math.hypot((bx - ax)*S.N, (by - ay)*S.N);
+    const span = Math.hypot((bx - ax)*S.NX, (by - ay)*S.NY);
     const n = Math.max(1, Math.min(16, Math.ceil(span/Math.max(2, S.brush*0.35))));
     for(let i = 1; i <= n; i++)
       paintAt(ax + (bx - ax)*i/n, ay + (by - ay)*i/n, dt/n);
@@ -1822,26 +2760,24 @@ function frame(){
   if(S.running && performance.now() >= S.holdUntil)
     for(let i = 0; i < S.steps; i++) step();
   render();
+  // The drawing buffer is not preserved, so a screenshot has to be taken here,
+  // in the same tick as the draw that filled it.
+  if(wantShot){ wantShot = false; saveShot(); }
 
   const now = performance.now();
   fpsAcc += now - lastT; fpsN++; lastT = now;
   if(fpsN >= 20){ $("hfps").textContent = (1000/(fpsAcc/fpsN)).toFixed(0); fpsAcc = 0; fpsN = 0; }
   $("hstep").textContent = S.tick;
 
-  if(S.frame++ % 60 === 0){
-    const m = measure();
+  S.frame++;
+  const m = collectMass();
+  if(m){
     let tot = 0; for(const v of m) tot += v;
-    const peak = Math.max(...m, 1e-9);
-    const rows = $("bars").children;
-    for(let c = 0; c < S.C; c++){
-      rows[c].querySelector(".fill").style.width = (m[c]/peak*100).toFixed(1) + "%";
-      rows[c].querySelector(".num").textContent = (m[c]/(S.N*S.N)).toFixed(4);
-    }
     $("hmass").textContent = tot.toFixed(0);
     if(mass0 === null || S.tick < 2) mass0 = tot;
-    const drift = Math.abs(tot - mass0)/Math.max(mass0, 1e-9);
-    $("conserv").textContent = drift < 1e-4 ? "exact" : "drift " + (drift*100).toFixed(3) + "%";
+    massWait = 0;
   }
+  if(!packFence && ++massWait >= 60){ measureAsync(); massWait = 0; }
 }
 
 function boot(){
@@ -1851,32 +2787,47 @@ function boot(){
     const a = $(me), b = $(other);
     a.addEventListener("input", () => {
       S[key] = +a.value;
-      if(push(S[key], S[okey])){ S[okey] = S[key]; b.value = S[key]; $(other + "v").textContent = S[key]; }
-      $(me + "v").textContent = a.value;
-      if(radMat) paintRadii();
+      if(push(S[key], S[okey])){ S[okey] = S[key]; b.value = S[key]; $(other + "v").textContent = num(S[okey]); }
+      $(me + "v").textContent = num(a.value);
+      // move the whole band, keeping the spread the kernels already have
+      const cap = radiusCap();
+      const lo = Math.min(cap, Math.min(S.radMin, S.radMax));
+      const hi = Math.min(cap, Math.max(S.radMin, S.radMax));
+      const rs = kernels.slice(0, S.C).map(k => k.R);
+      const mn = Math.min(...rs), mx = Math.max(...rs);
+      for(const k of kernels) k.R = mx > mn ? lo + (k.R - mn)/(mx - mn)*(hi - lo) : hi;
+      uploadKernels(); buildKernelUI();
     });
   };
   radPair("radmin", "radmax", "radMin", "radMax", (mn, mx) => mn > mx);
   radPair("radmax", "radmin", "radMax", "radMin", (mx, mn) => mx < mn);
   SYNC.push(() => {
     for(const [id, k] of [["radmin","radMin"], ["radmax","radMax"]]){
-      $(id).value = S[k]; $(id + "v").textContent = S[k];
+      $(id).value = S[k]; $(id + "v").textContent = num(S[k]);
     }
-    $("chan").value = S.C; $("chanv").textContent = S.C; $("grid").value = S.N;
+    $("chan").value = S.C; $("chanv").textContent = S.C;
+    $("grid").value = S.N; $("gridv").textContent = num(S.N);
   });
   slider("force", "force");
   slider("repel", "repel");
   slider("beta", "beta");
-  slider("noise", "noise", v => v.toFixed(2));
+  slider("noise", "noise");
   slider("steps", "steps");
   slider("expo", "expo");
-  slider("dens", "density", v => v.toFixed(2));
+  slider("dens", "density");
 
   // label follows the drag; the expensive rebuild waits for release
+  let mxrs = null;
+  addEventListener("resize", () => {
+    clearTimeout(mxrs);
+    mxrs = setTimeout(() => { if(mat && mat.length === S.C*S.C) buildMatrixUI(); }, 120);
+  });
+  $("grid").addEventListener("input", e => { $("gridv").textContent = num(e.target.value); });
   $("chan").addEventListener("input", e => { $("chanv").textContent = e.target.value; });
   $("chan").addEventListener("change", e => { S.C = +e.target.value; rebuildColors(); });
   $("grid").addEventListener("change", e => {
-    S.N = +e.target.value; allocate(); rebuildBank(); paintRadii(); mass0 = null;
+    S.N = +e.target.value; $("gridv").textContent = num(S.N);
+    allocate(); uploadKernels(); buildKernelUI(); mass0 = null;
   });
   $("play").addEventListener("click", e => {
     S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";
@@ -1885,40 +2836,62 @@ function boot(){
   SYNC.push(() => $("pixels").checked = S.smooth);
   $("reseed").addEventListener("click", () => { S.seedMode = "noise"; reseed(); mass0 = null; });
   $("disc").addEventListener("click", () => { S.seedMode = "disc"; reseed(); mass0 = null; });
+  $("reclear").addEventListener("click", () => $("clear").click());
   $("resample").addEventListener("click", () => resampleMatrix((Math.random()*1e6) | 0));
-  $("symm").addEventListener("click", () => {
-    for(let r = 0; r < S.C; r++) for(let c = 0; c < r; c++) mat[c*S.C + r] = mat[r*S.C + c];
-    uploadMatrix(); paintMatrix();
-  });
+  $("cppn").addEventListener("click", () => cppnMatrix((Math.random()*1e6) | 0));
+  slider("kterms", "kterms"); slider("kwidth", "kwidth");
+  slider("cfreq", "cfreq"); slider("cdepth", "cdepth");
+  const ksymSel = $("ksym");
+  ksymSel.addEventListener("change", () => S.ksym = ksymSel.value);
+  SYNC.push(() => { ksymSel.value = S.ksym; });
   $("zero").addEventListener("click", () => { mat.fill(0); uploadMatrix(); paintMatrix(); });
-  $("rresample").addEventListener("click", () => resampleRadii((Math.random()*1e6)|0));
-  $("rflat").addEventListener("click", () => { radMat.fill(BASE_LEVEL); rebuildBank(); paintRadii(); });
+  $("ksample").addEventListener("click", () => {
+    const t = $("ktype").value;
+    for(let c = 0; c < S.C; c++) Object.assign(kernels[c], sampleKernel(t));
+    uploadKernels(); buildKernelUI(); mass0 = null;
+  });
   $("psave").addEventListener("click", saveSetup);
   $("pname").addEventListener("keydown", e => { if(e.key === "Enter") saveSetup(); });
-  $("citecopy").addEventListener("click", () => {
-    const text = $("citebib").textContent;
-    const say = m => $("citestatus").textContent = m;
-    const pick = () => {
-      const r = document.createRange(); r.selectNodeContents($("citebib"));
-      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
-    };
-    try{
-      navigator.clipboard.writeText(text)
-        .then(() => say("BibTeX copied"))
-        .catch(() => { pick(); say("selected — press Ctrl+C"); });
-    }catch(e){ pick(); say("selected — press Ctrl+C"); }
-  });
   $("pexport").addEventListener("click", exportSetups);
   $("pimport").addEventListener("click", importSetups);
 
+  // Single-key shortcuts. Each one names the control it drives, so binding the
+  // key, clicking the button and labelling the tooltip all read from one table
+  // and cannot drift apart.
+  const SHORTCUTS = [
+    ["Space", "play"],   ["s", "stepone"],  ["r", "roll"],    ["m", "resample"],
+    ["n", "reseed"],     ["d", "disc"],     ["c", "reclear"], ["f", "fs"],
+    ["p", "shot"],       ["h", "hideui"],
+    ["v", {tool:"pan"}], ["b", {tool:"brush"}], ["x", {tool:"noise"}], ["e", {tool:"erase"}],
+  ];
+  const target = t => typeof t === "string"
+    ? $(t) : $("tools").querySelector(`[data-tool="${t.tool}"]`);
+  const KEYS = {};
+  for(const [k, t] of SHORTCUTS){
+    const el = target(t);
+    if(!el) continue;
+    el.dataset.key = k;                 // the tooltip reads this
+    KEYS[k.toLowerCase()] = () => el.click();
+  }
+  KEYS["0"] = () => { S.zoom = 1; S.panU = S.panV = 0.5; $("hzoom").textContent = "1.0\u00d7"; };
+
+  const nudgeBrush = d => {
+    const r = $("bsize");
+    r.value = Math.min(+r.max, Math.max(+r.min, +r.value + d));
+    r.dispatchEvent(new Event("input", {bubbles:true}));
+  };
+
   addEventListener("keydown", e => {
-    if(e.target.matches("input, select")) return;
-    if(e.code === "Space"){ $("play").click(); e.preventDefault(); }
-    if(e.key === "r"){ $("reseed").click(); }
-    if(e.key === "m"){ $("resample").click(); }
-    if(e.key === "c"){ $("disc").click(); }
-    if(e.key === "0"){ S.zoom = 1; S.panU = S.panV = 0.5; $("hzoom").textContent = "1.0×"; }
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    if(e.target.matches("input, select, textarea") || e.target.isContentEditable) return;
+    if(e.code === "Space"){ $("play").click(); e.preventDefault(); return; }
+    if(e.key === "["){ nudgeBrush(-2); return; }
+    if(e.key === "]"){ nudgeBrush(2); return; }
+    const fn = KEYS[e.key.toLowerCase()];
+    if(fn){ fn(); e.preventDefault(); }
   });
+
+  $("shot").addEventListener("click", () => { wantShot = true; });
 
   // Scroll to zoom about the cursor, drag to pan, double-click to fit.
   const ZMAX = 64;
@@ -1979,7 +2952,6 @@ function boot(){
     S[key] = parseFloat(el.value); show();
   };
   brushSlider("bsize", "brush", v => String(Math.round(v)));
-  brushSlider("bflow", "flow", v => v.toFixed(2));
   $("clear").addEventListener("click", clearField);
   $("allcols").addEventListener("click", () => setMask(1));
   $("nocols").addEventListener("click", () => setMask(0));
@@ -1995,7 +2967,7 @@ function boot(){
   cmap.addEventListener("change", () => {
     S.palette = cmap.value;
     palette = makePalette(S.C, S.palette);
-    buildMatrixUI(); buildRadiusUI(); buildBars(); buildSwatches();
+    buildMatrixUI(); buildKernelUI(); buildSwatches();
   });
   $("blend").addEventListener("change", e => S.blend = +e.target.value);
   $("inter").addEventListener("change", e => S.inter = +e.target.value);
@@ -2004,28 +2976,211 @@ function boot(){
   });
   // Double-click fills the screen with the simulation; press 0 to reset the view.
   cv.addEventListener("dblclick", () => {
-    const stage = cv.parentElement;
+    const app = $("app");
     if(document.fullscreenElement) document.exitFullscreen();
-    else if(stage.requestFullscreen) stage.requestFullscreen().catch(() => {});
+    else if(app.requestFullscreen) app.requestFullscreen().catch(() => {});
   });
-  document.addEventListener("fullscreenchange", () => setTimeout(resize, 60));
+  document.addEventListener("fullscreenchange", () => setTimeout(() => {
+    resize();
+    // Entering or leaving fullscreen is a big aspect jump and the debounce made
+    // it a visible one. Reshape now instead of 180ms from now.
+    clearTimeout(reAlloc);
+    const keep = snapshotField();
+    allocate(keep); uploadKernels(); mass0 = null;
+    lastAsp = cv.getBoundingClientRect().width/Math.max(1, cv.getBoundingClientRect().height);
+  }, 60));
+
+  // Hide every surface and leave the field alone.
+  const app = $("app");
+  const toggleUI = () => {
+    const off = app.classList.toggle("naked");
+    $("hideui").setAttribute("aria-label", off ? "Show the controls" : "Hide the controls");
+    $("hideui").title = (off ? "Show" : "Hide") + " the controls";
+  };
+  $("hideui").addEventListener("click", toggleUI);
+
+  // Tooltips. title is moved onto data-tip the first time a control is
+  // hovered, which covers the rows built later just as well as the markup.
+  const tip = document.createElement("div");
+  tip.className = "tip"; app.appendChild(tip);
+  const placeTip = e => {
+    const r = tip.getBoundingClientRect(), pad = 8;
+    let x = e.clientX + 13, y = e.clientY + 16;
+    if(x + r.width > innerWidth - pad) x = e.clientX - r.width - 10;
+    if(y + r.height > innerHeight - pad) y = e.clientY - r.height - 10;
+    tip.style.left = Math.max(pad, x) + "px";
+    tip.style.top  = Math.max(pad, y) + "px";
+  };
+  const hideTip = () => { tip.dataset.show = "0"; };
+  app.addEventListener("pointerover", e => {
+    const el = e.target.closest("[title],[data-tip]");
+    if(!el){ hideTip(); return; }
+    if(el.title){ el.dataset.tip = el.title; el.removeAttribute("title"); }
+    const text = el.dataset.tip;
+    if(!text){ hideTip(); return; }
+    tip.textContent = text;
+    const key = el.dataset.key || el.closest("[data-key]")?.dataset.key;
+    if(key){
+      const k = document.createElement("kbd");
+      k.textContent = key.length === 1 ? key.toUpperCase() : key;
+      tip.append(" ", k);
+    }
+    tip.dataset.show = "1";
+    placeTip(e);
+  });
+  app.addEventListener("pointermove", e => {
+    if(tip.dataset.show === "1") placeTip(e);
+  });
+  app.addEventListener("pointerout", e => {
+    if(!e.relatedTarget || !app.contains(e.relatedTarget)) hideTip();
+    else if(!e.relatedTarget.closest("[title],[data-tip]")) hideTip();
+  });
+  app.addEventListener("pointerdown", hideTip);
+  // One step, and pause so it stays where it lands.
+  $("stepone").addEventListener("click", () => {
+    if(S.running){ S.running = false; $("play").textContent = "Run"; }
+    step(); render();
+  });
+
+  // A whole new world: a matrix nobody has seen and a disc to start it from.
+  $("roll").addEventListener("click", () => {
+    resampleMatrix((Math.random()*1e6) | 0);
+    S.seedMode = "disc";
+    reseed();
+    mass0 = null;
+  });
+
+  $("fs").addEventListener("click", () => {
+    if(document.fullscreenElement) document.exitFullscreen();
+    else if(app.requestFullscreen) app.requestFullscreen().catch(() => {});
+  });
+
+  // On a phone the panels stack into one bottom sheet and the tab bar says
+  // which is up. On a desktop the same buttons still work, so a narrow window
+  // and a narrow phone behave the same way.
+  const TABS = ["world", "rules", "paint", "none"];
+  function setTab(t){
+    TABS.forEach(x => app.classList.toggle("tab-" + x, x === t));
+    for(const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === t);
+  }
+  for(const b of $("tabs").children)
+    b.addEventListener("click", () => setTab(b.dataset.tab));
+  setTab("world");
+  // A phone sheet is ~380px; two open sections do not fit in it, so on touch
+  // only the first of each panel starts open.
+  if(matchMedia("(pointer:coarse)").matches)
+    for(const panel of document.querySelectorAll(".panel"))
+      [...panel.querySelectorAll(":scope > .sec")].slice(1)
+        .forEach(s => s.removeAttribute("open"));
+
+  // A slider shows how far along it is by filling its own track, so the value
+  // reads at a glance without a number beside every one of them.
+  const fill = i => {
+    const lo = +i.min || 0, hi = +i.max || 1;
+    i.style.setProperty("--p", (hi > lo ? ((+i.value - lo)/(hi - lo))*100 : 0).toFixed(1) + "%");
+  };
+  const fillAll = () => document.querySelectorAll('input[type=range]').forEach(fill);
+  document.addEventListener("input", e => {
+    if(e.target.matches('input[type=range]')) fill(e.target);
+  }, true);
+  SYNC.push(fillAll);
+  new MutationObserver(fillAll).observe(document.body, { childList:true, subtree:true });
+  fillAll();
+
+  // The lattice is sized from the canvas, so a shape change is a new world.
+  // Only reallocate when the aspect actually moves -- a few pixels of scrollbar
+  // should not throw the field away.
+  let lastAsp = 0, reAlloc = null;
+  // The ring is drawn in screen pixels, so it has to track zoom and resolution:
+  // the canvas shows S.NX/zoom cells across, whatever its own width.
+  const bring = $("bring");
+  function moveRing(e){
+    if(S.tool === "pan" || !e){ bring.style.display = "none"; return; }
+    const r = cv.getBoundingClientRect();
+    const px = r.width*S.zoom/Math.max(1, S.NX);      // screen pixels per cell
+    const d = Math.max(4, 2*S.brush*px);
+    bring.style.display = "block";
+    bring.style.width = d + "px"; bring.style.height = d + "px";
+    bring.style.left = (e.clientX - r.left) + "px";
+    bring.style.top  = (e.clientY - r.top) + "px";
+  }
+  cv.addEventListener("pointermove", moveRing);
+  cv.addEventListener("pointerenter", moveRing);
+  cv.addEventListener("pointerleave", () => bring.style.display = "none");
 
   function resize(){
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const r = cv.getBoundingClientRect();
     cv.width = Math.max(64, Math.round(r.width*dpr));
     cv.height = Math.max(64, Math.round(r.height*dpr));
+    const asp = r.width/Math.max(1, r.height);
+    if(Math.abs(asp - lastAsp) > 0.02){
+      lastAsp = asp;
+      clearTimeout(reAlloc);
+      reAlloc = setTimeout(() => {
+        const keep = snapshotField();          // carry the world across the reshape
+        allocate(keep); uploadKernels(); mass0 = null;
+      }, 180);
+    }
   }
   addEventListener("resize", resize);
-  new ResizeObserver(resize).observe(cv.parentElement);
+  new ResizeObserver(resize).observe(cv);
   syncControls();          // radius is randomised in state; move the sliders to match
   resize();
+  clearTimeout(reAlloc);   // the opening sizing is not a reshape; seed once, below
   rebuildColors();
   S.holdUntil = performance.now() + 500;   // half a second of stillness, then life
   renderSetups();
-  loadPresetFile();
+  loadWorlds();
+
+  // A handle on the running simulation, for driving it from outside the page:
+  // exporting a setup, stepping it a fixed number of times, reading the field
+  // back. Nothing in the UI uses it; it exists so the world can be scripted.
+  window.FL = {
+    S, get mat(){ return mat; }, get kernels(){ return kernels; },
+    currentConfig, applyConfig, reseed, step, render, resampleMatrix,
+    readRho(){
+      const out = new Float32Array(S.NX*S.NY*S.C);
+      const buf = new Float32Array(S.NX*S.L*S.NY*4);
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, T.rhoA, 0);
+      gl.readPixels(0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.deleteFramebuffer(fb);
+      for(let c = 0; c < S.C; c++){
+        const l = c >> 2, k = c & 3;
+        for(let y = 0; y < S.NY; y++)
+          for(let x = 0; x < S.NX; x++)
+            out[c*S.NX*S.NY + y*S.NX + x] = buf[(y*S.NX*S.L + l*S.NX + x)*4 + k];
+      }
+      return out;
+    },
+    writeRho(flat){
+      const buf = new Float32Array(S.NX*S.L*S.NY*4);
+      for(let c = 0; c < S.C; c++){
+        const l = c >> 2, k = c & 3;
+        for(let y = 0; y < S.NY; y++)
+          for(let x = 0; x < S.NX; x++)
+            buf[(y*S.NX*S.L + l*S.NX + x)*4 + k] = flat[c*S.NX*S.NY + y*S.NX + x];
+      }
+      gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
+      S.tick = 0; mass0 = null;
+    },
+  };
+
   requestAnimationFrame(frame);
 }
+
+addEventListener("error", e => {
+  if(!document.getElementById("gl-error").textContent)
+    fatal("Error: " + (e.message || e) + "\n" + (e.filename || "") + ":" + (e.lineno || ""));
+});
+addEventListener("unhandledrejection", e => {
+  if(!document.getElementById("gl-error").textContent)
+    fatal("Promise rejected: " + (e.reason && e.reason.message || e.reason));
+});
 
 if(gl && extF){
   try { boot(); }

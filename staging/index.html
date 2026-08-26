@@ -514,7 +514,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
-    <button id="roll" title="A fresh interaction matrix, and a centre circle to start it from.">
+    <button id="roll" title="A fresh interaction matrix, and a center circle to start it from.">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
       Generate new world
     </button>
@@ -554,7 +554,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="radmax">R max</label><input id="radmax" title="Longest reach a sampled kernel may take, in cells." type="range" min="2" max="256" step="1" value="18"><span class="val" id="radmaxv">18</span></div>
     <div class="row"><label class="lab" for="force">Force</label><input id="force" title="How strongly the affinity pulls. Scales the whole matrix at once." type="range" min="0" max="400" step="1" value="90"><span class="val" id="forcev">90</span></div>
     <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" title="Dislike of crowding. Pushes mass out of cells that are already full." type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
-    <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbour. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
+    <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbor. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
     <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" title="Jitter added to the affinity. Lets shapes drift off the grid axes." type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
     <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
     <div class="row"><label class="lab" for="inter">Law</label><select id="inter" title="Built-in interaction shape, when no kernel is designed">
@@ -613,7 +613,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 <details class="sec" open><summary class="ph">Kernels <span id="klab"></span></summary>
     <div id="kstack"></div>
     <div class="row"><label class="lab" for="ktype">Kind</label>
-      <select id="ktype" title="Ring is what the live site runs and stays on the smooth blur path. Linear is particle life's exact law but needs the coarser stencil.">
+      <select id="ktype" title="Ring is the default, and stays on the fast blur path. Linear is particle life's exact law, but it needs the coarser stencil.">
         <option value="radial" selected>Ring</option>
         <option value="pl">Linear &mdash; exact, coarser</option>
         <option value="disc">Circle</option>
@@ -702,8 +702,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     negative entries push away instead. Adding those up over every <i>d</i>, multiplying by a global
     strength, and subtracting an amount proportional to how crowded the cell already is leaves one
     number per cell per color. Call it <i>A</i>: how much that color wants to be in that cell.</p>
-  <p>Second, the mass moves. Each cell splits its own contents among its nine neighbours, itself
-    included, giving each a share proportional to <i>e<sup>&beta;A</sup></i> at that neighbour,
+  <p>Second, the mass moves. Each cell splits its own contents among its nine neighbors, itself
+    included, giving each a share proportional to <i>e<sup>&beta;A</sup></i> at that neighbor,
     with the nine shares scaled to sum to exactly one. Every unit that leaves a cell arrives at
     another, so the total per color never changes for the life of the run &mdash; the simulation
     only moves mass around, it cannot create or destroy it.</p>
@@ -714,7 +714,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   <h2>Acknowledgements</h2>
   <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
     take on particle life, <a href="https://github.com/aprowe/cip-life">cip-life</a>, which
-    initialises the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
+    initializes the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
     discussion with <a href="https://mundyreimer.github.io/about">Mundy Reimer</a> and
     <a href="https://www.seanjhardy.com/">Sean Hardy</a> about continuity and the concept of a
     field.</p>
@@ -732,13 +732,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <li>Vassilis Papadopoulos and Etienne Guichard, 2025.
       <a href="https://arxiv.org/abs/2507.12306">MaCE: General Mass Conserving Dynamics for Cellular
       Automata</a>. Where the softmax transport step comes from &mdash; cells hand their contents to
-      their neighbours in shares that sum to one, so nothing is created or lost. It is what lets a
+      their neighbors in shares that sum to one, so nothing is created or lost. It is what lets a
       grid version of particle life hold together instead of blowing up or fading out.</li>
     <li>Bert Wang-Chak Chan, 2019. <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of
       Artificial Life</a>. Continuous states, continuous space, and a growth rule driven by a
       convolution &mdash; the reason a field can carry creatures at all.</li>
-    <li>Erwan Plantec, Gautier Hamon, Mayalen Etcheverry, Pierre-Yves Oudeyer, Cl&eacute;ment
-      Moulin-Frier and Bert Wang-Chak Chan, 2023.
+    <li>Erwan Plantec, Gautier Hamon, Mayalen Etcheverry, Bert Wang-Chak Chan,
+      Pierre-Yves Oudeyer and Cl&eacute;ment Moulin-Frier, 2023.
       <a href="https://arxiv.org/abs/2212.07906">Flow-Lenia</a>. The other route to a
       mass-conserving Lenia, by advection rather than by redistribution.</li>
   </ol>

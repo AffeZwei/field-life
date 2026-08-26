@@ -223,6 +223,8 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   margin:0 0 10px}
 .below p{margin:0 0 10px}
 .below b{color:var(--ink); font-weight:500}
+.below .refs{list-style:none; padding:0; margin:0}
+.below .refs li{padding:0 0 0 15px; margin:0 0 11px; text-indent:-15px}
 #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
   cursor:grab; touch-action:none}
 #cv:active{cursor:grabbing}
@@ -256,8 +258,24 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   padding:4px 7px; max-width:250px; pointer-events:none; opacity:0;
   transition:opacity .09s ease; box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .tip[data-show="1"]{opacity:1}
+.tip kbd{display:inline-block; font:inherit; font-size:9px; line-height:1;
+  padding:2px 4px; margin-left:2px; border:1px solid #4A4F55; border-radius:2px;
+  background:#1B1E22; color:#CFCBC4; vertical-align:1px; letter-spacing:.06em}
 @media (prefers-reduced-motion:reduce){ .tip{transition:none} }
-.corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:4px}
+/* The one control that is worth interrupting the field for. */
+#roll{
+  display:flex; align-items:center; gap:6px; height:auto; padding:5px 11px;
+  font-size:10.5px; letter-spacing:.09em; border-radius:2px;
+  background:var(--accent); border:1px solid var(--accent); color:#04080B;
+  font-weight:600; box-shadow:0 2px 10px rgba(0,0,0,.45);
+  opacity:.62; transition:opacity .13s ease;
+}
+#roll:hover{opacity:1}
+#roll svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round}
+.app.naked #roll{opacity:0; pointer-events:none}
+@media (pointer:coarse){ #roll{padding:9px 14px; font-size:11px} }
+.corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:5px; align-items:center}
 .corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
   filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 1px rgba(0,0,0,.85))}
 .corner .iconly:hover{color:#fff}
@@ -456,13 +474,17 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
-    <button id="roll" class="iconly" title="New world: a fresh interaction matrix and a centre disc to start it from." aria-label="New world">
+    <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
+      Generate new world
     </button>
-    <button id="hideui" class="iconly" title="Hide the controls (H)" aria-label="Hide the controls">
+    <button id="shot" class="iconly" title="Save the field as a PNG" aria-label="Save a screenshot">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 5.2h2.6l1-1.7h5.6l1 1.7h2.6v7.6H1.6z"/><circle cx="8" cy="9" r="2.6"/></svg>
+    </button>
+    <button id="hideui" class="iconly" title="Hide the controls" aria-label="Hide the controls">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8S4.3 3.7 8 3.7 14.2 8 14.2 8 11.7 12.3 8 12.3 1.8 8 1.8 8Z"/><circle cx="8" cy="8" r="1.9"/></svg>
     </button>
-    <button id="fs" class="iconly" title="Fullscreen (or double-click the field)" aria-label="Fullscreen">
+    <button id="fs" class="iconly" title="Fullscreen, or double-click the field" aria-label="Fullscreen">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.2H2.2V6M10 2.2h3.8V6M6 13.8H2.2V10M10 13.8h3.8V10"/></svg>
     </button>
   </div>
@@ -594,7 +616,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.4 13.2h6.9M2.6 10.3l4.6-4.6 4.2 4.2-3.4 3.4H5.6z"/><path d="M7.2 5.7 9.9 3a1.1 1.1 0 0 1 1.6 0l2.6 2.6a1.1 1.1 0 0 1 0 1.6l-2.7 2.7"/></svg>
       </button>
     </div>
-    <label class="tctl" title="Brush size in cells">SIZE<input id="bsize" title="Brush radius, in cells." type="range" min="3" max="140" step="1" value="26" aria-label="Brush size"><b id="bsizev">26</b></label>
+    <label class="tctl" title="Brush size in cells">SIZE<input id="bsize" title="Brush radius, in cells. [ and ] step it." type="range" min="3" max="140" step="1" value="26" aria-label="Brush size"><b id="bsizev">26</b></label>
     <div class="sw" id="swatches" title="Which colors the brush touches"></div>
     <div class="seg ico">
       <button id="allcols" title="Select every color" aria-label="Select every color">
@@ -620,23 +642,51 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
 <section class="below">
   <h2>How it works</h2>
-  <p>Each color is a scalar field over the grid: one number per cell, the amount of that color
-    present there. Every cell of every color is updated on the GPU each frame.</p>
-  <p>One step has two halves. First, each color's field is <b>convolved with its kernel</b> &mdash;
-    a weighted sum over the neighbourhood out to <b>Reach</b>, where the kernel gives the weight at
-    each distance. The default kernel is a ring: negative close in, positive further out, zero past
-    the reach. The <b>interaction matrix</b> then mixes those results, entry <i>M[c][d]</i> being how
-    much color <i>c</i> is drawn to what it sees of color <i>d</i>. The sum, scaled by <b>Force</b>
-    and less a <b>Repel</b> term proportional to local density, is the <b>affinity</b> <i>A</i>:
-    a number per cell per color saying how much that color wants to be there.</p>
-  <p>Second, the mass moves. Each cell divides its own contents among its nine neighbours,
-    itself included, in proportion to <i>e<sup>&beta;A</sup></i> at each of them, normalised so the
-    nine shares sum to exactly one. Every unit that leaves a cell arrives at another, so the total
-    per color is constant for the life of the run &mdash; the simulation only ever moves mass, and
-    cannot create or destroy it.</p>
-  <p>Because the matrix need not be symmetric, <i>M[c][d]</i> and <i>M[d][c]</i> can disagree: red
-    can pursue green while green flees red. That asymmetry is where the chasing, orbiting and
-    gliding come from.</p>
+  <p>Each color is a scalar field over the grid: one number per cell, saying how much of that color
+    sits there. Every cell of every color is updated on the GPU each frame.</p>
+  <p>One step has two halves. First, each color's field is <b>convolved with its own kernel</b>.
+    A kernel is a small table of weights, one per distance, that stops at a fixed radius of a few
+    dozen cells. Convolving means: for every cell, add up that color's field over all cells within
+    the radius, each multiplied by the kernel's weight for its distance. The number that comes out
+    says how much of that color is nearby, counted the way the kernel says to count it. The default
+    kernel is negative on the cells close in and positive on a ring further out, so the sum is
+    largest when the color forms a hollow shell at the ring's distance instead of a solid blob.</p>
+  <p>The <b>interaction matrix</b> then mixes the colors. Entry <i>M[c][d]</i> is how strongly
+    color <i>c</i> is pulled towards the amount of color <i>d</i> that its kernel just measured;
+    negative entries push away instead. Adding those up over every <i>d</i>, multiplying by a global
+    strength, and subtracting an amount proportional to how crowded the cell already is leaves one
+    number per cell per color. Call it <i>A</i>: how much that color wants to be in that cell.</p>
+  <p>Second, the mass moves. Each cell splits its own contents among its nine neighbours, itself
+    included, giving each a share proportional to <i>e<sup>&beta;A</sup></i> at that neighbour,
+    with the nine shares scaled to sum to exactly one. Every unit that leaves a cell arrives at
+    another, so the total per color never changes for the life of the run &mdash; the simulation
+    only moves mass around, it cannot create or destroy it.</p>
+  <p>The matrix need not be symmetric, so <i>M[c][d]</i> and <i>M[d][c]</i> can disagree: red can
+    chase green while green flees red. That asymmetry is where the chasing, orbiting and gliding
+    come from.</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Jeffrey Ventrella. <a href="https://www.ventrella.com/Clusters/">Clusters</a>. The original
+      particle life: a handful of particle types, one attraction number for each ordered pair of
+      them, and a force law that repels hard up close. The kernel and the interaction matrix here
+      are the same two ideas, moved onto a grid.</li>
+    <li>Tom Mohr. <a href="https://particle-life.com/">Particle Life</a>. The implementation most
+      people have actually watched, and the source of the parameter ranges the defaults start
+      from.</li>
+    <li>Vassilis Papadopoulos and Etienne Guichard, 2025.
+      <a href="https://arxiv.org/abs/2507.12306">MaCE: General Mass Conserving Dynamics for Cellular
+      Automata</a>. Where the softmax transport step comes from &mdash; cells hand their contents to
+      their neighbours in shares that sum to one, so nothing is created or lost. It is what lets a
+      grid version of particle life hold together instead of blowing up or fading out.</li>
+    <li>Bert Wang-Chak Chan, 2019. <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of
+      Artificial Life</a>. Continuous states, continuous space, and a growth rule driven by a
+      convolution &mdash; the reason a field can carry creatures at all.</li>
+    <li>Erwan Plantec, Gautier Hamon, Mayalen Etcheverry, Pierre-Yves Oudeyer, Cl&eacute;ment
+      Moulin-Frier and Bert Wang-Chak Chan, 2023.
+      <a href="https://arxiv.org/abs/2212.07906">Flow-Lenia</a>. The other route to a
+      mass-conserving Lenia, by advection rather than by redistribution.</li>
+  </ul>
 
   <h2>Acknowledgements</h2>
   <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
@@ -661,6 +711,29 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 const $ = id => document.getElementById(id);
 const cv = $("cv");
 const gl = cv.getContext("webgl2", {antialias:false, alpha:false, preserveDrawingBuffer:false});
+
+let wantShot = false;                 // set by the camera button, cleared after the draw
+
+function saveShot(){
+  // drawImage copies the live drawing buffer synchronously, which is the whole
+  // point of doing this here: the buffer is not preserved, and toBlob's callback
+  // would not run until well after the next frame had wiped it.
+  const c = document.createElement("canvas");
+  c.width = cv.width; c.height = cv.height;
+  c.getContext("2d").drawImage(cv, 0, 0);
+
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  c.toBlob(b => {
+    if(!b) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = `field-life-${stamp}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }, "image/png");
+}
 
 function fatal(msg){
   const e = $("gl-error");
@@ -2631,6 +2704,9 @@ function frameBody(){
   if(S.running && performance.now() >= S.holdUntil)
     for(let i = 0; i < S.steps; i++) step();
   render();
+  // The drawing buffer is not preserved, so a screenshot has to be taken here,
+  // in the same tick as the draw that filled it.
+  if(wantShot){ wantShot = false; saveShot(); }
 
   const now = performance.now();
   fpsAcc += now - lastT; fpsN++; lastT = now;
@@ -2723,15 +2799,43 @@ function boot(){
   $("pexport").addEventListener("click", exportSetups);
   $("pimport").addEventListener("click", importSetups);
 
+  // Single-key shortcuts. Each one names the control it drives, so binding the
+  // key, clicking the button and labelling the tooltip all read from one table
+  // and cannot drift apart.
+  const SHORTCUTS = [
+    ["Space", "play"],   ["s", "stepone"],  ["r", "roll"],    ["m", "resample"],
+    ["n", "reseed"],     ["d", "disc"],     ["c", "reclear"], ["f", "fs"],
+    ["p", "shot"],       ["h", "hideui"],
+    ["v", {tool:"pan"}], ["b", {tool:"brush"}], ["x", {tool:"noise"}], ["e", {tool:"erase"}],
+  ];
+  const target = t => typeof t === "string"
+    ? $(t) : $("tools").querySelector(`[data-tool="${t.tool}"]`);
+  const KEYS = {};
+  for(const [k, t] of SHORTCUTS){
+    const el = target(t);
+    if(!el) continue;
+    el.dataset.key = k;                 // the tooltip reads this
+    KEYS[k.toLowerCase()] = () => el.click();
+  }
+  KEYS["0"] = () => { S.zoom = 1; S.panU = S.panV = 0.5; $("hzoom").textContent = "1.0\u00d7"; };
+
+  const nudgeBrush = d => {
+    const r = $("bsize");
+    r.value = Math.min(+r.max, Math.max(+r.min, +r.value + d));
+    r.dispatchEvent(new Event("input", {bubbles:true}));
+  };
+
   addEventListener("keydown", e => {
-    if(e.target.matches("input, select")) return;
-    if(e.code === "Space"){ $("play").click(); e.preventDefault(); }
-    if(e.key === "r"){ $("reseed").click(); }
-    if(e.key === "m"){ $("resample").click(); }
-    if(e.key === "h"){ $("hideui").click(); }
-    if(e.key === "c"){ $("disc").click(); }
-    if(e.key === "0"){ S.zoom = 1; S.panU = S.panV = 0.5; $("hzoom").textContent = "1.0×"; }
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    if(e.target.matches("input, select, textarea") || e.target.isContentEditable) return;
+    if(e.code === "Space"){ $("play").click(); e.preventDefault(); return; }
+    if(e.key === "["){ nudgeBrush(-2); return; }
+    if(e.key === "]"){ nudgeBrush(2); return; }
+    const fn = KEYS[e.key.toLowerCase()];
+    if(fn){ fn(); e.preventDefault(); }
   });
+
+  $("shot").addEventListener("click", () => { wantShot = true; });
 
   // Scroll to zoom about the cursor, drag to pan, double-click to fit.
   const ZMAX = 64;
@@ -2835,7 +2939,7 @@ function boot(){
   const toggleUI = () => {
     const off = app.classList.toggle("naked");
     $("hideui").setAttribute("aria-label", off ? "Show the controls" : "Hide the controls");
-    $("hideui").title = (off ? "Show" : "Hide") + " the controls (H)";
+    $("hideui").title = (off ? "Show" : "Hide") + " the controls";
   };
   $("hideui").addEventListener("click", toggleUI);
 
@@ -2859,6 +2963,12 @@ function boot(){
     const text = el.dataset.tip;
     if(!text){ hideTip(); return; }
     tip.textContent = text;
+    const key = el.dataset.key || el.closest("[data-key]")?.dataset.key;
+    if(key){
+      const k = document.createElement("kbd");
+      k.textContent = key.length === 1 ? key.toUpperCase() : key;
+      tip.append(" ", k);
+    }
     tip.dataset.show = "1";
     placeTip(e);
   });
@@ -2882,7 +2992,6 @@ function boot(){
     S.seedMode = "disc";
     reseed();
     mass0 = null;
-    S.holdUntil = performance.now() + 250;
   });
 
   $("fs").addEventListener("click", () => {

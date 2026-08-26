@@ -182,7 +182,10 @@ button.primary:hover{filter:brightness(1.08)}
    the compact controls floating on it. */
 .page{max-width:1040px; margin:0 auto; padding:22px 20px 160px;
   display:flex; flex-direction:column; gap:16px}
-header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+/* Title on the left with its line under it, the shelf of worlds taking
+   whatever width is left. On a narrow screen the shelf wraps beneath. */
+header{display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap}
+.title{flex:0 0 auto; display:flex; flex-direction:column; gap:5px}
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
@@ -226,16 +229,27 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 /* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
    the browser page uses; object-fit crops them square here rather than
    generating a second set of images. */
-/* The shelf belongs to the field below it, so it sits closer than the page's
-   own 16px flex gap would put it. The negative margin cancels most of that gap. */
-.strip{margin:0 0 -10px}
+.strip{flex:1 1 320px; min-width:0; margin:0}
 .striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 4px}
 .striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
   color:var(--ink2)}
 .stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
   opacity:.75}
+.striprow{display:flex; align-items:stretch; gap:4px}
+.stepper{
+  flex:0 0 auto; width:17px; padding:0; cursor:pointer; align-self:stretch;
+  margin-bottom:6px;                       /* clear the rail's scrollbar gutter */
+  background:var(--panel); border:1px solid var(--line); border-radius:3px;
+  color:var(--ink2); display:flex; align-items:center; justify-content:center;
+  transition:color .12s ease, border-color .12s ease;
+}
+.stepper:hover{color:var(--accent); border-color:var(--accent)}
+.stepper:disabled{opacity:.3; cursor:default; color:var(--ink2); border-color:var(--line)}
+.stepper svg{width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round}
 .striprail{
+  flex:1 1 auto; min-width:0;
   display:flex; gap:5px; overflow-x:auto; overflow-y:hidden;
   padding:1px 1px 6px; scroll-snap-type:x proximity;
   scrollbar-width:thin; scrollbar-color:var(--line) transparent;
@@ -533,17 +547,26 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
 <div class="page">
   <header>
-    <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
-    <div class="tag">particle life as a <b>continuous field</b></div>
+    <div class="title">
+      <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
+      <div class="tag">particle life as a <b>continuous field</b></div>
+    </div>
+    <div class="strip" id="strip" hidden>
+      <div class="striphead">
+        <span class="ph">Worlds</span>
+        <span class="stripnote" id="stripnote"></span>
+      </div>
+      <div class="striprow">
+        <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+        </button>
+        <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+        <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+        </button>
+      </div>
+    </div>
   </header>
-
-<div class="strip" id="strip" hidden>
-  <div class="striphead">
-    <span class="ph">Worlds</span>
-    <span class="stripnote" id="stripnote"></span>
-  </div>
-  <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
-</div>
 
 <div class="app" id="app">
 
@@ -2749,6 +2772,24 @@ async function loadWorlds(){
   rail.appendChild(frag);
   $("stripnote").textContent = items.length + " found by search \u00b7 click to load";
   $("strip").hidden = false;
+
+  // Arrows step by whole tiles, so a click never leaves one sliced in half.
+  const prev = $("stripprev"), next = $("stripnext");
+  const tileStep = () => {
+    const one = rail.querySelector(".w-item");
+    const w = one ? one.getBoundingClientRect().width + 5 : 51;
+    return Math.max(w, Math.floor(rail.clientWidth/w)*w);
+  };
+  const syncArrows = () => {
+    const max = rail.scrollWidth - rail.clientWidth;
+    prev.disabled = rail.scrollLeft <= 1;
+    next.disabled = rail.scrollLeft >= max - 1;
+  };
+  prev.addEventListener("click", () => rail.scrollBy({ left: -tileStep(), behavior: "smooth" }));
+  next.addEventListener("click", () => rail.scrollBy({ left:  tileStep(), behavior: "smooth" }));
+  rail.addEventListener("scroll", syncArrows, { passive: true });
+  addEventListener("resize", syncArrows);
+  syncArrows();
 
   rail.addEventListener("click", e => {
     const b = e.target.closest(".w-item");

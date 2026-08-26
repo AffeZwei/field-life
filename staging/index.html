@@ -287,7 +287,13 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   padding:9px 11px; overflow-x:auto; white-space:pre; user-select:all;
 }
 .citeline{font-size:10.5px; line-height:1.5; margin:8px 0 0 !important; color:var(--ink2)}
-#citestatus{font-size:10px; color:var(--ink2); min-height:1.2em; margin-top:6px}
+/* A flash beside the button, not a line under the block: it says the click
+   worked, then gets out of the way. */
+#citestatus{
+  font:400 9px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing:.06em;
+  text-transform:none; color:var(--accent); opacity:0; transition:opacity .18s ease;
+}
+#citestatus.on{opacity:1}
 #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
   cursor:grab; touch-action:none}
 #cv:active{cursor:grabbing}
@@ -772,17 +778,16 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     </div>
 
     <div class="fcol">
-      <h3>Cite this <button id="citecopy">copy</button></h3>
+      <h3>Cite this <button id="citecopy">copy</button><span id="citestatus"></span></h3>
       <pre id="citebib">@misc{fieldlife,
 author = {Zhechev, Iliya},
 title  = {Field Life: particle life as
-          mass-conserving continuous fields},
+          a continuous field},
 year   = {2026},
 url    = {https://www.izhv.eu/field-life}
   }</pre>
-      <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as mass-conserving
-        continuous fields.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
-      <div id="citestatus" class="pstatus"></div>
+      <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as a continuous
+        field.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
     </div>
   </div>
 
@@ -2897,7 +2902,13 @@ function boot(){
   $("pname").addEventListener("keydown", e => { if(e.key === "Enter") saveSetup(); });
   $("citecopy").addEventListener("click", () => {
     const text = $("citebib").textContent;
-    const say = m => $("citestatus").textContent = m;
+    const el = $("citestatus");
+    let clear = null;
+    const say = m => {
+      el.textContent = m; el.classList.add("on");
+      clearTimeout(clear);
+      clear = setTimeout(() => el.classList.remove("on"), 1800);
+    };
     const pick = () => {
       const r = document.createRange(); r.selectNodeContents($("citebib"));
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);

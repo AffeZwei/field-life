@@ -223,47 +223,38 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   margin:0 0 10px}
 .below p{margin:0 0 10px}
 .below b{color:var(--ink); font-weight:500}
-/* Numbered and flush left. A hanging indent buys nothing here and puts a
-   ragged gutter down the side of the section; the number just opens the line.
-   Not grid: an <a> inside the item would become a grid item of its own and the
-   links would drop into the number's column. */
-/* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
-   the browser page uses; object-fit crops them square here rather than
-   generating a second set of images. */
-.strip{margin:10px 0 0}
-.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 6px}
-.striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--ink2)}
-.stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
-  opacity:.75}
-.striprail{
-  display:flex; gap:7px; overflow-x:auto; overflow-y:hidden;
-  padding:2px 2px 9px; scroll-snap-type:x proximity;
-  scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+/* Built on / Cite this, as the earlier page had them: a two-column footer, a
+   numbered reference list with the work named in bold, and a BibTeX block. */
+.foot{
+  display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px;
+  margin-top:26px; padding-top:16px; border-top:1px solid var(--line);
 }
-.striprail::-webkit-scrollbar{height:7px}
-.striprail::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
-.w-item{
-  flex:0 0 auto; scroll-snap-align:start; position:relative;
-  width:62px; height:62px; padding:0; cursor:pointer;
-  border:1px solid var(--line); border-radius:4px; overflow:hidden;
-  background:#07090C; transition:border-color .12s ease;
+@media (max-width:760px){ .foot{grid-template-columns:minmax(0,1fr)} }
+.foot h3{
+  font-family:"Bricolage Grotesque", system-ui, sans-serif; font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.14em; color:var(--ink2); margin:0 0 8px;
+  display:flex; align-items:center; gap:8px;
 }
-.w-item img{width:100%; height:100%; display:block; object-fit:cover}
-.w-item b{
-  position:absolute; left:0; bottom:0; font:500 9px/1 "IBM Plex Mono", monospace;
-  color:#DCE4E9; background:rgba(4,7,10,.72); padding:3px 4px; border-radius:0 3px 0 0;
-  font-variant-numeric:tabular-nums;
+.foot h3 button{
+  flex:0 0 auto; font-size:9px; padding:3px 6px; letter-spacing:.08em;
+  font-family:"IBM Plex Mono", ui-monospace, monospace; cursor:pointer;
+  background:var(--panel); border:1px solid var(--line); border-radius:3px; color:var(--ink2);
 }
-.w-item:hover{border-color:var(--ink2)}
-.w-item[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
-.w-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
-@media (pointer:coarse){ .w-item{width:72px; height:72px} }
-.below .refs{list-style:none; counter-reset:ref; padding:0; margin:0}
-.below .refs li{counter-increment:ref; margin:0 0 11px; padding:0}
-.below .refs li::before{content:counter(ref) ". "; color:var(--ink2); opacity:.6;
-  font-variant-numeric:tabular-nums}
+.foot h3 button:hover{color:var(--accent); border-color:var(--accent)}
+.foot .refs{margin:0; padding-left:16px; list-style:decimal; counter-reset:none;
+  font-size:11px; line-height:1.5; color:var(--ink2)}
+.foot .refs li{margin:0 0 7px; padding:0}
+.foot .refs li::marker{color:var(--ink2)}
+.foot .refs li::before{content:none}
+.foot .refs b{color:var(--ink); font-weight:500}
+.foot .refs code{font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:10px}
+#citebib{
+  margin:0; font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:10px; line-height:1.5;
+  color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:5px;
+  padding:9px 11px; overflow-x:auto; white-space:pre; user-select:all;
+}
+.citeline{font-size:10.5px; line-height:1.5; margin:8px 0 0 !important; color:var(--ink2)}
+#citestatus{font-size:10px; color:var(--ink2); min-height:1.2em; margin-top:6px}
 #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
   cursor:grab; touch-action:none}
 #cv:active{cursor:grabbing}
@@ -720,28 +711,47 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     field.</p>
   <p>I am not completely sure this doesn't already exist &mdash; my Claude couldn't find references
     to similar projects.</p>
-  <h2>References</h2>
-  <ol class="refs">
-    <li>Jeffrey Ventrella. <a href="https://www.ventrella.com/Clusters/">Clusters</a>. The original
-      particle life: a handful of particle types, one attraction number for each ordered pair of
-      them, and a force law that repels hard up close. The kernel and the interaction matrix here
-      are the same two ideas, moved onto a grid.</li>
-    <li>Tom Mohr. <a href="https://particle-life.com/">Particle Life</a>. The implementation most
-      people have actually watched, and the source of the parameter ranges the defaults start
-      from.</li>
-    <li>Vassilis Papadopoulos and Etienne Guichard, 2025.
-      <a href="https://arxiv.org/abs/2507.12306">MaCE: General Mass Conserving Dynamics for Cellular
-      Automata</a>. Where the softmax transport step comes from &mdash; cells hand their contents to
-      their neighbors in shares that sum to one, so nothing is created or lost. It is what lets a
-      grid version of particle life hold together instead of blowing up or fading out.</li>
-    <li>Bert Wang-Chak Chan, 2019. <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of
-      Artificial Life</a>. Continuous states, continuous space, and a growth rule driven by a
-      convolution &mdash; the reason a field can carry creatures at all.</li>
-    <li>Erwan Plantec, Gautier Hamon, Mayalen Etcheverry, Bert Wang-Chak Chan,
-      Pierre-Yves Oudeyer and Cl&eacute;ment Moulin-Frier, 2023.
-      <a href="https://arxiv.org/abs/2212.07906">Flow-Lenia</a>. The other route to a
-      mass-conserving Lenia, by advection rather than by redistribution.</li>
-  </ol>
+  <div class="foot">
+    <div class="fcol">
+      <h3>Built on</h3>
+      <ol class="refs">
+        <li><b>MaCE</b> — the transport rule used here: each cell hands its mass to its nine neighbors
+          in proportion to <code>e<sup>&#946;A</sup></code>, so mass is conserved by construction.
+          Papadopoulos, V. &amp; Guichard, E. (2025). <i>MaCE: General Mass Conserving Dynamics for
+          Cellular Automata.</i> <a href="https://arxiv.org/abs/2507.12306">arXiv:2507.12306</a></li>
+        <li><b>Particle Life</b> — the interaction matrix and short-range repulsion, in its original
+          swarm-of-dots form. Mohr, T., <a href="https://particle-life.com/">particle-life.com</a>,
+          after Ventrella, J., <i>Clusters</i>,
+          <a href="https://www.ventrella.com/Clusters/">ventrella.com/Clusters</a></li>
+        <li><b>Lenia</b> — the continuous cellular automaton lineage: kernels convolved with a field,
+          fed through a growth function. Chan, B. W.-C. (2019). <i>Lenia — Biology of Artificial Life.</i>
+          Complex Systems 28(3), 251&#8211;286.
+          <a href="https://arxiv.org/abs/1812.05433">arXiv:1812.05433</a></li>
+        <li><b>Flow-Lenia</b> — the nearest relative: per-channel affinity, an anti-crowding term and
+          mass conservation on a grid, via reintegration tracking rather than a softmax.
+          Plantec, E., Hamon, G., Etcheverry, M., Chan, B. W.-C., Oudeyer, P.-Y. &amp; Moulin-Frier, C.
+          (2023). <a href="https://arxiv.org/abs/2212.07906">arXiv:2212.07906</a></li>
+        <li><b>Non-reciprocal Cahn&#8211;Hilliard</b> — the same asymmetric-matrix idea as continuum
+          physics, where it produces traveling waves and &#8220;chasing&#8221; phases.
+          Saha, S., Agudo-Canalejo, J. &amp; Golestanian, R. (2020). Phys. Rev. X 10, 041009.
+          <a href="https://arxiv.org/abs/2005.07101">arXiv:2005.07101</a></li>
+      </ol>
+    </div>
+
+    <div class="fcol">
+      <h3>Cite this <button id="citecopy">copy</button></h3>
+      <pre id="citebib">@misc{fieldlife,
+author = {Zhechev, Iliya},
+title  = {Field Life: particle life as
+          mass-conserving continuous fields},
+year   = {2026},
+url    = {https://www.izhv.eu/field-life}
+  }</pre>
+      <p class="citeline">Zhechev, I. (2026). <i>Field Life: particle life as mass-conserving
+        continuous fields.</i> <a href="https://www.izhv.eu/field-life">www.izhv.eu/field-life</a></p>
+      <div id="citestatus" class="pstatus"></div>
+    </div>
+  </div>
 
 </section>
 
@@ -2852,6 +2862,19 @@ function boot(){
   });
   $("psave").addEventListener("click", saveSetup);
   $("pname").addEventListener("keydown", e => { if(e.key === "Enter") saveSetup(); });
+  $("citecopy").addEventListener("click", () => {
+    const text = $("citebib").textContent;
+    const say = m => $("citestatus").textContent = m;
+    const pick = () => {
+      const r = document.createRange(); r.selectNodeContents($("citebib"));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    };
+    try{
+      navigator.clipboard.writeText(text)
+        .then(() => say("BibTeX copied"))
+        .catch(() => { pick(); say("selected \u2014 press Ctrl+C"); });
+    }catch(e){ pick(); say("selected \u2014 press Ctrl+C"); }
+  });
   $("pexport").addEventListener("click", exportSetups);
   $("pimport").addEventListener("click", importSetups);
 

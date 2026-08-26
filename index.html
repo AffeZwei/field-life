@@ -182,10 +182,8 @@ button.primary:hover{filter:brightness(1.08)}
    the compact controls floating on it. */
 .page{max-width:1040px; margin:0 auto; padding:22px 20px 160px;
   display:flex; flex-direction:column; gap:16px}
-/* Title left, subtitle pushed to the right of the same baseline, so it costs
-   the page no height at all. */
-header{display:flex; align-items:baseline; justify-content:space-between;
-  gap:14px; flex-wrap:wrap}
+/* Both on one baseline, so the subtitle costs the page no height. */
+header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
@@ -232,12 +230,6 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 /* The shelf belongs to the field under it, so it sits closer than the page's
    own 16px flex gap would put it. The negative margin cancels most of that gap. */
 .strip{margin:0 0 -10px}
-.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 4px}
-.striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--ink2)}
-.stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
-  opacity:.75}
 .striprow{display:flex; align-items:stretch; gap:4px}
 .stepper{
   flex:0 0 auto; width:17px; padding:0; cursor:pointer; align-self:stretch;
@@ -554,10 +546,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
 <div class="strip" id="strip" hidden>
-  <div class="striphead">
-    <span class="ph">Worlds</span>
-    <span class="stripnote" id="stripnote"></span>
-  </div>
   <div class="striprow">
     <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
@@ -2771,7 +2759,6 @@ async function loadWorlds(){
     frag.appendChild(b);
   });
   rail.appendChild(frag);
-  $("stripnote").textContent = items.length + " found by search \u00b7 click to load";
   $("strip").hidden = false;
 
   // Arrows step by whole tiles, so a click never leaves one sliced in half.

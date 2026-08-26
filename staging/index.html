@@ -223,8 +223,14 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   margin:0 0 10px}
 .below p{margin:0 0 10px}
 .below b{color:var(--ink); font-weight:500}
-.below .refs{list-style:none; padding:0; margin:0}
-.below .refs li{padding:0 0 0 15px; margin:0 0 11px; text-indent:-15px}
+/* Numbered and flush left. A hanging indent buys nothing here and puts a
+   ragged gutter down the side of the section; the number just opens the line.
+   Not grid: an <a> inside the item would become a grid item of its own and the
+   links would drop into the number's column. */
+.below .refs{list-style:none; counter-reset:ref; padding:0; margin:0}
+.below .refs li{counter-increment:ref; margin:0 0 11px; padding:0}
+.below .refs li::before{content:counter(ref) ". "; color:var(--ink2); opacity:.6;
+  font-variant-numeric:tabular-nums}
 #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
   cursor:grab; touch-action:none}
 #cv:active{cursor:grabbing}
@@ -263,17 +269,21 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   background:#1B1E22; color:#CFCBC4; vertical-align:1px; letter-spacing:.06em}
 @media (prefers-reduced-motion:reduce){ .tip{transition:none} }
 /* The one control that is worth interrupting the field for. */
+/* Above the field, not on it. The one control worth reaching for before you
+   have touched anything else, so it sits in the page rather than over the
+   world it replaces. */
+.above{display:flex; justify-content:flex-end; margin:0 0 7px}
 #roll{
-  display:flex; align-items:center; gap:6px; height:auto; padding:5px 11px;
-  font-size:10.5px; letter-spacing:.09em; border-radius:2px;
-  background:var(--accent); border:1px solid var(--accent); color:#04080B;
-  font-weight:600; box-shadow:0 2px 10px rgba(0,0,0,.45);
-  opacity:.62; transition:opacity .13s ease;
+  display:flex; align-items:center; gap:6px; height:auto; padding:6px 11px;
+  font:600 10.5px/1 "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing:.09em; text-transform:uppercase; border-radius:3px;
+  background:var(--panel); border:1px solid var(--line); color:var(--ink2);
+  cursor:pointer; transition:color .13s ease, border-color .13s ease;
 }
-#roll:hover{opacity:1}
+#roll:hover{color:var(--accent); border-color:var(--accent)}
+#roll:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
 #roll svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6;
   stroke-linecap:round; stroke-linejoin:round}
-.app.naked #roll{opacity:0; pointer-events:none}
 @media (pointer:coarse){ #roll{padding:9px 14px; font-size:11px} }
 .corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:5px; align-items:center}
 .corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
@@ -463,6 +473,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
 
+<div class="above">
+  <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
+    Generate new world
+  </button>
+</div>
+
 <div class="app" id="app">
 
   <canvas id="cv"></canvas>
@@ -474,10 +491,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
-    <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
-      Generate new world
-    </button>
     <button id="shot" class="iconly" title="Save the field as a PNG" aria-label="Save a screenshot">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 5.2h2.6l1-1.7h5.6l1 1.7h2.6v7.6H1.6z"/><circle cx="8" cy="9" r="2.6"/></svg>
     </button>
@@ -665,8 +678,17 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     chase green while green flees red. That asymmetry is where the chasing, orbiting and gliding
     come from.</p>
 
+  <h2>Acknowledgements</h2>
+  <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
+    take on particle life, <a href="https://github.com/aprowe/cip-life">cip-life</a>, which
+    initialises the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
+    discussion with <a href="https://mundyreimer.github.io/about">Mundy Reimer</a> and
+    <a href="https://www.seanjhardy.com/">Sean Hardy</a> about continuity and the concept of a
+    field.</p>
+  <p>I am not completely sure this doesn't already exist &mdash; my Claude couldn't find references
+    to similar projects.</p>
   <h2>References</h2>
-  <ul class="refs">
+  <ol class="refs">
     <li>Jeffrey Ventrella. <a href="https://www.ventrella.com/Clusters/">Clusters</a>. The original
       particle life: a handful of particle types, one attraction number for each ordered pair of
       them, and a force law that repels hard up close. The kernel and the interaction matrix here
@@ -686,17 +708,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       Moulin-Frier and Bert Wang-Chak Chan, 2023.
       <a href="https://arxiv.org/abs/2212.07906">Flow-Lenia</a>. The other route to a
       mass-conserving Lenia, by advection rather than by redistribution.</li>
-  </ul>
+  </ol>
 
-  <h2>Acknowledgements</h2>
-  <p>The idea for this was born after <a href="https://github.com/aprowe">Alex Rowe</a> showed me his
-    take on particle life, <a href="https://github.com/aprowe/cip-life">cip-life</a>, which
-    initialises the interaction matrix as a continuous CPPN-generated field. Then I had an inspiring
-    discussion with <a href="https://mundyreimer.github.io/about">Mundy Reimer</a> and
-    <a href="https://www.seanjhardy.com/">Sean Hardy</a> about continuity and the concept of a
-    field.</p>
-  <p>I am not completely sure this doesn't already exist &mdash; my Claude couldn't find references
-    to similar projects.</p>
 </section>
 
 <div class="colophon">
@@ -3076,6 +3089,44 @@ function boot(){
   S.holdUntil = performance.now() + 500;   // half a second of stillness, then life
   renderSetups();
   loadPresetFile();
+
+  // A handle on the running simulation, for driving it from outside the page:
+  // exporting a setup, stepping it a fixed number of times, reading the field
+  // back. Nothing in the UI uses it; it exists so the world can be scripted.
+  window.FL = {
+    S, get mat(){ return mat; }, get kernels(){ return kernels; },
+    currentConfig, applyConfig, reseed, step, render, resampleMatrix,
+    readRho(){
+      const out = new Float32Array(S.NX*S.NY*S.C);
+      const buf = new Float32Array(S.NX*S.L*S.NY*4);
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, T.rhoA, 0);
+      gl.readPixels(0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.deleteFramebuffer(fb);
+      for(let c = 0; c < S.C; c++){
+        const l = c >> 2, k = c & 3;
+        for(let y = 0; y < S.NY; y++)
+          for(let x = 0; x < S.NX; x++)
+            out[c*S.NX*S.NY + y*S.NX + x] = buf[(y*S.NX*S.L + l*S.NX + x)*4 + k];
+      }
+      return out;
+    },
+    writeRho(flat){
+      const buf = new Float32Array(S.NX*S.L*S.NY*4);
+      for(let c = 0; c < S.C; c++){
+        const l = c >> 2, k = c & 3;
+        for(let y = 0; y < S.NY; y++)
+          for(let x = 0; x < S.NX; x++)
+            buf[(y*S.NX*S.L + l*S.NX + x)*4 + k] = flat[c*S.NX*S.NY + y*S.NX + x];
+      }
+      gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
+      S.tick = 0; mass0 = null;
+    },
+  };
+
   requestAnimationFrame(frame);
 }
 

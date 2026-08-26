@@ -282,7 +282,9 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .foot .refs b{color:var(--ink); font-weight:500}
 .foot .refs code{font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:10px}
 #citebib{
-  margin:0; font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:10px; line-height:1.5;
+  /* 9.5px, not 10: the title is one line now, and at 10px it overflowed the
+     column by a dozen pixels and put a scrollbar under six lines of text. */
+  margin:0; font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:9.5px; line-height:1.5;
   color:var(--ink); background:var(--panel2); border:1px solid var(--line); border-radius:5px;
   padding:9px 11px; overflow-x:auto; white-space:pre; user-select:all;
 }
@@ -781,8 +783,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <h3>Cite this <button id="citecopy">copy</button><span id="citestatus"></span></h3>
       <pre id="citebib">@misc{fieldlife,
 author = {Zhechev, Iliya},
-title  = {Field Life: particle life as
-          a continuous field},
+title  = {Field Life: particle life as a continuous field},
 year   = {2026},
 url    = {https://www.izhv.eu/field-life}
   }</pre>

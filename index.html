@@ -182,10 +182,10 @@ button.primary:hover{filter:brightness(1.08)}
    the compact controls floating on it. */
 .page{max-width:1040px; margin:0 auto; padding:22px 20px 160px;
   display:flex; flex-direction:column; gap:16px}
-/* Title on the left with its line under it, the shelf of worlds taking
-   whatever width is left. On a narrow screen the shelf wraps beneath. */
-header{display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap}
-.title{flex:0 0 auto; display:flex; flex-direction:column; gap:5px}
+/* Title left, subtitle pushed to the right of the same baseline, so it costs
+   the page no height at all. */
+header{display:flex; align-items:baseline; justify-content:space-between;
+  gap:14px; flex-wrap:wrap}
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
@@ -229,7 +229,9 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 /* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
    the browser page uses; object-fit crops them square here rather than
    generating a second set of images. */
-.strip{flex:1 1 320px; min-width:0; margin:0}
+/* The shelf belongs to the field under it, so it sits closer than the page's
+   own 16px flex gap would put it. The negative margin cancels most of that gap. */
+.strip{margin:0 0 -10px}
 .striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 4px}
 .striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
@@ -547,26 +549,25 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
 <div class="page">
   <header>
-    <div class="title">
-      <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
-      <div class="tag">particle life as a <b>continuous field</b></div>
-    </div>
-    <div class="strip" id="strip" hidden>
-      <div class="striphead">
-        <span class="ph">Worlds</span>
-        <span class="stripnote" id="stripnote"></span>
-      </div>
-      <div class="striprow">
-        <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
-        </button>
-        <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
-        <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
-        </button>
-      </div>
-    </div>
+    <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
+    <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
+
+<div class="strip" id="strip" hidden>
+  <div class="striphead">
+    <span class="ph">Worlds</span>
+    <span class="stripnote" id="stripnote"></span>
+  </div>
+  <div class="striprow">
+    <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+    </button>
+    <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+    <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+    </button>
+  </div>
+</div>
 
 <div class="app" id="app">
 

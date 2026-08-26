@@ -723,11 +723,13 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   <p>Each color is a scalar field over the grid: one number per cell, saying how much of that color
     sits there. Every cell of every color is updated on the GPU each frame.</p>
   <p>One step has two halves. First, each color's field is <b>convolved with its own kernel</b>.
-    A kernel is a small table of weights, one per distance, that stops at a fixed radius of a few
-    dozen cells. Convolving means: for every cell, add up that color's field over all cells within
-    the radius, each multiplied by the kernel's weight for its distance. The number that comes out
-    says how much of that color is nearby, counted the way the kernel says to count it. The default
-    kernel is negative on the cells close in and positive on a ring further out, so the sum is
+    A kernel gives every cell within a fixed radius &mdash; a few dozen cells &mdash; a weight, and
+    that weight depends only on how far the cell is from the middle. Two cells the same distance out
+    always get the same weight, so the whole kernel is really one curve read off against distance.
+    Convolving means: for every cell in the grid, add up that color's field over all the cells
+    around it inside the radius, each one multiplied by the weight for its distance. The number that
+    comes out says how much of that color is nearby, counted the way the kernel says to count it.
+    The default curve is negative near zero distance and positive out at a ring, so the sum is
     largest when the color forms a hollow shell at the ring's distance instead of a solid blob.</p>
   <p>The <b>interaction matrix</b> then mixes the colors. Entry <i>M[c][d]</i> is how strongly
     color <i>c</i> is pulled towards the amount of color <i>d</i> that its kernel just measured;

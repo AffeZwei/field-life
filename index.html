@@ -226,36 +226,38 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 /* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
    the browser page uses; object-fit crops them square here rather than
    generating a second set of images. */
-.strip{margin:10px 0 0}
-.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 6px}
+/* The shelf belongs to the field below it, so it sits closer than the page's
+   own 16px flex gap would put it. The negative margin cancels most of that gap. */
+.strip{margin:0 0 -10px}
+.striphead{display:flex; align-items:baseline; gap:10px; margin:0 0 4px}
 .striphead .ph{font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
   color:var(--ink2)}
 .stripnote{font:10.5px/1 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink2);
   opacity:.75}
 .striprail{
-  display:flex; gap:7px; overflow-x:auto; overflow-y:hidden;
-  padding:2px 2px 9px; scroll-snap-type:x proximity;
+  display:flex; gap:5px; overflow-x:auto; overflow-y:hidden;
+  padding:1px 1px 6px; scroll-snap-type:x proximity;
   scrollbar-width:thin; scrollbar-color:var(--line) transparent;
 }
 .striprail::-webkit-scrollbar{height:7px}
 .striprail::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
 .w-item{
   flex:0 0 auto; scroll-snap-align:start; position:relative;
-  width:62px; height:62px; padding:0; cursor:pointer;
+  width:46px; height:46px; padding:0; cursor:pointer;
   border:1px solid var(--line); border-radius:4px; overflow:hidden;
   background:#07090C; transition:border-color .12s ease;
 }
 .w-item img{width:100%; height:100%; display:block; object-fit:cover}
 .w-item b{
-  position:absolute; left:0; bottom:0; font:500 9px/1 "IBM Plex Mono", ui-monospace, monospace;
-  color:#DCE4E9; background:rgba(4,7,10,.72); padding:3px 4px; border-radius:0 3px 0 0;
+  position:absolute; left:0; bottom:0; font:500 8px/1 "IBM Plex Mono", ui-monospace, monospace;
+  color:#DCE4E9; background:rgba(4,7,10,.7); padding:2px 3px; border-radius:0 3px 0 0;
   font-variant-numeric:tabular-nums;
 }
 .w-item:hover{border-color:var(--ink2)}
 .w-item[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
 .w-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
-@media (pointer:coarse){ .w-item{width:72px; height:72px} }
+@media (pointer:coarse){ .w-item{width:56px; height:56px} }
 /* Built on / Cite this, as the earlier page had them: a two-column footer, a
    numbered reference list with the work named in bold, and a BibTeX block. */
 .foot{
@@ -535,6 +537,14 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
 
+<div class="strip" id="strip" hidden>
+  <div class="striphead">
+    <span class="ph">Worlds</span>
+    <span class="stripnote" id="stripnote"></span>
+  </div>
+  <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+</div>
+
 <div class="app" id="app">
 
   <canvas id="cv"></canvas>
@@ -708,14 +718,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <button data-tab="none" title="Hide the controls">Hide</button>
   </nav>
 
-</div>
-
-<div class="strip" id="strip" hidden>
-  <div class="striphead">
-    <span class="ph">Worlds</span>
-    <span class="stripnote" id="stripnote"></span>
-  </div>
-  <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
 </div>
 
 <section class="below">

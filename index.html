@@ -441,6 +441,8 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
    with a tab bar choosing which one is up, and the field keeps the screen. */
 .tabs{display:none}
 @media (max-width:760px), (pointer:coarse) and (max-width:900px){
+  /* Only the new-world button stays on the field; the rest moved out. */
+  .corner .iconly{display:none}
   .tabs{
     display:flex; position:absolute; left:0; right:0; bottom:0; z-index:7;
     background:color-mix(in srgb, var(--panel) 94%, transparent);
@@ -473,6 +475,69 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   .brand b{font-size:12px}
   #kstack{max-height:132px}
   .tctl{flex:1 1 130px}
+}
+
+/* On a phone the controls leave the field entirely. They used to be sheets
+   sliding over the simulation, which on a small screen meant the thing you were
+   adjusting was behind the thing you were adjusting it with. Out here they are
+   collapsed by default, so the page opens as the world and nothing else.
+   The dark token block is repeated because these are the simulation's controls
+   wherever they happen to be sitting. */
+.mctl{
+  display:none; margin:-10px 0 0; flex-direction:column; gap:0;
+  --panel:#0A0B0D; --panel2:#14171B; --ink:#E9E6E0; --ink2:#6B7076;
+  --line:#23272C; --line2:#181B1F;
+  --pos:#FF6B35; --neg:#3FB8AF;
+  --rowh:32px; --lab:62px;
+}
+.mbar{display:flex; align-items:center; gap:8px}
+#mtoggle{
+  display:flex; align-items:center; gap:7px; padding:9px 13px; cursor:pointer;
+  font:600 10.5px/1 "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing:.1em; text-transform:uppercase;
+  background:var(--panel); border:1px solid var(--line); border-radius:0 0 4px 4px;
+  border-top:0; color:var(--ink2);
+}
+#mtoggle[aria-expanded="true"]{color:var(--accent)}
+#mtoggle svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.7;
+  stroke-linecap:round}
+.msp{flex:1}
+.mpanels{
+  background:var(--panel); border:1px solid var(--line); border-top:0;
+  margin-top:-1px; display:flex; flex-direction:column;
+}
+/* A class rule with display beats the hidden attribute, so say so explicitly
+   or the collapsed state is collapsed in name only. */
+.mpanels[hidden]{display:none}
+/* Out here the panels are ordinary blocks, not sheets pinned to the field. */
+.mpanels .panel{
+  position:static; width:auto; max-width:none; min-width:0; transform:none;
+  max-height:none; overflow:visible; opacity:1; border:0; border-radius:0;
+  padding:7px 11px 11px; display:none; background:transparent;
+}
+.mpanels .dock{
+  position:static; transform:none; width:auto; max-width:none; border:0;
+  border-radius:0; padding:9px 11px; display:none; flex-wrap:wrap; gap:8px;
+  align-items:center; background:transparent;
+}
+.mpanels .tabs{
+  display:flex; position:static; border:0; border-bottom:1px solid var(--line2);
+  background:transparent; backdrop-filter:none; -webkit-backdrop-filter:none;
+  padding:0;
+}
+.mpanels .tabs button{
+  flex:1 1 0; height:40px; border:0; border-radius:0; background:transparent;
+  color:var(--ink2); font-size:9.5px; border-right:1px solid var(--line2);
+}
+.mpanels .tabs button:last-child{border-right:0}
+.mpanels .tabs button.on{color:var(--accent); box-shadow:inset 0 -2px 0 var(--accent)}
+.mctl.tab-world .pL{display:flex; flex-direction:column}
+.mctl.tab-rules .pR{display:flex; flex-direction:column}
+.mctl.tab-paint .dock{display:flex}
+/* After the base rule, not before it: an override that sits earlier in the
+   file than the thing it overrides never applies. */
+@media (max-width:760px), (pointer:coarse) and (max-width:900px){
+  .mctl{display:flex}
 }
 
 /* Kernel inspector. Fixed to the viewport, not to the rail: .kern clips its
@@ -730,6 +795,17 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <button data-tab="none" title="Hide the controls">Hide</button>
   </nav>
 
+</div>
+
+<div class="mctl" id="mctl">
+  <div class="mbar">
+    <button id="mtoggle" type="button" aria-expanded="false" aria-controls="mpanels">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg>
+      Controls
+    </button>
+    <span class="msp"></span>
+  </div>
+  <div class="mpanels" id="mpanels" hidden></div>
 </div>
 
 <section class="below">
@@ -3160,19 +3236,44 @@ function boot(){
   // which is up. On a desktop the same buttons still work, so a narrow window
   // and a narrow phone behave the same way.
   const TABS = ["world", "rules", "paint", "none"];
+  const mctl = $("mctl"), mpanels = $("mpanels"), mtoggle = $("mtoggle");
   function setTab(t){
-    TABS.forEach(x => app.classList.toggle("tab-" + x, x === t));
+    for(const host of [app, mctl]) TABS.forEach(x => host.classList.toggle("tab-" + x, x === t));
     for(const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === t);
   }
   for(const b of $("tabs").children)
     b.addEventListener("click", () => setTab(b.dataset.tab));
   setTab("world");
-  // A phone sheet is ~380px; two open sections do not fit in it, so on touch
-  // only the first of each panel starts open.
-  if(matchMedia("(pointer:coarse)").matches)
-    for(const panel of document.querySelectorAll(".panel"))
-      [...panel.querySelectorAll(":scope > .sec")].slice(1)
-        .forEach(s => s.removeAttribute("open"));
+
+  // On a phone the controls move out of the field and live under it, collapsed,
+  // because a sheet sliding over a small screen covers the very thing it is
+  // adjusting. The nodes move rather than being duplicated: one set of controls,
+  // one set of listeners, wherever it happens to be parented.
+  const MOVED = ["tabs", "panelL", "panelR", "dock"];
+  const small = matchMedia("(max-width:760px), (pointer:coarse) and (max-width:900px)");
+  let outside = null;
+  function relocate(){
+    const want = small.matches;
+    if(want === outside) return;
+    outside = want;
+    for(const id of MOVED) (want ? mpanels : app).appendChild($(id));
+    if(want){
+      // A phone shows one panel at a time; two open sections do not fit.
+      for(const panel of document.querySelectorAll(".panel"))
+        [...panel.querySelectorAll(":scope > .sec")].slice(1)
+          .forEach(x => x.removeAttribute("open"));
+    }else{
+      setOpen(false);
+    }
+  }
+  function setOpen(on){
+    mpanels.hidden = !on;
+    mtoggle.setAttribute("aria-expanded", String(on));
+  }
+  mtoggle.addEventListener("click", () => setOpen(mpanels.hidden));
+  small.addEventListener("change", relocate);
+  relocate();
+  setOpen(false);          // collapsed on arrival, so the page opens as the world
 
   // A slider shows how far along it is by filling its own track, so the value
   // reads at a glance without a number beside every one of them.

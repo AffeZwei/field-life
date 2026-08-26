@@ -532,8 +532,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   <!-- left: what the world is and how it looks -->
   <aside class="panel pL" id="panelL">
     <details class="sec" open><summary class="ph">World <span id="wsize"></span></summary>
-    <div class="row" id="rcard" hidden><label class="lab" for="rsel">Preset</label>
-      <select id="rsel" title="Load one of the bundled setups"></select></div>
     <div class="row"><label class="lab" for="grid">Res</label>
       <input id="grid" type="range" min="128" max="1536" step="64" value="512"
              title="Simulation resolution: cells down the short side of the screen. The long side gets proportionally more, so cells stay square. Rebuilds the world on release."><span class="val" id="gridv">512</span></div>
@@ -2664,46 +2662,6 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
-// Presets that ship with the page, as opposed to the ones you save yourself.
-// Served from a file, so a standalone copy of this HTML simply has none and
-// the card stays hidden rather than showing an error.
-async function loadPresetFile(){
-  let list = null;
-  try{
-    const res = await fetch("presets.json", { cache: "no-cache" });
-    if(res.ok) list = parseSetups(await res.text());
-  }catch(e){ list = null; }
-  if(!list || !list.length){
-    // A standalone copy has no file next to it, so fall back to a baked-in one.
-    const inline = document.getElementById("presets-inline");
-    if(inline) list = parseSetups(inline.textContent);
-  }
-  if(!list || !list.length) return;
-
-  const sel = $("rsel");
-  sel.innerHTML = "";
-  const first = document.createElement("option");
-  first.value = ""; first.textContent = "Choose a preset…";
-  sel.appendChild(first);
-  list.forEach((it, i) => {
-    const o = document.createElement("option");
-    o.value = String(i);
-    o.textContent = it.name + "  ·  " + it.cfg.C + "c " + it.cfg.N;
-    sel.appendChild(o);
-  });
-  sel.addEventListener("change", () => {
-    if(sel.value === "") return;          // the placeholder; +"" would index 0
-    const it = list[+sel.value];
-    if(!it) return;
-    if(!applyConfig(it.cfg)) status("“" + it.name + "” could not be loaded", true);
-    else status("Loaded “" + it.name + "”");
-  });
-  // The count used to sit in the Presets card heading; the placeholder option
-  // carries it now that the dropdown lives in the World card.
-  first.textContent = "Choose one of " + list.length + "\u2026";
-  $("rcard").hidden = false;
-}
-
 // The shelf of worlds under the field. Its manifest is optional: a standalone
 // copy of this page with no worlds.json beside it simply has no shelf.
 async function loadWorlds(){
@@ -3173,7 +3131,6 @@ function boot(){
   rebuildColors();
   S.holdUntil = performance.now() + 500;   // half a second of stillness, then life
   renderSetups();
-  loadPresetFile();
   loadWorlds();
 
   // A handle on the running simulation, for driving it from outside the page:

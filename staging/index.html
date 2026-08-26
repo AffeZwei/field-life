@@ -269,21 +269,18 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
   background:#1B1E22; color:#CFCBC4; vertical-align:1px; letter-spacing:.06em}
 @media (prefers-reduced-motion:reduce){ .tip{transition:none} }
 /* The one control that is worth interrupting the field for. */
-/* Above the field, not on it. The one control worth reaching for before you
-   have touched anything else, so it sits in the page rather than over the
-   world it replaces. */
-.above{display:flex; justify-content:flex-end; margin:0 0 7px}
+/* The one control worth interrupting the field for. */
 #roll{
-  display:flex; align-items:center; gap:6px; height:auto; padding:6px 11px;
-  font:600 10.5px/1 "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  letter-spacing:.09em; text-transform:uppercase; border-radius:3px;
-  background:var(--panel); border:1px solid var(--line); color:var(--ink2);
-  cursor:pointer; transition:color .13s ease, border-color .13s ease;
+  display:flex; align-items:center; gap:6px; height:auto; padding:5px 11px;
+  font-size:10.5px; letter-spacing:.09em; border-radius:2px;
+  background:var(--accent); border:1px solid var(--accent); color:#04080B;
+  font-weight:600; box-shadow:0 2px 10px rgba(0,0,0,.45);
+  opacity:.62; transition:opacity .13s ease;
 }
-#roll:hover{color:var(--accent); border-color:var(--accent)}
-#roll:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+#roll:hover{opacity:1}
 #roll svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6;
   stroke-linecap:round; stroke-linejoin:round}
+.app.naked #roll{opacity:0; pointer-events:none}
 @media (pointer:coarse){ #roll{padding:9px 14px; font-size:11px} }
 .corner{position:absolute; top:7px; right:9px; z-index:6; display:flex; gap:5px; align-items:center}
 .corner .iconly{background:transparent; border-color:transparent; color:#C6D4DA;
@@ -473,13 +470,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
 
-<div class="above">
-  <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
-    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
-    Generate new world
-  </button>
-</div>
-
 <div class="app" id="app">
 
   <canvas id="cv"></canvas>
@@ -491,6 +481,10 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </div>
 
   <div class="corner">
+    <button id="roll" title="A fresh interaction matrix, and a centre disc to start it from.">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 6.6A5.6 5.6 0 0 0 3.3 5.2M2.6 9.4a5.6 5.6 0 0 0 10.1 1.4"/><path d="M13.6 2.6v4h-4M2.4 13.4v-4h4"/></svg>
+      Generate new world
+    </button>
     <button id="shot" class="iconly" title="Save the field as a PNG" aria-label="Save a screenshot">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 5.2h2.6l1-1.7h5.6l1 1.7h2.6v7.6H1.6z"/><circle cx="8" cy="9" r="2.6"/></svg>
     </button>

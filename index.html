@@ -200,7 +200,9 @@ h1{
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
   display:flex; align-items:center; gap:9px;
 }
-h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
+/* Drawn rather than typed: the emoji is a different creature on every
+   platform, and on some it is not a jellyfish at all. */
+h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
 .tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
 .tag b{color:var(--ink); font-weight:500}
 .app{position:relative; width:100%; aspect-ratio:7/5; overflow:hidden;
@@ -245,15 +247,15 @@ h1 .jelly{font-size:.9em; -webkit-text-fill-color:initial}
 .stepper{
   flex:0 0 auto; width:21px; padding:0; cursor:pointer; align-self:stretch;
   margin-bottom:6px;                       /* clear the rail's scrollbar gutter */
-  /* Dark, like the tiles between them: on a pale page an arrow the colour of
-     the page is a shape you have to look for. These belong to the shelf. */
-  background:#0F161B; border:1px solid #29323A; border-radius:3px;
-  color:#9FB0BC; display:flex; align-items:center; justify-content:center;
-  transition:color .12s ease, border-color .12s ease, background .12s ease;
+  background:var(--well); border:1px solid var(--line); border-radius:3px;
+  color:var(--ink2); display:flex; align-items:center; justify-content:center;
+  transition:color .12s ease, border-color .12s ease;
 }
-.stepper:hover{background:#161F26; color:#fff; border-color:var(--accent)}
-.stepper:disabled{opacity:.34; cursor:default; color:#9FB0BC;
-  background:#0F161B; border-color:#29323A}
+.stepper:hover{color:var(--accent); border-color:var(--accent)}
+/* Dimmed, not faded out: at the end of the rail the arrow still has to read as
+   an arrow, or it just looks like a gap in the row. */
+.stepper:disabled{cursor:default; opacity:1; color:var(--ink2);
+  background:var(--well); border-color:var(--line); filter:saturate(0) opacity(.62)}
 .stepper svg{width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:1.8;
   stroke-linecap:round; stroke-linejoin:round}
 .striprail{
@@ -620,7 +622,30 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 
 <div class="page">
   <header>
-    <h1><span class="jelly" aria-hidden="true">&#129724;</span> Field Life</h1>
+    <h1><svg class="jelly" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="jbell" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F2A6C8"/>
+            <stop offset=".55" stop-color="#D97BAE"/>
+            <stop offset="1" stop-color="#B0609B"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke="#C86FA2" stroke-width="1.7" stroke-linecap="round">
+          <path d="M11 19c.6 3.2-.9 4.6-.3 7.6"/>
+          <path d="M14.6 20c.4 3.6.4 5.2-.8 8.2"/>
+          <path d="M18.2 20c-.3 3.6.2 5.2 1.4 8"/>
+          <path d="M21.6 19c-.5 3.2 1.1 4.5.8 7.4"/>
+        </g>
+        <path d="M16 3.4c6 0 10.2 4.4 10.2 9.8 0 2.6-.7 4.4-1.9 5.4-1.5 1.2-3.4.4-4.4-.6-1-1-2.4-1.2-3.9-1.2s-2.9.2-3.9 1.2c-1 1-2.9 1.8-4.4.6-1.2-1-1.9-2.8-1.9-5.4C5.8 7.8 10 3.4 16 3.4Z"
+              fill="url(#jbell)"/>
+        <ellipse cx="12.4" cy="9.6" rx="2.5" ry="1.7" fill="#FFF" opacity=".5"
+                 transform="rotate(-24 12.4 9.6)"/>
+        <g fill="#8E4A7E" opacity=".75">
+          <circle cx="12.2" cy="14.6" r="1.15"/>
+          <circle cx="16" cy="15.2" r="1.15"/>
+          <circle cx="19.8" cy="14.6" r="1.15"/>
+        </g>
+      </svg> Field Life</h1>
     <div class="tag">particle life as a <b>continuous field</b></div>
   </header>
 

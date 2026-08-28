@@ -233,8 +233,17 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
    generating a second set of images. */
 /* The shelf belongs to the field under it, so it sits closer than the page's
    own 16px flex gap would put it. The negative margin cancels most of that gap. */
-.strip{margin:0 0 -13px}
-.striprow{display:flex; align-items:stretch; gap:4px}
+.strip{margin:0 0 -13px; display:flex; flex-direction:column; gap:2px}
+/* Two shelves, not one rail: picking a world to run is a different act from
+   picking a creature to drop into an empty one, and the label on the left says
+   which is which without spending a heading row on it. */
+.shelf{display:flex; align-items:stretch; gap:7px}
+.shelflab{
+  flex:0 0 52px; align-self:center; text-align:right; padding-bottom:6px;
+  font:10px/1.2 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink3);
+  letter-spacing:.04em; user-select:none;
+}
+.striprow{display:flex; align-items:stretch; gap:4px; flex:1 1 auto; min-width:0}
 .stepper{
   flex:0 0 auto; width:21px; padding:0; cursor:pointer; align-self:stretch;
   margin-bottom:6px;                       /* clear the rail's scrollbar gutter */
@@ -618,14 +627,29 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
 <div class="strip" id="strip" hidden>
-  <div class="striprow">
-    <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
-    </button>
-    <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
-    <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
-    </button>
+  <div class="shelf" id="wshelf" hidden>
+    <span class="shelflab">worlds</span>
+    <div class="striprow">
+      <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+      <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="shelf" id="cshelf" hidden>
+    <span class="shelflab">creatures</span>
+    <div class="striprow">
+      <button class="stepper" id="critterprev" type="button" aria-label="Scroll creatures left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="critterrail" role="listbox" aria-label="Creatures cut out of those worlds"></div>
+      <button class="stepper" id="critternext" type="button" aria-label="Scroll creatures right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1534,6 +1558,7 @@ const S = {
   radMin: R_LO, radMax: R0, force: 90, repel: 6, beta: 3, noise: 0, steps: 1, expo: 2.2,
   seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
   seedMode: "disc",                   // whichever starting field you last asked for
+  seedPattern: null,                  // a saved creature, for seedMode "pattern"
   running: true, frame: 0, tick: 0,
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
@@ -1786,6 +1811,7 @@ function allocate(keep){
 // Resizing the world, or asking for a new one, refills it the way you last chose.
 function reseed(){
   if(S.seedMode === "masses" && S.seedMasses) return seedFromMasses(S.seedMasses);
+  if(S.seedMode === "pattern" && S.seedPattern) return seedFromPattern(S.seedPattern);
   (S.seedMode === "disc" ? seedDisc : seed)();
 }
 
@@ -1824,6 +1850,52 @@ const seedDisc = () => fillField(true);
 // -- the red the lizard's red adds up to, and so on -- and the whole task is
 // then where to put it. A disc rather than one lit cell because mass travels
 // one cell per step.
+// Put a whole field in place, one plane per colour, packed the way the texture
+// wants it. The seeds above make a field on the GPU; this one arrives ready.
+function writeRho(flat){
+  const buf = new Float32Array(S.NX*S.L*S.NY*4);
+  for(let c = 0; c < S.C; c++){
+    const l = c >> 2, k = c & 3;
+    for(let y = 0; y < S.NY; y++)
+      for(let x = 0; x < S.NX; x++)
+        buf[(y*S.NX*S.L + l*S.NX + x)*4 + k] = flat[c*S.NX*S.NY + y*S.NX + x];
+  }
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
+  S.tick = 0; mass0 = null;
+}
+
+// A creature rather than a field. The pattern is a small box of cells, one byte
+// per colour per cell: density is scale*(b/255)^2, squared so the thin halo a
+// creature carries survives the same eight bits as its very bright core. It is
+// laid down in the middle of an empty world, so the preset opens on exactly the
+// thing that was found rather than on a soup that might grow it again.
+function seedFromPattern(p){
+  if(!T.rhoA || !p || !p.data || !p.w || !p.h) return;
+  let bin;
+  try{ bin = atob(p.data); }catch(e){ return; }
+  if(bin.length < p.w*p.h*p.C) return;
+  const w = p.w, h = p.h, C = Math.min(S.C, p.C), s = (p.scale || 1)/(255*255);
+  const flat = new Float32Array(S.NX*S.NY*S.C);
+  const x0 = (S.NX - w) >> 1, y0 = (S.NY - h) >> 1;
+  const wrap = (v, n) => ((v % n) + n) % n;
+  for(let c = 0; c < C; c++)
+    for(let y = 0; y < h; y++){
+      const row = wrap(y0 + y, S.NY)*S.NX + c*S.NX*S.NY, src = (c*h + y)*w;
+      for(let x = 0; x < w; x++){
+        const v = bin.charCodeAt(src + x);
+        if(v) flat[row + wrap(x0 + x, S.NX)] = v*v*s;
+      }
+    }
+  writeRho(flat);
+  // A creature is a few dozen cells across in a world of hundreds. Open on it
+  // rather than on a speck: the HUD shows the zoom, and 0 puts it back to 1x.
+  S.zoom = Math.max(1, Math.min(8, Math.round(10*S.NY/Math.max(28, Math.max(w, h)*2.6))/10));
+  S.panU = S.panV = 0.5;
+  const hz = document.getElementById("hzoom");
+  if(hz) hz.textContent = S.zoom.toFixed(1) + "\u00d7";
+}
+
 function seedFromMasses(masses){
   if(!T.rhoA) return;
   const R = Math.min(S.NX, S.NY)*0.10, soft = 1.5;
@@ -2768,6 +2840,7 @@ function currentConfig(){
   const cfg = { seed: S.seed, mat: [...mat],
                 kernels: JSON.parse(JSON.stringify(kernels.slice(0, S.C))) };
   for(const k of SCALARS) cfg[k] = S[k];
+  if(S.seedPattern) cfg.seedPattern = S.seedPattern;
   return cfg;
 }
 
@@ -2787,6 +2860,7 @@ function applyConfig(c){
   for(const k of SCALARS) if(c[k] !== undefined) S[k] = c[k];
   S.seed = c.seed ?? S.seed;
   if(Array.isArray(c.seedMasses)) S.seedMasses = c.seedMasses.slice();
+  S.seedPattern = c.seedPattern || null;
   palette = makePalette(S.C, S.palette);
   mat = Float32Array.from(c.mat);
   uploadMatrix();
@@ -2911,21 +2985,40 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
-// The shelf of worlds under the field. Its manifest is optional: a standalone
-// copy of this page with no worlds.json beside it simply has no shelf.
-async function loadWorlds(){
-  let data = null;
-  try{
-    const res = await fetch("worlds.json", { cache: "no-cache" });
-    if(res.ok) data = await res.json();
-  }catch(e){ data = null; }
-  const items = data && Array.isArray(data.setups) ? data.setups : null;
-  if(!items || !items.length) return;
+// The shelf under the field, in two parts. A preset that starts from a field --
+// noise, or a disc -- is a world; one that starts from a saved body is a
+// creature, and it goes on its own rail. Both manifests are optional: a
+// standalone copy of this page with neither beside it simply has no shelf.
+const isCreature = it =>
+  it.cfg && (it.cfg.seedMode === "masses" || it.cfg.seedMode === "pattern");
 
-  const dir = (data.dir || "worlds").replace(/\/$/, "");
-  const rail = $("striprail");
+async function loadWorlds(){
+  const items = [];
+  for(const src of ["worlds.json", "../gliders.json"]){
+    let data = null;
+    try{
+      const res = await fetch(src, { cache: "no-cache" });
+      if(res.ok) data = await res.json();
+    }catch(e){ data = null; }
+    if(!data || !Array.isArray(data.setups)) continue;
+    // Thumbnails sit beside their own manifest, wherever that was fetched from.
+    const dir = src.slice(0, src.lastIndexOf("/") + 1)
+              + (data.dir || "worlds").replace(/\/$/, "");
+    for(const it of data.setups) items.push({ ...it, dir });
+  }
+  const worlds = items.filter(it => !isCreature(it));
+  const critters = items.filter(isCreature);
+  let any = false;
+  if(fillShelf(worlds, "wshelf", "striprail", "stripprev", "stripnext")) any = true;
+  if(fillShelf(critters, "cshelf", "critterrail", "critterprev", "critternext")) any = true;
+  if(any) $("strip").hidden = false;
+}
+
+function fillShelf(list, boxId, railId, prevId, nextId){
+  if(!list.length) return false;
+  const rail = $(railId);
   const frag = document.createDocumentFragment();
-  items.forEach((it, i) => {
+  list.forEach((it, i) => {
     const b = document.createElement("button");
     b.className = "w-item";
     b.type = "button";
@@ -2934,7 +3027,7 @@ async function loadWorlds(){
     b.dataset.i = String(i);
     b.dataset.tip = it.name + (it.tags ? " \u2014 " + it.tags.join(" ") : "");
     const img = document.createElement("img");
-    img.src = dir + "/" + it.thumb;
+    img.src = it.dir + "/" + it.thumb;
     img.alt = "";
     img.loading = "lazy";
     const n = document.createElement("b");
@@ -2943,10 +3036,10 @@ async function loadWorlds(){
     frag.appendChild(b);
   });
   rail.appendChild(frag);
-  $("strip").hidden = false;
+  $(boxId).hidden = false;
 
   // Arrows step by whole tiles, so a click never leaves one sliced in half.
-  const prev = $("stripprev"), next = $("stripnext");
+  const prev = $(prevId), next = $(nextId);
   const tileStep = () => {
     const one = rail.querySelector(".w-item");
     const w = one ? one.getBoundingClientRect().width + 5 : 51;
@@ -2966,9 +3059,11 @@ async function loadWorlds(){
   rail.addEventListener("click", e => {
     const b = e.target.closest(".w-item");
     if(!b) return;
-    const it = items[+b.dataset.i];
+    const it = list[+b.dataset.i];
     if(!it) return;
-    for(const o of rail.children) o.setAttribute("aria-selected", String(o === b));
+    // One thing runs at a time, whichever shelf it came off.
+    for(const o of document.querySelectorAll(".w-item"))
+      o.setAttribute("aria-selected", String(o === b));
     if(!applyConfig(it.cfg)){ status("\u201c" + it.name + "\u201d could not be loaded", true); return; }
     // A preset carries the rule, not the field it was measured on, so start it
     // from the same opening state the search gave it.
@@ -2976,6 +3071,7 @@ async function loadWorlds(){
     mass0 = null;
     status("Loaded \u201c" + it.name + "\u201d");
   });
+  return true;
 }
 
 function rebuildColors(){
@@ -3476,18 +3572,7 @@ function boot(){
       }
       return out;
     },
-    writeRho(flat){
-      const buf = new Float32Array(S.NX*S.L*S.NY*4);
-      for(let c = 0; c < S.C; c++){
-        const l = c >> 2, k = c & 3;
-        for(let y = 0; y < S.NY; y++)
-          for(let x = 0; x < S.NX; x++)
-            buf[(y*S.NX*S.L + l*S.NX + x)*4 + k] = flat[c*S.NX*S.NY + y*S.NX + x];
-      }
-      gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, S.NX*S.L, S.NY, gl.RGBA, gl.FLOAT, buf);
-      S.tick = 0; mass0 = null;
-    },
+    writeRho,
   };
 
   loadLizard().catch(() => {});     // the trained world, if it is sitting beside us

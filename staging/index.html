@@ -183,17 +183,20 @@ button.primary:hover{filter:brightness(1.08)}
   display:flex; flex-direction:column; gap:16px}
 /* Both on one baseline, so the subtitle costs the page no height. */
 header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+/* Not a flex row: a flex container takes its baseline from its first item, and
+   the first item here is a picture, so the subtitle beside the title was
+   sitting on the jellyfish's bottom edge instead of on the words. Inline flow
+   keeps the text's own baseline, and the jellyfish rides on it. */
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
-  display:flex; align-items:center; gap:9px;
 }
 /* Noto's jellyfish, inlined. The character renders as a different creature on
    every platform, and Apple's own artwork is licensed for Apple devices only,
    so it cannot ship in a web page. Of the sets that can, Noto's is the closest
    to it: translucent, blue, with tentacles that trail.
    Source: googlefonts/noto-emoji, U+1FABC, Apache 2.0. */
-h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
+h1 .jelly{width:1em; height:1em; overflow:visible; vertical-align:-.16em; margin-right:7px}
 .tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
 .tag b{color:var(--ink); font-weight:500}
 .app{position:relative; width:100%; aspect-ratio:7/5; overflow:hidden;
@@ -259,6 +262,7 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
   transition:color .12s ease, border-color .12s ease;
 }
 .stepper:hover{color:var(--accent); border-color:var(--accent)}
+.stepper[hidden]{display:none}
 /* Dimmed, not faded out: at the end of the rail the arrow still has to read as
    an arrow, or it just looks like a gap in the row. */
 .stepper:disabled{cursor:default; opacity:.72; color:var(--ink2);
@@ -3048,6 +3052,8 @@ function fillShelf(list, boxId, railId, prevId, nextId){
   };
   const syncArrows = () => {
     const max = rail.scrollWidth - rail.clientWidth;
+    // Nothing to scroll to, nothing to press. A narrow screen puts them back.
+    prev.hidden = next.hidden = max <= 1;
     prev.disabled = rail.scrollLeft <= 1;
     next.disabled = rail.scrollLeft >= max - 1;
   };
@@ -3587,7 +3593,7 @@ async function loadLizard(){
   if(!res.ok) throw new Error("no lizard.json");
   const cfg = await res.json();
   cfg.square = true;
-  cfg.blend = 5;
+  cfg.blend = 4;                    // the first three channels ARE the picture
   cfg.expo = 1;
   cfg.seedMode = "masses";
   if(!applyConfig(cfg)) throw new Error("lizard.json was rejected");

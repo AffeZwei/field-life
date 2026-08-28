@@ -234,9 +234,8 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
 /* The shelf belongs to the field under it, so it sits closer than the page's
    own 16px flex gap would put it. The negative margin cancels most of that gap. */
 /* Two shelves side by side, not one rail: picking a creature to drop into an
-   empty world is a different act from picking a world to run. The creatures are
-   the shorter shelf, so they sit on the left and the worlds take the room they
-   need for ten times as many. */
+   empty world is a different act from picking a world to run. The worlds take
+   the room they need for ten times as many; the creatures sit to their right. */
 .strip{margin:0 0 -13px; display:flex; gap:18px; align-items:flex-end}
 .shelf{display:flex; flex-direction:column; gap:2px; min-width:0}
 #cshelf{flex:1 1 0}
@@ -635,18 +634,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
 <div class="strip" id="strip" hidden>
-  <div class="shelf" id="cshelf" hidden>
-    <span class="shelflab">creatures</span>
-    <div class="striprow">
-      <button class="stepper" id="critterprev" type="button" aria-label="Scroll creatures left">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
-      </button>
-      <div class="striprail" id="critterrail" role="listbox" aria-label="Creatures cut out of those worlds"></div>
-      <button class="stepper" id="critternext" type="button" aria-label="Scroll creatures right">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
-      </button>
-    </div>
-  </div>
   <div class="shelf" id="wshelf" hidden>
     <span class="shelflab">worlds</span>
     <div class="striprow">
@@ -655,6 +642,18 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       </button>
       <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
       <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="shelf" id="cshelf" hidden>
+    <span class="shelflab">creatures</span>
+    <div class="striprow">
+      <button class="stepper" id="critterprev" type="button" aria-label="Scroll creatures left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="critterrail" role="listbox" aria-label="Creatures cut out of those worlds"></div>
+      <button class="stepper" id="critternext" type="button" aria-label="Scroll creatures right">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
       </button>
     </div>
@@ -1896,12 +1895,6 @@ function seedFromPattern(p){
       }
     }
   writeRho(flat);
-  // A creature is a few dozen cells across in a world of hundreds. Open on it
-  // rather than on a speck: the HUD shows the zoom, and 0 puts it back to 1x.
-  S.zoom = Math.max(1, Math.min(8, Math.round(10*S.NY/Math.max(28, Math.max(w, h)*2.6))/10));
-  S.panU = S.panV = 0.5;
-  const hz = document.getElementById("hzoom");
-  if(hz) hz.textContent = S.zoom.toFixed(1) + "\u00d7";
 }
 
 function seedFromMasses(masses){

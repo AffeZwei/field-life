@@ -1822,12 +1822,6 @@ function seedFromPattern(p){
       }
     }
   writeRho(flat);
-  // A creature is a few dozen cells across in a world of hundreds. Open on it
-  // rather than on a speck: the HUD shows the zoom, and 0 puts it back to 1x.
-  S.zoom = Math.max(1, Math.min(8, Math.round(10*S.NY/Math.max(28, Math.max(w, h)*2.6))/10));
-  S.panU = S.panV = 0.5;
-  const hz = document.getElementById("hzoom");
-  if(hz) hz.textContent = S.zoom.toFixed(1) + "\u00d7";
 }
 
 /* ---------------------------------------------------------------- one simulation step */

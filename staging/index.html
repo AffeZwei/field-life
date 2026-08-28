@@ -241,8 +241,12 @@ h1 .jelly{width:1em; height:1em; overflow:visible; vertical-align:-.16em; margin
    the room they need for ten times as many; the creatures sit to their right. */
 .strip{margin:0 0 -13px; display:flex; gap:18px; align-items:flex-end}
 .shelf{display:flex; flex-direction:column; gap:2px; min-width:0}
-#cshelf{flex:1 1 0}
-#wshelf{flex:1.7 1 0}
+/* The creature shelf asks for exactly the width its tiles need, so a handful
+   of them never comes with arrows; the worlds take everything left over, and
+   both shrink together when the window does. */
+#cshelf{flex:0 1 auto; min-width:0}
+#cshelf .striprail{flex:0 1 auto}
+#wshelf{flex:1 1 0; min-width:0}
 .shelflab{
   font:10px/1.2 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink3);
   letter-spacing:.04em; user-select:none; padding-left:2px;

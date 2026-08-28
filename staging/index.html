@@ -2994,7 +2994,7 @@ const isCreature = it =>
 
 async function loadWorlds(){
   const items = [];
-  for(const src of ["worlds.json", "../gliders.json"]){
+  for(const src of ["worlds.json", "gliders.json"]){
     let data = null;
     try{
       const res = await fetch(src, { cache: "no-cache" });

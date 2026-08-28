@@ -2862,23 +2862,18 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
-// The shelf under the field: the worlds a search turned up, then the creatures
-// cut out of them. Both manifests are optional -- a standalone copy of this
-// page with neither beside it simply has no shelf.
+// The shelf of worlds under the field. Its manifest is optional: a standalone
+// copy of this page with no worlds.json beside it simply has no shelf.
 async function loadWorlds(){
-  const items = [];
-  for(const src of ["worlds.json", "gliders.json"]){
-    let data = null;
-    try{
-      const res = await fetch(src, { cache: "no-cache" });
-      if(res.ok) data = await res.json();
-    }catch(e){ data = null; }
-    if(!data || !Array.isArray(data.setups)) continue;
-    const dir = (data.dir || "worlds").replace(/\/$/, "");
-    for(const it of data.setups) items.push({ ...it, dir });
-  }
-  if(!items.length) return;
+  let data = null;
+  try{
+    const res = await fetch("worlds.json", { cache: "no-cache" });
+    if(res.ok) data = await res.json();
+  }catch(e){ data = null; }
+  const items = data && Array.isArray(data.setups) ? data.setups : null;
+  if(!items || !items.length) return;
 
+  const dir = (data.dir || "worlds").replace(/\/$/, "");
   const rail = $("striprail");
   const frag = document.createDocumentFragment();
   items.forEach((it, i) => {
@@ -2890,7 +2885,7 @@ async function loadWorlds(){
     b.dataset.i = String(i);
     b.dataset.tip = it.name + (it.tags ? " \u2014 " + it.tags.join(" ") : "");
     const img = document.createElement("img");
-    img.src = it.dir + "/" + it.thumb;
+    img.src = dir + "/" + it.thumb;
     img.alt = "";
     img.loading = "lazy";
     const n = document.createElement("b");

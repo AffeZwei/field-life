@@ -2603,7 +2603,13 @@ const syncControls = () => SYNC.forEach(f => f());
 // four colours per texel -- and only when something changes, so the GPU just
 // reads it. Kernels are zero-mean (a flat world pulls nowhere) and unit-L1
 // (so Force means the same whatever shape you build).
-const KMAX = 15;                       // kernel half-width in working cells
+// Kernel half-width in working cells. Past this the kernel is built on a
+// halved copy of the field instead, which is cheap and, for a world whose
+// kernels were sampled at random, invisible. For one that was fitted -- the
+// lizard -- it is not: at 128 the mipped kernel loses the animal entirely,
+// while an exact one draws it. So the budget is wide enough to hold a fitted
+// world at twice its resolution.
+const KMAX = 26;
 
 // The ring the live site runs, written in this language: a wide gaussian minus
 // a tight one. w = sigma*sqrt(2) here, and the amplitudes are the peak ratio of

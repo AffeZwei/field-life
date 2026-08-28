@@ -233,17 +233,25 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
    generating a second set of images. */
 /* The shelf belongs to the field under it, so it sits closer than the page's
    own 16px flex gap would put it. The negative margin cancels most of that gap. */
-.strip{margin:0 0 -13px; display:flex; flex-direction:column; gap:2px}
-/* Two shelves, not one rail: picking a world to run is a different act from
-   picking a creature to drop into an empty one, and the label on the left says
-   which is which without spending a heading row on it. */
-.shelf{display:flex; align-items:stretch; gap:7px}
+/* Two shelves side by side, not one rail: picking a creature to drop into an
+   empty world is a different act from picking a world to run. The creatures are
+   the shorter shelf, so they sit on the left and the worlds take the room they
+   need for ten times as many. */
+.strip{margin:0 0 -13px; display:flex; gap:18px; align-items:flex-end}
+.shelf{display:flex; flex-direction:column; gap:2px; min-width:0}
+#cshelf{flex:1 1 0}
+#wshelf{flex:1.7 1 0}
 .shelflab{
-  flex:0 0 52px; align-self:center; text-align:right; padding-bottom:6px;
   font:10px/1.2 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink3);
-  letter-spacing:.04em; user-select:none;
+  letter-spacing:.04em; user-select:none; padding-left:2px;
 }
-.striprow{display:flex; align-items:stretch; gap:4px; flex:1 1 auto; min-width:0}
+.striprow{display:flex; align-items:stretch; gap:4px; min-width:0}
+/* Side by side needs width. On a narrow screen they go back to one over the
+   other rather than shrinking to two windows a tile and a half wide. */
+@media (max-width:760px){
+  .strip{display:block}
+  .shelf + .shelf{margin-top:4px}
+}
 .stepper{
   flex:0 0 auto; width:21px; padding:0; cursor:pointer; align-self:stretch;
   margin-bottom:6px;                       /* clear the rail's scrollbar gutter */
@@ -627,18 +635,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
 <div class="strip" id="strip" hidden>
-  <div class="shelf" id="wshelf" hidden>
-    <span class="shelflab">worlds</span>
-    <div class="striprow">
-      <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
-      </button>
-      <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
-      <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
-      </button>
-    </div>
-  </div>
   <div class="shelf" id="cshelf" hidden>
     <span class="shelflab">creatures</span>
     <div class="striprow">
@@ -647,6 +643,18 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       </button>
       <div class="striprail" id="critterrail" role="listbox" aria-label="Creatures cut out of those worlds"></div>
       <button class="stepper" id="critternext" type="button" aria-label="Scroll creatures right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="shelf" id="wshelf" hidden>
+    <span class="shelflab">worlds</span>
+    <div class="striprow">
+      <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+      <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
       </button>
     </div>
@@ -3574,8 +3582,6 @@ function boot(){
     },
     writeRho,
   };
-
-  loadLizard().catch(() => {});     // the trained world, if it is sitting beside us
 
   requestAnimationFrame(frame);
 }

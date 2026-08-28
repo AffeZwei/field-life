@@ -1890,15 +1890,20 @@ function seedFromPattern(p){
   let bin;
   try{ bin = atob(p.data); }catch(e){ return; }
   if(bin.length < p.w*p.h*p.C) return;
-  const w = p.w, h = p.h, C = Math.min(S.C, p.C), s = (p.scale || 1)/(255*255);
+  const C = Math.min(S.C, p.C), s = (p.scale || 1)/(255*255);
+  // `cells` is how many lattice cells one cell of the pattern covers now: a
+  // creature cut at one resolution is drawn bigger, not finer, at another, so
+  // it stays the same creature.
+  const z = Math.max(1, Math.round(p.cells || 1));
+  const w = p.w*z, h = p.h*z;
   const flat = new Float32Array(S.NX*S.NY*S.C);
   const x0 = (S.NX - w) >> 1, y0 = (S.NY - h) >> 1;
   const wrap = (v, n) => ((v % n) + n) % n;
   for(let c = 0; c < C; c++)
     for(let y = 0; y < h; y++){
-      const row = wrap(y0 + y, S.NY)*S.NX + c*S.NX*S.NY, src = (c*h + y)*w;
+      const row = wrap(y0 + y, S.NY)*S.NX + c*S.NX*S.NY, src = (c*p.h + ((y/z) | 0))*p.w;
       for(let x = 0; x < w; x++){
-        const v = bin.charCodeAt(src + x);
+        const v = bin.charCodeAt(src + ((x/z) | 0));
         if(v) flat[row + wrap(x0 + x, S.NX)] = v*v*s;
       }
     }
@@ -3207,9 +3212,25 @@ function boot(){
   $("grid").addEventListener("input", e => { $("gridv").textContent = num(e.target.value); });
   $("chan").addEventListener("input", e => { $("chanv").textContent = e.target.value; });
   $("chan").addEventListener("change", e => { S.C = +e.target.value; rebuildColors(); });
+  // Resolution is how finely the world is drawn, not how big it is. A reach of
+  // a tenth of the world has to stay a tenth of the world when the lattice
+  // doubles, and a seed spread over four times as many cells has to carry four
+  // times the mass to keep its density -- otherwise the same numbers describe a
+  // different world and whatever was living in it is lost.
   $("grid").addEventListener("change", e => {
+    const was = S.N;
     S.N = +e.target.value; $("gridv").textContent = num(S.N);
-    allocate(); uploadKernels(); buildKernelUI(); mass0 = null;
+    const k = S.N/was;
+    if(k !== 1){
+      S.radMin *= k; S.radMax *= k;
+      for(const kern of kernels) kern.R *= k;
+      if(S.seedMasses) S.seedMasses = S.seedMasses.map(m => m*k*k);
+      if(S.seedPattern) S.seedPattern = { ...S.seedPattern, cells: (S.seedPattern.cells || 1)*k };
+    }
+    allocate();                                   // the new lattice, and a new field on it
+    for(const kern of kernels) kern.R = Math.min(kern.R, radiusCap());
+    S.radMin = Math.min(S.radMin, radiusCap()); S.radMax = Math.min(S.radMax, radiusCap());
+    uploadKernels(); buildKernelUI(); syncControls(); mass0 = null;
   });
   $("play").addEventListener("click", e => {
     S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";

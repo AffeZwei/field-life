@@ -713,7 +713,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
       <button id="disc" title="Fill a single circle in the middle, leaving the rest empty">Circle</button>
       <button id="reclear" title="Clear every color out of the world">Empty</button>
-      <button id="lizard" title="Load the trained world and grow it from its seed">Lizard</button>
     </div>
 
     </details>
@@ -3250,7 +3249,6 @@ function boot(){
   $("reseed").addEventListener("click", () => { S.seedMode = "noise"; reseed(); mass0 = null; });
   $("disc").addEventListener("click", () => { S.seedMode = "disc"; reseed(); mass0 = null; });
   $("reclear").addEventListener("click", () => $("clear").click());
-  $("lizard").addEventListener("click", () => loadLizard());
   $("resample").addEventListener("click", () => resampleMatrix((Math.random()*1e6) | 0));
   $("cppn").addEventListener("click", () => cppnMatrix((Math.random()*1e6) | 0));
   slider("kterms", "kterms"); slider("kwidth", "kwidth");
@@ -3622,26 +3620,6 @@ function boot(){
   };
 
   requestAnimationFrame(frame);
-}
-
-// Load the trained preset and put its seed in the middle. The grid is pinned
-// square because that is the torus it was trained on, and the view is switched
-// to the raw RGB read-out because the first three channels ARE the picture.
-async function loadLizard(){
-  const res = await fetch("lizard.json", { cache: "no-cache" });
-  if(!res.ok) throw new Error("no lizard.json");
-  const cfg = await res.json();
-  cfg.square = true;
-  cfg.blend = 4;                    // the first three channels ARE the picture
-  cfg.expo = 1;
-  cfg.seedMode = "masses";
-  if(!applyConfig(cfg)) throw new Error("lizard.json was rejected");
-  allocate();                       // the square lattice is a new lattice
-  reseed();
-  S.holdUntil = performance.now() + 400;
-  S.running = true;
-  const btn = document.getElementById("play");
-  if(btn) btn.textContent = "Pause";
 }
 
 addEventListener("error", e => {

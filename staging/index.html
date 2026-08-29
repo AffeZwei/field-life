@@ -3165,6 +3165,11 @@ function frameBody(){
         for(let i = 0; i < S.steps; i++) step();
       stepsInWindow += owed*S.steps;
     }
+  }else{
+    // A world that is not advancing owes nothing. Without this, time spent
+    // paused counts as arrears and pressing Run takes the whole burst at once,
+    // which looks like a creature skipping the start of its own growth.
+    lastStepT = tNow;
   }
   render();
   // The drawing buffer is not preserved, so a screenshot has to be taken here,

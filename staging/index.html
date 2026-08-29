@@ -707,7 +707,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
     <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
-    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. 60 runs as fast as the display will go; turn it down to watch a pattern form. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="60" step="1" value="60"><span class="val" id="fpsv">60</span></div>
+    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. Turn it down to watch a pattern form; past the display's own rate the world takes several steps per frame to keep up. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="240" step="1" value="60"><span class="val" id="fpsv">60</span></div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
@@ -3114,7 +3114,8 @@ function rebuildColors(){
 
 /* ---------------------------------------------------------------- loop */
 let lastT = performance.now(), fpsAcc = 0, fpsN = 0, mass0 = null, painting = null;
-let lastStepT = 0;                    // when the world last advanced, for the Rate cap
+let lastStepT = 0;                    // when the world last advanced, for the FPS cap
+let stepsInWindow = 0;                // world advances since the readout last spoke
 let massWait = 60;   // frames since the last completed mass read
 let frameErr = 0;
 function frame(){
@@ -3149,10 +3150,21 @@ function frameBody(){
   // the draw instead would make panning and painting judder at low rates, and
   // the point is to watch a pattern form, not to watch the page struggle.
   const tNow = performance.now();
-  const due = S.fps >= 60 || tNow - lastStepT >= 1000/Math.max(S.fps, 0.1);
-  if(S.running && tNow >= S.holdUntil && due){
-    lastStepT = tNow;
-    for(let i = 0; i < S.steps; i++) step();
+  if(S.running && tNow >= S.holdUntil){
+    const per = 1000/Math.max(S.fps, 0.1);
+    if(!lastStepT) lastStepT = tNow;
+    // How many advances are owed since the last one. Below the display rate
+    // that is nought or one; above it, several, which is how a rate faster than
+    // the screen is reached at all. Owing more than a few means the machine
+    // cannot keep up, and catching up on all of it would only make it worse.
+    let owed = Math.min(8, Math.floor((tNow - lastStepT)/per));
+    if(owed > 0){
+      lastStepT += owed*per;
+      if(tNow - lastStepT > 250) lastStepT = tNow;      // arrears are forgiven, not banked
+      for(let k = 0; k < owed; k++)
+        for(let i = 0; i < S.steps; i++) step();
+      stepsInWindow += owed*S.steps;
+    }
   }
   render();
   // The drawing buffer is not preserved, so a screenshot has to be taken here,
@@ -3161,7 +3173,13 @@ function frameBody(){
 
   const now = performance.now();
   fpsAcc += now - lastT; fpsN++; lastT = now;
-  if(fpsN >= 20){ $("hfps").textContent = (1000/(fpsAcc/fpsN)).toFixed(0); fpsAcc = 0; fpsN = 0; }
+  // What the number counts is the world advancing, which is what FPS sets --
+  // not how often the page redraws, which is the display's business and was
+  // reading 120 on a 120Hz screen with the world capped at 30.
+  if(fpsN >= 20){
+    $("hfps").textContent = (stepsInWindow*1000/Math.max(fpsAcc, 1)).toFixed(0);
+    fpsAcc = 0; fpsN = 0; stepsInWindow = 0;
+  }
   $("hstep").textContent = S.tick;
 
   S.frame++;

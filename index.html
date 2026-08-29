@@ -230,6 +230,9 @@ h1 .jelly{width:1em; height:1em; overflow:visible; vertical-align:-.16em; margin
   font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
   margin:0 0 10px}
 .below p{margin:0 0 10px}
+/* A caption under the field, before the writing starts: where the thing lives. */
+.source{font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:11px;
+  letter-spacing:.02em; color:var(--ink3)}
 .below b{color:var(--ink); font-weight:500}
 /* A shelf of worlds under the field. The thumbnails are the same 7:5 frames
    the browser page uses; object-fit crops them square here rather than
@@ -858,6 +861,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
 </div>
 
 <section class="below">
+  <p class="source">One HTML file, kernels and all &mdash;
+    <a href="https://github.com/ichko/field-life">the source is on GitHub</a>.</p>
   <h2>How it works</h2>
   <p>Each color is a scalar field over the grid: one number per cell, saying how much of that color
     sits there. Every cell of every color is updated on the GPU each frame.</p>

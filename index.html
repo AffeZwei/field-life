@@ -183,17 +183,20 @@ button.primary:hover{filter:brightness(1.08)}
   display:flex; flex-direction:column; gap:16px}
 /* Both on one baseline, so the subtitle costs the page no height. */
 header{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+/* Not a flex row: a flex container takes its baseline from its first item, and
+   the first item here is a picture, so the subtitle beside the title was
+   sitting on the jellyfish's bottom edge instead of on the words. Inline flow
+   keeps the text's own baseline, and the jellyfish rides on it. */
 h1{
   font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:700;
   font-size:clamp(24px,3.2vw,33px); letter-spacing:-.035em; margin:0; text-wrap:balance;
-  display:flex; align-items:center; gap:9px;
 }
 /* Noto's jellyfish, inlined. The character renders as a different creature on
    every platform, and Apple's own artwork is licensed for Apple devices only,
    so it cannot ship in a web page. Of the sets that can, Noto's is the closest
    to it: translucent, blue, with tentacles that trail.
    Source: googlefonts/noto-emoji, U+1FABC, Apache 2.0. */
-h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
+h1 .jelly{width:1em; height:1em; overflow:visible; vertical-align:-.16em; margin-right:7px}
 .tag{color:var(--ink2); font-size:12px; letter-spacing:.02em}
 .tag b{color:var(--ink); font-weight:500}
 .app{position:relative; width:100%; aspect-ratio:7/5; overflow:hidden;
@@ -233,8 +236,28 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
    generating a second set of images. */
 /* The shelf belongs to the field under it, so it sits closer than the page's
    own 16px flex gap would put it. The negative margin cancels most of that gap. */
-.strip{margin:0 0 -13px}
-.striprow{display:flex; align-items:stretch; gap:4px}
+/* Two shelves side by side, not one rail: picking a creature to drop into an
+   empty world is a different act from picking a world to run. The worlds take
+   the room they need for ten times as many; the creatures sit to their right. */
+.strip{margin:0 0 -13px; display:flex; gap:18px; align-items:flex-end}
+.shelf{display:flex; flex-direction:column; gap:2px; min-width:0}
+/* The creature shelf asks for exactly the width its tiles need, so a handful
+   of them never comes with arrows; the worlds take everything left over, and
+   both shrink together when the window does. */
+#cshelf{flex:0 1 auto; min-width:0}
+#cshelf .striprail{flex:0 1 auto}
+#wshelf{flex:1 1 0; min-width:0}
+.shelflab{
+  font:10px/1.2 "IBM Plex Mono", ui-monospace, monospace; color:var(--ink3);
+  letter-spacing:.04em; user-select:none; padding-left:2px;
+}
+.striprow{display:flex; align-items:stretch; gap:4px; min-width:0}
+/* Side by side needs width. On a narrow screen they go back to one over the
+   other rather than shrinking to two windows a tile and a half wide. */
+@media (max-width:760px){
+  .strip{display:block}
+  .shelf + .shelf{margin-top:4px}
+}
 .stepper{
   flex:0 0 auto; width:21px; padding:0; cursor:pointer; align-self:stretch;
   margin-bottom:6px;                       /* clear the rail's scrollbar gutter */
@@ -243,6 +266,7 @@ h1 .jelly{width:1em; height:1em; flex:0 0 auto; overflow:visible}
   transition:color .12s ease, border-color .12s ease;
 }
 .stepper:hover{color:var(--accent); border-color:var(--accent)}
+.stepper[hidden]{display:none}
 /* Dimmed, not faded out: at the end of the rail the arrow still has to read as
    an arrow, or it just looks like a gap in the row. */
 .stepper:disabled{cursor:default; opacity:.72; color:var(--ink2);
@@ -618,14 +642,29 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
   </header>
 
 <div class="strip" id="strip" hidden>
-  <div class="striprow">
-    <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
-    </button>
-    <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
-    <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
-    </button>
+  <div class="shelf" id="wshelf" hidden>
+    <span class="shelflab">worlds</span>
+    <div class="striprow">
+      <button class="stepper" id="stripprev" type="button" aria-label="Scroll worlds left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="striprail" role="listbox" aria-label="Worlds found by search"></div>
+      <button class="stepper" id="stripnext" type="button" aria-label="Scroll worlds right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="shelf" id="cshelf" hidden>
+    <span class="shelflab">creatures</span>
+    <div class="striprow">
+      <button class="stepper" id="critterprev" type="button" aria-label="Scroll creatures left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2.5 4.5 8l5.5 5.5"/></svg>
+      </button>
+      <div class="striprail" id="critterrail" role="listbox" aria-label="Creatures cut out of those worlds"></div>
+      <button class="stepper" id="critternext" type="button" aria-label="Scroll creatures right">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5 11.5 8 6 13.5"/></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -667,6 +706,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="play" class="primary" title="Pause or resume">Pause</button>
       <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
+    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. Turn it down to watch a pattern form; past the display's own rate the world takes several steps per frame to keep up. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="240" step="1" value="120"><span class="val" id="fpsv">120</span></div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
@@ -682,7 +723,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" title="Dislike of crowding. Pushes mass out of cells that are already full." type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
     <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbor. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
     <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" title="Jitter added to the affinity. Lets shapes drift off the grid axes." type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
-    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
     <div class="row"><label class="lab" for="inter">Law</label><select id="inter" title="Built-in interaction shape, when no kernel is designed">
       <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
     </select></div>
@@ -693,6 +733,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="blend">Blend</label><select id="blend" title="How overlapping colors combine">
       <option value="0">Dominant</option><option value="1">Soft</option>
       <option value="2">Additive</option><option value="3">Winner</option>
+      <option value="4">RGB</option>
+      <option value="5">RGB first</option>
     </select></div>
     <div class="row"><label class="lab" for="expo">Expo</label><input id="expo" type="range" min="0.2" max="6" step="0.1" value="2.2" title="Display brightness only"><span class="val" id="expov">2.2</span></div>
     <div class="row"><label class="lab" for="pixels">Pixels</label>
@@ -1391,25 +1433,54 @@ void main(){
   // Snapping the blend weights to 0 or 1 turns the same bilinear fetch into a
   // nearest one, so zooming in shows the lattice cells as they really are.
   if(uSmooth < 0.5) f = floor(f + 0.5);
+  // Blend 4: the first three channels ARE red, green and blue. No palette, no
+  // tone map, no lifted background -- what is on screen is the density itself,
+  // which is the only way to compare it against a picture.
+  if(uBlend == 4){
+    vec4 v0 = mix(mix(cell(0,i0.x,i0.y),   cell(0,i0.x+1,i0.y),   f.x),
+                  mix(cell(0,i0.x,i0.y+1), cell(0,i0.x+1,i0.y+1), f.x), f.y);
+    oC = vec4(clamp(v0.rgb*uExp, 0.0, 1.0), 1.0);
+    return;
+  }
   // Four ways to turn several densities into one colour. Straight addition
   // washes six channels out to grey, so the default takes hue from whichever
   // color dominates and brightness from the total mass present.
   vec3 hue = vec3(0.0), add = vec3(0.0), best = vec3(0.0);
-  float wsum = 0.0, total = 0.0, top = -1.0;
+  // ...and the same sums again over the channels PAST the first three, plus
+  // the first three kept raw, so blend 5 can put one on top of the other.
+  vec3 hid = vec3(0.0), vis = vec3(0.0);
+  float wsum = 0.0, total = 0.0, top = -1.0, hidW = 0.0, hidT = 0.0;
   for(int l = 0; l < uL; l++){
     vec4 v = mix(mix(cell(l,i0.x,i0.y),   cell(l,i0.x+1,i0.y),   f.x),
                  mix(cell(l,i0.x,i0.y+1), cell(l,i0.x+1,i0.y+1), f.x), f.y);
     for(int k = 0; k < 4; k++){
-      if(l*4 + k >= uC) break;
+      int c = l*4 + k;
+      if(c >= uC) break;
       float m = max(v[k], 0.0);
-      vec3 col = uPal[l*4 + k];
+      vec3 col = uPal[c];
       float w = uBlend == 1 ? m : m*m;
       total += m; wsum += w; hue += w*col; add += m*col;
       if(m > top){ top = m; best = col; }
+      if(c == 0) vis.r = m;
+      else if(c == 1) vis.g = m;
+      else if(c == 2) vis.b = m;
+      else { hidW += m*m; hid += m*m*col; hidT += m; }
     }
   }
   float a = 1.0 - exp(-total*uExp);
-  vec3 rgb = uBlend == 2 ? vec3(1.0) - exp(-add*uExp)
+  // Blend 5. The first three channels are the picture and are drawn as
+  // themselves; everything else is drawn as it would be under Dominant and
+  // screened in underneath at a fraction of its strength. Read as RGB alone a
+  // world looks like the whole of its state, which it is not -- the shape sits
+  // inside a much larger scaffold of hidden mass. Blended flat, that scaffold
+  // drowns it. This keeps the picture legible and what holds it up visible.
+  // Screen rather than addition: two bright layers added clip to white and
+  // lose both, where screen keeps the brighter of the two readable.
+  vec3 back = (hid/max(hidW, 1e-12))*(1.0 - exp(-hidT*uExp));
+  vec3 over = vec3(1.0) - (vec3(1.0) - clamp(vis*uExp, 0.0, 1.0))
+                        *(vec3(1.0) - back*0.42);
+  vec3 rgb = uBlend == 5 ? over
+           : uBlend == 2 ? vec3(1.0) - exp(-add*uExp)
            : uBlend == 3 ? best*a
            : (hue/max(wsum, 1e-12))*a;
   oC = vec4(rgb + vec3(0.016, 0.024, 0.040), 1.0);
@@ -1502,6 +1573,9 @@ const S = {
   seed: (Math.random()*1e6) | 0,      // a different world every time the page opens
   seedMode: "disc",                   // whichever starting field you last asked for
   seedPattern: null,                  // a saved creature, for seedMode "pattern"
+  seedDisc: 0,                        // seed radius in cells, 0 = a tenth of the world
+  paletteKept: false,                 // you picked a colour map; presets leave it alone
+  blendKept: false,                   // and how colours combine, once you have chosen
   running: true, frame: 0, tick: 0,
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
@@ -1672,6 +1746,9 @@ function mipFor(r, stencil){
 // more cells so a cell is square and the world covers the canvas exactly once.
 // Rounded to a multiple of 8 so the pyramid still has halvings to give.
 function sizeGrid(){
+  // A world trained on a square torus has to run on one: the lattice normally
+  // follows the canvas aspect, and a wide canvas would stretch it.
+  if(S.square){ S.NX = S.NY = S.N; return; }
   const w = cv.clientWidth || cv.width || 1, ht = cv.clientHeight || cv.height || 1;
   const asp = w/ht, Q = 8, snap = v => Math.max(Q, Math.round(v/Q)*Q);
   S.NX = asp >= 1 ? snap(S.N*asp) : S.N;
@@ -1750,6 +1827,7 @@ function allocate(keep){
 
 // Resizing the world, or asking for a new one, refills it the way you last chose.
 function reseed(){
+  if(S.seedMode === "masses" && S.seedMasses) return seedFromMasses(S.seedMasses);
   if(S.seedMode === "pattern" && S.seedPattern) return seedFromPattern(S.seedPattern);
   (S.seedMode === "disc" ? seedDisc : seed)();
 }
@@ -1784,6 +1862,11 @@ function fillField(disc){
 const seed = () => fillField(false);
 const seedDisc = () => fillField(true);
 
+// Seed a soft central disc holding an EXACT mass in each channel. MaCE only
+// moves mass, so a trained world has to be handed the mass its picture costs
+// -- the red the lizard's red adds up to, and so on -- and the whole task is
+// then where to put it. A disc rather than one lit cell because mass travels
+// one cell per step.
 // Put a whole field in place, one plane per colour, packed the way the texture
 // wants it. The seeds above make a field on the GPU; this one arrives ready.
 function writeRho(flat){
@@ -1809,19 +1892,52 @@ function seedFromPattern(p){
   let bin;
   try{ bin = atob(p.data); }catch(e){ return; }
   if(bin.length < p.w*p.h*p.C) return;
-  const w = p.w, h = p.h, C = Math.min(S.C, p.C), s = (p.scale || 1)/(255*255);
+  const C = Math.min(S.C, p.C), s = (p.scale || 1)/(255*255);
+  // `cells` is how many lattice cells one cell of the pattern covers now: a
+  // creature cut at one resolution is drawn bigger, not finer, at another, so
+  // it stays the same creature.
+  const z = Math.max(1, Math.round(p.cells || 1));
+  const w = p.w*z, h = p.h*z;
   const flat = new Float32Array(S.NX*S.NY*S.C);
   const x0 = (S.NX - w) >> 1, y0 = (S.NY - h) >> 1;
   const wrap = (v, n) => ((v % n) + n) % n;
   for(let c = 0; c < C; c++)
     for(let y = 0; y < h; y++){
-      const row = wrap(y0 + y, S.NY)*S.NX + c*S.NX*S.NY, src = (c*h + y)*w;
+      const row = wrap(y0 + y, S.NY)*S.NX + c*S.NX*S.NY, src = (c*p.h + ((y/z) | 0))*p.w;
       for(let x = 0; x < w; x++){
-        const v = bin.charCodeAt(src + x);
+        const v = bin.charCodeAt(src + ((x/z) | 0));
         if(v) flat[row + wrap(x0 + x, S.NX)] = v*v*s;
       }
     }
   writeRho(flat);
+}
+
+function seedFromMasses(masses){
+  if(!T.rhoA) return;
+  // The seed is the size it was fitted at, in cells -- a tenth of the world by
+  // default, but pinned by seedDisc when a world says so, so the same creature
+  // can be grown on a bigger torus instead of a bigger creature.
+  const R = S.seedDisc || Math.min(S.NX, S.NY)*0.10, soft = 1.5;
+  const w = S.NX*S.L, px = new Float32Array(w*S.NY*4);
+  const disc = new Float64Array(S.NX*S.NY);
+  let sum = 0;
+  for(let y = 0; y < S.NY; y++){
+    for(let x = 0; x < S.NX; x++){
+      const d = Math.hypot(y - (S.NY - 1)/2, x - (S.NX - 1)/2);
+      let e = Math.min(1, Math.max(0, (R - d)/soft));
+      e = e*e*(3 - 2*e);
+      disc[y*S.NX + x] = e; sum += e;
+    }
+  }
+  for(let c = 0; c < S.C; c++){
+    const per = (masses[c] || 0)/Math.max(sum, 1e-9);
+    for(let y = 0; y < S.NY; y++)
+      for(let x = 0; x < S.NX; x++)
+        px[(y*w + (c >> 2)*S.NX + x)*4 + (c & 3)] = per*disc[y*S.NX + x];
+  }
+  gl.bindTexture(gl.TEXTURE_2D, T.rhoA);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, S.NY, gl.RGBA, gl.FLOAT, px);
+  S.tick = 0; mass0 = null;
 }
 
 /* ---------------------------------------------------------------- one simulation step */
@@ -2175,7 +2291,7 @@ function setMask(v){
 // outside the disc are left unpainted, so the kernel's real shape is visible.
 function paintKernel(cv2, c, KR, cell, gap, css){
   const K = 2*KR + 1;
-  const k = bakeKernel(kernels[c], KR);
+  const k = bakeKernel(kernels[c], KR, KR);
   let mx = 1e-9;
   for(const v of k) mx = Math.max(mx, Math.abs(v));
   const dpr = Math.min(2, window.devicePixelRatio || 1), px = K*cell;
@@ -2526,8 +2642,16 @@ function vnoise2(x, y, freq, seed){
 }
 
 // Build one colour's kernel as a KxK grid of weights.
-function bakeKernel(k, KR){
+// KR is the grid this is baked on; RR is the kernel's REACH on that grid, in
+// cells. They used to be the same number, which meant a short-reach colour was
+// baked on a smaller grid and pasted into the middle -- so its reach was a
+// resolution, quantised by a round(), and it lost detail for no reason. Baking
+// every colour on the shared grid and letting the reach be a plain radial
+// scale is both sharper and continuous, and continuity is what lets a reach be
+// fitted rather than only chosen.
+function bakeKernel(k, KR, RR){
   const K = 2*KR + 1, out = new Float32Array(K*K);
+  RR = RR || KR;
 
   // A stencil KR cells across cannot carry detail finer than about two cells.
   // Sampled kernels routinely ask for narrower than that -- widths go down to
@@ -2537,8 +2661,13 @@ function bakeKernel(k, KR){
   // built-in force law in FS_FORCE already applies:
   //   1. widen any term below what this KR can represent, and
   //   2. sample every cell on a 3x3 sub-grid rather than at its centre.
-  const wmin = 2.0/KR;
-  const terms = (k.terms || []).map(t => ({ a: t.a, r: t.r, w: Math.max(t.w, wmin) }));
+  // A lobe of relative width w spans w*RR cells, so the width the stencil can
+  // no longer resolve is 2/RR -- set by the kernel's reach, not by the grid it
+  // is baked on. Capped, so a very short reach cannot demand a width wider
+  // than the disc itself.
+  const wmin = Math.min(2.0/RR, 0.7);
+  const terms = (k.terms || []).map(t => ({ a: t.a, r: t.r, w: Math.max(t.w, wmin),
+                                            m: t.m || 0, phase: t.phase || 0 }));
   // Same limit for noise: the finest octave's lattice must span a few cells.
   const octMax = Math.max(1, Math.floor(Math.log2(Math.max(2, 2*KR/3))));
   const oct = Math.max(1, Math.min(k.oct, octMax));
@@ -2549,7 +2678,7 @@ function bakeKernel(k, KR){
       for(let sy = -1; sy <= 1; sy++){
         for(let sx = -1; sx <= 1; sx++){
           const px = x + sx/3, py = y + sy/3;
-          const rr = Math.hypot(px, py)/KR;
+          const rr = Math.hypot(px, py)/RR;
           if(rr > 1) continue;               // dividing by 9 below, not by the
           let v = 0;                         // hit count, feathers the rim too
           if(k.type === "disc"){
@@ -2567,8 +2696,21 @@ function bakeKernel(k, KR){
               amp *= 0.5; f *= 2;
             }
           }else{
+            // A lobe may carry an angular order m and a phase. m = 0 is the
+            // radial ring this has always drawn -- Lenia's shape. m = 1 is a
+            // signed gradient along an axis, which is exactly what a Sobel
+            // filter is, so an NCA's identity/Sobel-x/Sobel-y perception is
+            // the case m in {0, 1, 1}. Higher orders add finer angular
+            // structure. Orders above zero are also the only way a kernel can
+            // tell one direction from another, and a rotationally symmetric
+            // bank therefore has only rotationally symmetric fixed points --
+            // it cannot hold anything shaped like an animal.
+            // Absent fields mean m = 0 and phase = 0, so every kernel written
+            // before this bakes to exactly what it did.
+            const th = Math.atan2(py, px);
             for(const t of terms)
-              v += t.a*Math.exp(-(((rr - t.r)/t.w)**2));
+              v += t.a*Math.exp(-(((rr - t.r)/t.w)**2))
+                 * (t.m ? Math.cos(t.m*th + t.phase) : 1.0);
           }
           acc += v;
         }
@@ -2601,7 +2743,7 @@ function bakeKernel(k, KR){
   let sumG = 0, sumW = 0, l1 = 0;
   for(let y = -KR; y <= KR; y++){
     for(let x = -KR; x <= KR; x++){
-      const rr = Math.hypot(x, y)/KR, i = (y + KR)*K + (x + KR);
+      const rr = Math.hypot(x, y)/RR, i = (y + KR)*K + (x + KR);
       if(rr > 1){ folded[i] = 0; continue; }
       const f = Math.max(0, Math.min(1, (1 - rr)/Math.max(1e-3, k.feather)));
       const w = f*f*(3 - 2*f);
@@ -2634,6 +2776,10 @@ function separablePlan(){
   for(let c = 0; c < S.C; c++){
     const k = kernels[c];
     if(k.type !== "radial" || k.sym !== "radial") return null;
+    // The separable path rebuilds a kernel from two 1-D blurs, which can only
+    // ever produce a radial shape. An angular lobe run down it would silently
+    // come out as a plain difference of gaussians.
+    if((k.terms || []).some(t => t.m)) return null;
     if(k.terms.length !== 1 && k.terms.length !== 2) return null;
     const t = k.terms.slice().sort((a, b) => b.w - a.w);          // wide term first
     if(t.some(x => x.r !== 0)) return null;
@@ -2673,14 +2819,12 @@ function uploadKernels(){
   const data = new Float32Array(K*K*L*4);
   for(let c = 0; c < S.C; c++){
     const k = kernels[c];
-    const kr = Math.max(2, Math.round(kernelKR*Math.min(1, k.R/Rmax)));
-    const small = bakeKernel(k, kr), SK = 2*kr + 1;
+    const rr = Math.max(2, kernelKR*Math.min(1, k.R/Rmax));
+    const full = bakeKernel(k, kernelKR, rr);
     const layer = c >> 2, comp = c & 3;
-    for(let y = 0; y < SK; y++)
-      for(let x = 0; x < SK; x++){
-        const gy = y - kr + kernelKR, gx = x - kr + kernelKR;
-        data[((layer*K + gy)*K + gx)*4 + comp] = small[y*SK + x];
-      }
+    for(let y = 0; y < K; y++)
+      for(let x = 0; x < K; x++)
+        data[((layer*K + y)*K + x)*4 + comp] = full[y*K + x];
   }
   if(kernTex) gl.deleteTexture(kernTex);
   kernTex = gl.createTexture();
@@ -2695,7 +2839,7 @@ function uploadKernels(){
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kterms","kwidth","ksym","cfreq","cdepth"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kterms","kwidth","ksym","cfreq","cdepth","square"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.
@@ -2728,9 +2872,17 @@ function validConfig(c){
 
 function applyConfig(c){
   if(!validConfig(c)) return false;
-  const resize = (c.C !== S.C || c.N !== S.N);
-  for(const k of SCALARS) if(c[k] !== undefined) S[k] = c[k];
+  // A change of lattice shape is a resize too: a world pinned square needs new
+  // textures even when its channel count and size are unchanged.
+  const resize = (c.C !== S.C || c.N !== S.N
+                  || !!c.square !== !!S.square);
+  for(const k of SCALARS)
+    if(c[k] !== undefined
+       && !(k === "palette" && S.paletteKept)
+       && !(k === "blend" && S.blendKept)) S[k] = c[k];
   S.seed = c.seed ?? S.seed;
+  if(Array.isArray(c.seedMasses)) S.seedMasses = c.seedMasses.slice();
+  S.seedDisc = c.seedDisc || 0;
   S.seedPattern = c.seedPattern || null;
   palette = makePalette(S.C, S.palette);
   mat = Float32Array.from(c.mat);
@@ -2856,21 +3008,40 @@ function importSetups(){
   status(`Imported ${added} new, replaced ${replaced}`);
 }
 
-// The shelf of worlds under the field. Its manifest is optional: a standalone
-// copy of this page with no worlds.json beside it simply has no shelf.
-async function loadWorlds(){
-  let data = null;
-  try{
-    const res = await fetch("worlds.json", { cache: "no-cache" });
-    if(res.ok) data = await res.json();
-  }catch(e){ data = null; }
-  const items = data && Array.isArray(data.setups) ? data.setups : null;
-  if(!items || !items.length) return;
+// The shelf under the field, in two parts. A preset that starts from a field --
+// noise, or a disc -- is a world; one that starts from a saved body is a
+// creature, and it goes on its own rail. Both manifests are optional: a
+// standalone copy of this page with neither beside it simply has no shelf.
+const isCreature = it =>
+  it.cfg && (it.cfg.seedMode === "masses" || it.cfg.seedMode === "pattern");
 
-  const dir = (data.dir || "worlds").replace(/\/$/, "");
-  const rail = $("striprail");
+async function loadWorlds(){
+  const items = [];
+  for(const src of ["worlds.json", "gliders.json"]){
+    let data = null;
+    try{
+      const res = await fetch(src, { cache: "no-cache" });
+      if(res.ok) data = await res.json();
+    }catch(e){ data = null; }
+    if(!data || !Array.isArray(data.setups)) continue;
+    // Thumbnails sit beside their own manifest, wherever that was fetched from.
+    const dir = src.slice(0, src.lastIndexOf("/") + 1)
+              + (data.dir || "worlds").replace(/\/$/, "");
+    for(const it of data.setups) items.push({ ...it, dir });
+  }
+  const worlds = items.filter(it => !isCreature(it));
+  const critters = items.filter(isCreature);
+  let any = false;
+  if(fillShelf(worlds, "wshelf", "striprail", "stripprev", "stripnext")) any = true;
+  if(fillShelf(critters, "cshelf", "critterrail", "critterprev", "critternext")) any = true;
+  if(any) $("strip").hidden = false;
+}
+
+function fillShelf(list, boxId, railId, prevId, nextId){
+  if(!list.length) return false;
+  const rail = $(railId);
   const frag = document.createDocumentFragment();
-  items.forEach((it, i) => {
+  list.forEach((it, i) => {
     const b = document.createElement("button");
     b.className = "w-item";
     b.type = "button";
@@ -2879,7 +3050,7 @@ async function loadWorlds(){
     b.dataset.i = String(i);
     b.dataset.tip = it.name + (it.tags ? " \u2014 " + it.tags.join(" ") : "");
     const img = document.createElement("img");
-    img.src = dir + "/" + it.thumb;
+    img.src = it.dir + "/" + it.thumb;
     img.alt = "";
     img.loading = "lazy";
     const n = document.createElement("b");
@@ -2888,10 +3059,10 @@ async function loadWorlds(){
     frag.appendChild(b);
   });
   rail.appendChild(frag);
-  $("strip").hidden = false;
+  $(boxId).hidden = false;
 
   // Arrows step by whole tiles, so a click never leaves one sliced in half.
-  const prev = $("stripprev"), next = $("stripnext");
+  const prev = $(prevId), next = $(nextId);
   const tileStep = () => {
     const one = rail.querySelector(".w-item");
     const w = one ? one.getBoundingClientRect().width + 5 : 51;
@@ -2899,6 +3070,8 @@ async function loadWorlds(){
   };
   const syncArrows = () => {
     const max = rail.scrollWidth - rail.clientWidth;
+    // Nothing to scroll to, nothing to press. A narrow screen puts them back.
+    prev.hidden = next.hidden = max <= 1;
     prev.disabled = rail.scrollLeft <= 1;
     next.disabled = rail.scrollLeft >= max - 1;
   };
@@ -2911,9 +3084,11 @@ async function loadWorlds(){
   rail.addEventListener("click", e => {
     const b = e.target.closest(".w-item");
     if(!b) return;
-    const it = items[+b.dataset.i];
+    const it = list[+b.dataset.i];
     if(!it) return;
-    for(const o of rail.children) o.setAttribute("aria-selected", String(o === b));
+    // One thing runs at a time, whichever shelf it came off.
+    for(const o of document.querySelectorAll(".w-item"))
+      o.setAttribute("aria-selected", String(o === b));
     if(!applyConfig(it.cfg)){ status("\u201c" + it.name + "\u201d could not be loaded", true); return; }
     // A preset carries the rule, not the field it was measured on, so start it
     // from the same opening state the search gave it.
@@ -2921,6 +3096,7 @@ async function loadWorlds(){
     mass0 = null;
     status("Loaded \u201c" + it.name + "\u201d");
   });
+  return true;
 }
 
 function rebuildColors(){
@@ -2938,6 +3114,8 @@ function rebuildColors(){
 
 /* ---------------------------------------------------------------- loop */
 let lastT = performance.now(), fpsAcc = 0, fpsN = 0, mass0 = null, painting = null;
+let lastStepT = 0;                    // when the world last advanced, for the FPS cap
+let stepsInWindow = 0;                // world advances since the readout last spoke
 let massWait = 60;   // frames since the last completed mass read
 let frameErr = 0;
 function frame(){
@@ -2968,8 +3146,26 @@ function frameBody(){
       paintAt(ax + (bx - ax)*i/n, ay + (by - ay)*i/n, dt/n);
     painting.last = painting.cur;
   }
-  if(S.running && performance.now() >= S.holdUntil)
-    for(let i = 0; i < S.steps; i++) step();
+  // Rate caps how often the world ADVANCES, not how often it is drawn. Gating
+  // the draw instead would make panning and painting judder at low rates, and
+  // the point is to watch a pattern form, not to watch the page struggle.
+  const tNow = performance.now();
+  if(S.running && tNow >= S.holdUntil){
+    const per = 1000/Math.max(S.fps, 0.1);
+    if(!lastStepT) lastStepT = tNow;
+    // How many advances are owed since the last one. Below the display rate
+    // that is nought or one; above it, several, which is how a rate faster than
+    // the screen is reached at all. Owing more than a few means the machine
+    // cannot keep up, and catching up on all of it would only make it worse.
+    let owed = Math.min(8, Math.floor((tNow - lastStepT)/per));
+    if(owed > 0){
+      lastStepT += owed*per;
+      if(tNow - lastStepT > 250) lastStepT = tNow;      // arrears are forgiven, not banked
+      for(let k = 0; k < owed; k++)
+        for(let i = 0; i < S.steps; i++) step();
+      stepsInWindow += owed*S.steps;
+    }
+  }
   render();
   // The drawing buffer is not preserved, so a screenshot has to be taken here,
   // in the same tick as the draw that filled it.
@@ -2977,7 +3173,13 @@ function frameBody(){
 
   const now = performance.now();
   fpsAcc += now - lastT; fpsN++; lastT = now;
-  if(fpsN >= 20){ $("hfps").textContent = (1000/(fpsAcc/fpsN)).toFixed(0); fpsAcc = 0; fpsN = 0; }
+  // What the number counts is the world advancing, which is what FPS sets --
+  // not how often the page redraws, which is the display's business and was
+  // reading 120 on a 120Hz screen with the world capped at 30.
+  if(fpsN >= 20){
+    $("hfps").textContent = (stepsInWindow*1000/Math.max(fpsAcc, 1)).toFixed(0);
+    fpsAcc = 0; fpsN = 0; stepsInWindow = 0;
+  }
   $("hstep").textContent = S.tick;
 
   S.frame++;
@@ -3024,6 +3226,7 @@ function boot(){
   slider("beta", "beta");
   slider("noise", "noise");
   slider("steps", "steps");
+  slider("fps", "fps");
   slider("expo", "expo");
   slider("dens", "density");
 
@@ -3036,9 +3239,25 @@ function boot(){
   $("grid").addEventListener("input", e => { $("gridv").textContent = num(e.target.value); });
   $("chan").addEventListener("input", e => { $("chanv").textContent = e.target.value; });
   $("chan").addEventListener("change", e => { S.C = +e.target.value; rebuildColors(); });
+  // Resolution is how finely the world is drawn, not how big it is. A reach of
+  // a tenth of the world has to stay a tenth of the world when the lattice
+  // doubles, and a seed spread over four times as many cells has to carry four
+  // times the mass to keep its density -- otherwise the same numbers describe a
+  // different world and whatever was living in it is lost.
   $("grid").addEventListener("change", e => {
+    const was = S.N;
     S.N = +e.target.value; $("gridv").textContent = num(S.N);
-    allocate(); uploadKernels(); buildKernelUI(); mass0 = null;
+    const k = S.N/was;
+    if(k !== 1){
+      S.radMin *= k; S.radMax *= k;
+      for(const kern of kernels) kern.R *= k;
+      if(S.seedMasses) S.seedMasses = S.seedMasses.map(m => m*k*k);
+      if(S.seedPattern) S.seedPattern = { ...S.seedPattern, cells: (S.seedPattern.cells || 1)*k };
+    }
+    allocate();                                   // the new lattice, and a new field on it
+    for(const kern of kernels) kern.R = Math.min(kern.R, radiusCap());
+    S.radMin = Math.min(S.radMin, radiusCap()); S.radMax = Math.min(S.radMax, radiusCap());
+    uploadKernels(); buildKernelUI(); syncControls(); mass0 = null;
   });
   $("play").addEventListener("click", e => {
     S.running = !S.running; e.target.textContent = S.running ? "Pause" : "Run";
@@ -3196,10 +3415,14 @@ function boot(){
   cmap.value = S.palette;
   cmap.addEventListener("change", () => {
     S.palette = cmap.value;
+    // A colour map is a choice about looking, not about the world. Once it has
+    // been made it is yours: loading a preset changes what is in the world, not
+    // what you are seeing it in.
+    S.paletteKept = true;
     palette = makePalette(S.C, S.palette);
     buildMatrixUI(); buildKernelUI(); buildSwatches();
   });
-  $("blend").addEventListener("change", e => S.blend = +e.target.value);
+  $("blend").addEventListener("change", e => { S.blend = +e.target.value; S.blendKept = true; });
   $("inter").addEventListener("change", e => S.inter = +e.target.value);
   SYNC.push(() => {
     cmap.value = S.palette; $("blend").value = String(S.blend); $("inter").value = String(S.inter);

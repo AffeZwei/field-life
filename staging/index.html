@@ -707,7 +707,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
     <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
-    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. Turn it down to watch a pattern form; past the display's own rate the world takes several steps per frame to keep up. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="240" step="1" value="60"><span class="val" id="fpsv">60</span></div>
+    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. Turn it down to watch a pattern form; past the display's own rate the world takes several steps per frame to keep up. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="240" step="1" value="120"><span class="val" id="fpsv">120</span></div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
@@ -2839,7 +2839,7 @@ function uploadKernels(){
 
 /* ------------------------------------------------------------- saved setups */
 const PKEY = "fieldlife.setups.v1";
-const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kterms","kwidth","ksym","cfreq","cdepth","square","fps"];
+const SCALARS = ["N","C","density","radMin","radMax","force","repel","beta","noise","steps","expo","seedMode","palette","blend","kterms","kwidth","ksym","cfreq","cdepth","square"];
 
 // localStorage can be absent, full, or throw outright (private windows, preview
 // captures). Every access is guarded and the page works fine with nothing in it.

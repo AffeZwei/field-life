@@ -710,7 +710,7 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
     <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
-    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. Turn it down to watch a pattern form; past the display's own rate the world takes several steps per frame to keep up. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="240" step="1" value="120"><span class="val" id="fpsv">120</span></div>
+    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="An upper limit on how often the world advances, never a push: it takes at most one step per drawn frame, so the display's own rate is the ceiling and a slow machine simply runs slower. Turn it down to watch a pattern form. To go faster than the screen draws, raise Speed." type="range" min="1" max="240" step="1" value="120"><span class="val" id="fpsv">120</span></div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
@@ -3157,25 +3157,22 @@ function frameBody(){
   // the draw instead would make panning and painting judder at low rates, and
   // the point is to watch a pattern form, not to watch the page struggle.
   const tNow = performance.now();
+  // The animation frame sets the pace and FPS can only hold the world back,
+  // never push it: at most one advance a frame, skipped when it is too soon.
+  // Steps are not counted up as owed and paid off later -- a frame that ran
+  // long means the machine is struggling, and asking it for several steps in
+  // the next frame rather than one is how a slow phone becomes a stuttering
+  // one. Running faster than the display draws is what Speed is for.
   if(S.running && tNow >= S.holdUntil){
     const per = 1000/Math.max(S.fps, 0.1);
-    if(!lastStepT) lastStepT = tNow;
-    // How many advances are owed since the last one. Below the display rate
-    // that is nought or one; above it, several, which is how a rate faster than
-    // the screen is reached at all. Owing more than a few means the machine
-    // cannot keep up, and catching up on all of it would only make it worse.
-    let owed = Math.min(8, Math.floor((tNow - lastStepT)/per));
-    if(owed > 0){
-      lastStepT += owed*per;
-      if(tNow - lastStepT > 250) lastStepT = tNow;      // arrears are forgiven, not banked
-      for(let k = 0; k < owed; k++)
-        for(let i = 0; i < S.steps; i++) step();
-      stepsInWindow += owed*S.steps;
+    if(tNow - lastStepT >= per - 1){        // a 60Hz frame lands a hair under 16.67ms
+      lastStepT = tNow;
+      for(let i = 0; i < S.steps; i++) step();
+      stepsInWindow += S.steps;
     }
   }else{
-    // A world that is not advancing owes nothing. Without this, time spent
-    // paused counts as arrears and pressing Run takes the whole burst at once,
-    // which looks like a creature skipping the start of its own growth.
+    // A world that is not advancing is not falling behind either, so resuming
+    // carries on from here rather than from wherever it was paused.
     lastStepT = tNow;
   }
   render();

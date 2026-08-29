@@ -706,6 +706,8 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
       <button id="play" class="primary" title="Pause or resume">Pause</button>
       <button id="stepone" title="Advance exactly one step. Pauses first, so you can walk through it.">Step</button>
     </div>
+    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
+    <div class="row"><label class="lab" for="fps">FPS</label><input id="fps" title="How many times a second the world advances. 60 runs as fast as the display will go; turn it down to watch a pattern form. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="60" step="1" value="60"><span class="val" id="fpsv">60</span></div>
     <p class="note lead">Reseed the world</p>
     <div class="btns sm">
       <button id="reseed" title="Fill the world with random speckled mass">Noise</button>
@@ -722,8 +724,6 @@ input[type=text]::placeholder{color:var(--ink2); opacity:.7}
     <div class="row"><label class="lab" for="repel">Repel</label><input id="repel" title="Dislike of crowding. Pushes mass out of cells that are already full." type="range" min="0" max="30" step="0.5" value="6"><span class="val" id="repelv">6</span></div>
     <div class="row"><label class="lab" for="beta">Beta</label><input id="beta" title="How decisively mass picks its best neighbor. Low spreads, high commits." type="range" min="0" max="14" step="0.1" value="3"><span class="val" id="betav">3</span></div>
     <div class="row"><label class="lab" for="noise">Noise</label><input id="noise" title="Jitter added to the affinity. Lets shapes drift off the grid axes." type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="noisev">0</span></div>
-    <div class="row"><label class="lab" for="steps">Speed</label><input id="steps" title="Simulation steps per frame. Higher runs faster and costs more." type="range" min="1" max="8" step="1" value="1"><span class="val" id="stepsv">1</span></div>
-    <div class="row"><label class="lab" for="fps">Rate</label><input id="fps" title="How many times a second the world advances. 60 runs as fast as the display will go; turn it down to watch a pattern form. Drawing is unaffected, so panning and painting stay smooth however slow this is." type="range" min="1" max="60" step="1" value="60"><span class="val" id="fpsv">60</span></div>
     <div class="row"><label class="lab" for="inter">Law</label><select id="inter" title="Built-in interaction shape, when no kernel is designed">
       <option value="0">Ring</option><option value="1">Blob</option><option value="2">Linear</option>
     </select></div>

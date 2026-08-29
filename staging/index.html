@@ -1576,6 +1576,7 @@ const S = {
   seedPattern: null,                  // a saved creature, for seedMode "pattern"
   seedDisc: 0,                        // seed radius in cells, 0 = a tenth of the world
   paletteKept: false,                 // you picked a colour map; presets leave it alone
+  blendKept: false,                   // and how colours combine, once you have chosen
   running: true, frame: 0, tick: 0,
   holdUntil: 0,                        // let the opening state be seen before it moves
   zoom: 1, panU: 0.5, panV: 0.5,       // view only, in world units
@@ -2877,7 +2878,9 @@ function applyConfig(c){
   const resize = (c.C !== S.C || c.N !== S.N
                   || !!c.square !== !!S.square);
   for(const k of SCALARS)
-    if(c[k] !== undefined && !(k === "palette" && S.paletteKept)) S[k] = c[k];
+    if(c[k] !== undefined
+       && !(k === "palette" && S.paletteKept)
+       && !(k === "blend" && S.blendKept)) S[k] = c[k];
   S.seed = c.seed ?? S.seed;
   if(Array.isArray(c.seedMasses)) S.seedMasses = c.seedMasses.slice();
   S.seedDisc = c.seedDisc || 0;
@@ -3403,7 +3406,7 @@ function boot(){
     palette = makePalette(S.C, S.palette);
     buildMatrixUI(); buildKernelUI(); buildSwatches();
   });
-  $("blend").addEventListener("change", e => S.blend = +e.target.value);
+  $("blend").addEventListener("change", e => { S.blend = +e.target.value; S.blendKept = true; });
   $("inter").addEventListener("change", e => S.inter = +e.target.value);
   SYNC.push(() => {
     cmap.value = S.palette; $("blend").value = String(S.blend); $("inter").value = String(S.inter);

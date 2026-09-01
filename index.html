@@ -3646,6 +3646,46 @@ function boot(){
     writeRho,
   };
 
+    function connectToMax() {
+    const ws = new WebSocket("ws://192.168.178.59:8080"); // from same laptop ("ws://127.0.0.1:8080");
+
+    const setControl = (id, value) => {
+      const input = $(id);
+      if (!input || !Number.isFinite(value)) return;
+
+      input.value = String(value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+
+    ws.addEventListener("message", event => {
+      let message;
+      try {
+        message = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      const value = Number(message.value);
+
+      switch (message.address) {
+        case "/field/physics/rmin":  setControl("radmin", value); break;
+        case "/field/physics/rmax":  setControl("radmax", value); break;
+        case "/field/physics/force": setControl("force", value);  break;
+        case "/field/physics/repel": setControl("repel", value);  break;
+      }
+    });
+
+    ws.addEventListener("close", () => {
+      setTimeout(connectToMax, 1500);
+    });
+
+    ws.addEventListener("error", () => {
+      ws.close();
+    });
+  }
+
+  connectToMax();
+
   requestAnimationFrame(frame);
 }
 
